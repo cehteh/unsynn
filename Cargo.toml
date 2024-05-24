@@ -1,0 +1,19 @@
+[package]
+name = "unsynn"
+version = "0.0.0"
+edition = "2021"
+authors = ["Christian Thäter <ct@pipapo.org>"]
+description = "Minimalist proc_macro parser library"
+documentation = "https://docs.rs/unsynn"
+license = "MIT OR Apache-2.0"
+repository = "https://git.pipapo.org/cehteh/unsynn.git"
+keywords = ["parser", "macros", "proc_macro"]
+categories = ["development-tools::procedural-macro-helpers", "parser-implementations"]
+readme = "README.md"
+rust-version = "1.59.0"
+
+[dependencies]
+proc-macro2 = { version = "1.0.81", features = ["proc-macro", "span-locations"]}
+
+[dev-dependencies]
+quote = "1.0.36"
