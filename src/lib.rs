@@ -19,6 +19,19 @@ where
 {
     /// Parse a value from the TokenIter. Must not advance `tokens` when a parse error occurs.
     fn parse(tokens: &mut TokenIter) -> Result<Self>;
+
+    /// Parse a value, pass it to a closure which may modify or drop it.
+    /// If the closure returns `Some`, the value is returned, otherwise an error is returned.
+    fn parse_with(tokens: &mut TokenIter, f: impl FnOnce(Self) -> Option<Self>) -> Result<Self> {
+        let mut ptokens = tokens.clone();
+        let result = Self::parse(&mut ptokens)?;
+        if let Some(result) = f(result) {
+            *tokens = ptokens;
+            Ok(result)
+        } else {
+            Err("condition failed".into())
+        }
+    }
 }
 
 // Parsers for the `proc_macro2` entities
