@@ -2,7 +2,7 @@
 
 //use std::fmt::Display;
 
-pub use proc_macro2::*;
+pub use proc_macro2::{Delimiter, Group, Ident, Literal, Punct, Spacing, TokenStream, TokenTree};
 
 /// Error type for parsing.
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
