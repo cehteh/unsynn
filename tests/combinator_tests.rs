@@ -24,4 +24,3 @@ fn test_either() {
         unreachable!();
     };
 }
-
