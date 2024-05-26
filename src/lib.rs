@@ -49,6 +49,10 @@ pub use punct::*;
 mod ident;
 pub use ident::*;
 
+// Literals
+mod literal;
+pub use literal::*;
+
 // Delimited sequences
 mod delimited;
 pub use delimited::*;
