@@ -194,6 +194,10 @@ impl<const C1: char, const C2: char, const C3: char> Display for ThreePunct<C1, 
     }
 }
 
+// unsynn policy is not to implement rust grammar, for the Punct tokens we make an exception
+// because they are mostly universal and already partial lexed (Spacing::Alone/Joint) it would
+// add a lot confusion when every grammar has to define its own Punct types.
+
 /// `+`
 pub type Plus = OnePunct<'+'>;
 /// `-`
