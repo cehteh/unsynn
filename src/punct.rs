@@ -56,6 +56,59 @@ impl<const C: char> Display for OnePunct<C> {
     }
 }
 
+/// A single character punctuation token where the lexer joined it with the next `Punct` or a
+/// single quote followed by a identifier (eg. rust lifetime). Note that the rust lexer
+/// already knows about rust operators, the rules when `Punct` are `Spacing::Alone` or
+/// `Spacing::Joint` are geared towards rust syntax. Not all combinations work as expected.
+///
+/// # Example
+///
+/// ```
+/// # use unsynn::*;
+/// let mut token_iter = quote::quote! {:::}.into_iter();
+///
+/// // The lexer won't join ':::' together it only knows about '::'
+/// let colon = JointPunct::<':'>::parse(&mut token_iter).unwrap();
+/// let colon = OnePunct::<':'>::parse(&mut token_iter).unwrap();
+/// let colon = OnePunct::<':'>::parse(&mut token_iter).unwrap();
+/// ```
+pub struct JointPunct<const C: char>;
+
+impl<const C: char> JointPunct<C> {
+    /// Get the `char` value this object represents.
+    pub fn as_char(&self) -> char {
+        C
+    }
+}
+
+impl<const C: char> Parse for JointPunct<C> {
+    fn parse(tokens: &mut TokenIter) -> Result<Self> {
+        let mut ptokens = tokens.clone();
+        match ptokens.next() {
+            Some(TokenTree::Punct(punct))
+                if punct.spacing() == Spacing::Joint && punct.as_char() == C =>
+            {
+                *tokens = ptokens;
+                Ok(Self)
+            }
+            Some(other) => Err(format!(
+                "expected JointPunct<{:?}>, got {:?} at {:?}",
+                C,
+                other,
+                other.span().start()
+            )
+            .into()),
+            None => Err(format!("expected JointPunct<{:?}>, got end of stream", C).into()),
+        }
+    }
+}
+
+impl<const C: char> Display for JointPunct<C> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{C}")
+    }
+}
+
 /// double character punctuation
 pub struct TwoPunct<const C1: char, const C2: char>;
 
