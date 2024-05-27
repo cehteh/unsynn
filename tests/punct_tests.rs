@@ -5,7 +5,7 @@ fn test_onepunct() {
     let mut token_iter = quote::quote! {; nopunct}.into_iter();
 
     let semi = Semicolon::parse(&mut token_iter).unwrap();
-    assert_eq!(semi.to_string(), ";");
+    assert_eq!(semi.as_char(), ';');
 }
 
 #[test]

@@ -18,11 +18,12 @@ impl Display for Nothing {
     }
 }
 
-/// A single character punctuation token
+/// A single character punctuation token lexed with `Spacing::Alone`.
 pub struct OnePunct<const C: char>;
 
 impl<const C: char> OnePunct<C> {
-    pub fn as_char() -> char {
+    /// Get the `char` value this object represents.
+    pub fn as_char(&self) -> char {
         C
     }
 }
