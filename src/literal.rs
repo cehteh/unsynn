@@ -9,11 +9,9 @@ pub struct LiteralInteger {
 }
 
 impl Parse for LiteralInteger {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
-        let mut ptokens = tokens.clone();
-        let literal = Literal::parse(&mut ptokens)?;
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        let literal = Literal::parser(tokens)?;
         let value = literal.to_string().parse()?;
-        *tokens = ptokens;
         Ok(Self { literal, value })
     }
 }
@@ -25,15 +23,13 @@ pub struct LiteralCharacter {
 }
 
 impl Parse for LiteralCharacter {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
-        let mut ptokens = tokens.clone();
-        let literal = Literal::parse(&mut ptokens)?;
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        let literal = Literal::parser(tokens)?;
         let string = literal.to_string();
         let mut chars = string.chars();
         // We need only to to check for first single quote, since the lexer already checked
         // for proper literals
         if let (Some('\''), Some(value)) = (chars.next(), chars.next()) {
-            *tokens = ptokens;
             Ok(Self { literal, value })
         } else {
             Err(format!("Expected a single character literal, got {:?}", literal).into())
@@ -48,13 +44,11 @@ pub struct LiteralString {
 }
 
 impl Parse for LiteralString {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
-        let mut ptokens = tokens.clone();
-        let literal = Literal::parse(&mut ptokens)?;
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        let literal = Literal::parser(tokens)?;
         let string = literal.to_string();
         // The lexer did its job here as well
         if &string[0..1] == "\"" {
-            *tokens = ptokens;
             Ok(Self {
                 literal,
                 value: string,

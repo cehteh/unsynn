@@ -7,7 +7,7 @@ use crate::*;
 
 /// Zero or One of T
 impl<T: Parse> Parse for Option<T> {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match T::parse(tokens) {
             Ok(value) => Ok(Some(value)),
             Err(_) => Ok(None),
@@ -17,7 +17,7 @@ impl<T: Parse> Parse for Option<T> {
 
 /// Any number of T
 impl<T: Parse> Parse for Vec<T> {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let mut output = Vec::new();
         while let Ok(value) = T::parse(tokens) {
             output.push(value);
@@ -29,32 +29,32 @@ impl<T: Parse> Parse for Vec<T> {
 /// Box any parseable entity. In a enum it may happen that most variants are rather small
 /// while few variants are large. In this case it may be beneficial to box the large variants.
 impl<T: Parse> Parse for Box<T> {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
-        Ok(Box::new(T::parse(tokens)?))
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        Ok(Box::new(T::parser(tokens)?))
     }
 }
 
 /// Rc any parseable entity. Just because we can. Sometimes when a value is shared between
 /// multiple entities it may be beneficial to use Rc.
 impl<T: Parse> Parse for Rc<T> {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
-        Ok(Rc::new(T::parse(tokens)?))
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        Ok(Rc::new(T::parser(tokens)?))
     }
 }
 
 /// Put any parseable entity in a RefCell. In case one wants to mutate the a parse tree on the
 /// fly.
 impl<T: Parse> Parse for RefCell<T> {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
-        Ok(RefCell::new(T::parse(tokens)?))
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        Ok(RefCell::new(T::parser(tokens)?))
     }
 }
 
 /// Put any parseable entity in a Cell. This is useful for when one has an immutable AST and
 /// wants to swap values.
 impl<T: Parse> Parse for Cell<T> {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
-        Ok(Cell::new(T::parse(tokens)?))
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        Ok(Cell::new(T::parser(tokens)?))
     }
 }
 
@@ -64,7 +64,7 @@ impl<T: Parse> Parse for Cell<T> {
 pub struct DelimitedVec<T: Parse, D: Parse>(pub Vec<Delimited<T, D>>);
 
 impl<T: Parse, D: Parse> Parse for DelimitedVec<T, D> {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let mut output = Vec::new();
         while let Ok(value) = Delimited::<T, D>::parse(tokens) {
             let done = value.1.is_none();
@@ -97,10 +97,9 @@ pub struct Repeats<const MIN: usize, const MAX: usize, T: Parse, D: Parse = Noth
 );
 
 impl<const MIN: usize, const MAX: usize, T: Parse, D: Parse> Parse for Repeats<MIN, MAX, T, D> {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
-        let mut ptokens = tokens.clone();
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let mut output = Vec::new();
-        while let Ok(value) = Delimited::<T, D>::parse(&mut ptokens) {
+        while let Ok(value) = Delimited::<T, D>::parse(tokens) {
             let done = value.1.is_none();
             output.push(value);
             #[allow(unused_comparisons)]
@@ -111,7 +110,6 @@ impl<const MIN: usize, const MAX: usize, T: Parse, D: Parse> Parse for Repeats<M
 
         #[allow(unused_comparisons)]
         if output.len() >= MIN {
-            *tokens = ptokens;
             Ok(Self(output))
         } else {
             Err(format!(

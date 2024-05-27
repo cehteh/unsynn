@@ -4,8 +4,8 @@ use crate::*;
 pub struct Delimited<T: Parse, D: Parse>(pub T, pub Option<D>);
 
 impl<T: Parse, D: Parse> Parse for Delimited<T, D> {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
-        Ok(Self(T::parse(tokens)?, Option::<D>::parse(tokens)?))
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        Ok(Self(T::parser(tokens)?, Option::<D>::parser(tokens)?))
     }
 }
 

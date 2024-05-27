@@ -19,6 +19,8 @@ fn test_vec() {
     assert_eq!(args.len(), 7);
     let noargs = Vec::<Punct>::parse(&mut token_iter).unwrap();
     assert!(noargs.is_empty());
+    let idents = Vec::<Ident>::parse(&mut token_iter).unwrap();
+    assert_eq!(idents.len(), 1);
 }
 
 #[test]

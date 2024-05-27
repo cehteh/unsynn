@@ -95,3 +95,16 @@ fn test_delimited() {
     assert_eq!(delim.0.to_string(), "baz");
     assert!(delim.1.is_none());
 }
+
+#[test]
+fn test_delimited_undelimited() {
+    let mut token_iter = quote::quote! { foo bar }.into_iter();
+
+    let delim = Delimited::<Ident, Comma>::parse(&mut token_iter).unwrap();
+    assert_eq!(delim.0.to_string(), "foo");
+    assert!(delim.1.is_none());
+
+    let delim = Delimited::<Ident, Comma>::parse(&mut token_iter).unwrap();
+    assert_eq!(delim.0.to_string(), "bar");
+    assert!(delim.1.is_none());
+}

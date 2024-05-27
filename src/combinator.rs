@@ -6,11 +6,8 @@ use std::marker::PhantomData;
 pub struct Cons<A: Parse, B: Parse>(A, B);
 
 impl<A: Parse, B: Parse> Parse for Cons<A, B> {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
-        let mut ptokens = tokens.clone();
-        let result = Self(A::parse(&mut ptokens)?, B::parse(&mut ptokens)?);
-        *tokens = ptokens;
-        Ok(result)
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        Ok(Self(A::parser(tokens)?, B::parser(tokens)?))
     }
 }
 
@@ -18,9 +15,9 @@ impl<A: Parse, B: Parse> Parse for Cons<A, B> {
 pub struct Except<T: Parse>(PhantomData<T>);
 
 impl<T: Parse> Parse for Except<T> {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let mut ptokens = tokens.clone();
-        match T::parse(&mut ptokens) {
+        match T::parser(&mut ptokens) {
             Ok(_) => Err(format!("unexpected {}", std::any::type_name::<T>()).into()),
             Err(_) => Ok(Self(PhantomData)),
         }
@@ -34,13 +31,10 @@ pub enum Either<A: Parse, B: Parse> {
 }
 
 impl<A: Parse, B: Parse> Parse for Either<A, B> {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
-        let mut ptokens = tokens.clone();
-        if let Ok(first) = A::parse(&mut ptokens) {
-            *tokens = ptokens;
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        if let Ok(first) = A::parse(tokens) {
             Ok(Either::First(first))
-        } else if let Ok(second) = B::parse(&mut ptokens) {
-            *tokens = ptokens;
+        } else if let Ok(second) = B::parser(tokens) {
             Ok(Either::Second(second))
         } else {
             Err(format!(

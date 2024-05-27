@@ -19,11 +19,9 @@ impl From<ParenthesisGroup> for Group {
 }
 
 impl Parse for ParenthesisGroup {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
-        let mut ptokens = tokens.clone();
-        match ptokens.next() {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        match tokens.next() {
             Some(TokenTree::Group(group)) if group.delimiter() == Delimiter::Parenthesis => {
-                *tokens = ptokens;
                 Ok(Self(group))
             }
             Some(other) => Err(format!(
@@ -44,11 +42,9 @@ impl From<BraceGroup> for Group {
 }
 
 impl Parse for BraceGroup {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
-        let mut ptokens = tokens.clone();
-        match ptokens.next() {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        match tokens.next() {
             Some(TokenTree::Group(group)) if group.delimiter() == Delimiter::Brace => {
-                *tokens = ptokens;
                 Ok(Self(group))
             }
             Some(other) => Err(format!(
@@ -69,11 +65,9 @@ impl From<BracketGroup> for Group {
 }
 
 impl Parse for BracketGroup {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
-        let mut ptokens = tokens.clone();
-        match ptokens.next() {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        match tokens.next() {
             Some(TokenTree::Group(group)) if group.delimiter() == Delimiter::Bracket => {
-                *tokens = ptokens;
                 Ok(Self(group))
             }
             Some(other) => Err(format!(
@@ -94,11 +88,9 @@ impl From<NoneGroup> for Group {
 }
 
 impl Parse for NoneGroup {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
-        let mut ptokens = tokens.clone();
-        match ptokens.next() {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        match tokens.next() {
             Some(TokenTree::Group(group)) if group.delimiter() == Delimiter::None => {
-                *tokens = ptokens;
                 Ok(Self(group))
             }
             Some(other) => Err(format!(
@@ -160,12 +152,10 @@ pub struct GroupContaining<G: ParseGroup, C: Parse> {
 }
 
 impl<G: ParseGroup, C: Parse> Parse for GroupContaining<G, C> {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
-        let mut ptokens = tokens.clone();
-        let group = G::parse(&mut ptokens)?;
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        let group = G::parser(tokens)?;
         let mut c_iter = group.as_group().stream().into_iter();
-        let content = C::parse(&mut c_iter)?;
-        *tokens = ptokens;
+        let content = C::parser(&mut c_iter)?;
         Ok(Self { group, content })
     }
 }

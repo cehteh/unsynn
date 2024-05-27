@@ -1,7 +1,7 @@
 use crate::*;
 
 impl Parse for TokenTree {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(token) => Ok(token),
             None => Err("expected TokenTree, got end of stream".into()),
@@ -10,13 +10,9 @@ impl Parse for TokenTree {
 }
 
 impl Parse for Group {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
-        let mut ptokens = tokens.clone();
-        match ptokens.next() {
-            Some(TokenTree::Group(group)) => {
-                *tokens = ptokens;
-                Ok(group)
-            }
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        match tokens.next() {
+            Some(TokenTree::Group(group)) => Ok(group),
             Some(other) => Err(format!(
                 "expected Group, got {:?} at {:?}",
                 other,
@@ -29,13 +25,9 @@ impl Parse for Group {
 }
 
 impl Parse for Ident {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
-        let mut ptokens = tokens.clone();
-        match ptokens.next() {
-            Some(TokenTree::Ident(ident)) => {
-                *tokens = ptokens;
-                Ok(ident)
-            }
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        match tokens.next() {
+            Some(TokenTree::Ident(ident)) => Ok(ident),
             Some(other) => Err(format!(
                 "expected Ident, got {:?} at {:?}",
                 other,
@@ -48,13 +40,9 @@ impl Parse for Ident {
 }
 
 impl Parse for Punct {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
-        let mut ptokens = tokens.clone();
-        match ptokens.next() {
-            Some(TokenTree::Punct(punct)) => {
-                *tokens = ptokens;
-                Ok(punct)
-            }
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        match tokens.next() {
+            Some(TokenTree::Punct(punct)) => Ok(punct),
             Some(other) => Err(format!(
                 "expected Punct, got {:?} at {:?}",
                 other,
@@ -67,13 +55,9 @@ impl Parse for Punct {
 }
 
 impl Parse for Literal {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
-        let mut ptokens = tokens.clone();
-        match ptokens.next() {
-            Some(TokenTree::Literal(literal)) => {
-                *tokens = ptokens;
-                Ok(literal)
-            }
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        match tokens.next() {
+            Some(TokenTree::Literal(literal)) => Ok(literal),
             Some(other) => Err(format!(
                 "expected Literal, got {:?} at {:?}",
                 other,

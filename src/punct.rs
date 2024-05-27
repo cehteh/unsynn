@@ -7,7 +7,7 @@ use std::fmt::Display;
 pub struct Nothing;
 
 impl Parse for Nothing {
-    fn parse(_tokens: &mut TokenIter) -> Result<Self> {
+    fn parser(_tokens: &mut TokenIter) -> Result<Self> {
         Ok(Self)
     }
 }
@@ -29,13 +29,11 @@ impl<const C: char> OnePunct<C> {
 }
 
 impl<const C: char> Parse for OnePunct<C> {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
-        let mut ptokens = tokens.clone();
-        match ptokens.next() {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        match tokens.next() {
             Some(TokenTree::Punct(punct))
                 if punct.spacing() == Spacing::Alone && punct.as_char() == C =>
             {
-                *tokens = ptokens;
                 Ok(Self)
             }
             Some(other) => Err(format!(
@@ -82,13 +80,11 @@ impl<const C: char> JointPunct<C> {
 }
 
 impl<const C: char> Parse for JointPunct<C> {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
-        let mut ptokens = tokens.clone();
-        match ptokens.next() {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        match tokens.next() {
             Some(TokenTree::Punct(punct))
                 if punct.spacing() == Spacing::Joint && punct.as_char() == C =>
             {
-                *tokens = ptokens;
                 Ok(Self)
             }
             Some(other) => Err(format!(
@@ -113,16 +109,14 @@ impl<const C: char> Display for JointPunct<C> {
 pub struct TwoPunct<const C1: char, const C2: char>;
 
 impl<const C1: char, const C2: char> Parse for TwoPunct<C1, C2> {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
-        let mut ptokens = tokens.clone();
-        match (ptokens.next(), ptokens.next()) {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        match (tokens.next(), tokens.next()) {
             (Some(TokenTree::Punct(c1)), Some(TokenTree::Punct(c2)))
                 if c1.spacing() == Spacing::Joint
                     && c1.as_char() == C1
                     && c2.spacing() == Spacing::Alone
                     && c2.as_char() == C2 =>
             {
-                *tokens = ptokens;
                 Ok(Self)
             }
             (Some(other), then) => Err(format!(
@@ -151,9 +145,8 @@ impl<const C1: char, const C2: char> Display for TwoPunct<C1, C2> {
 pub struct ThreePunct<const C1: char, const C2: char, const C3: char>;
 
 impl<const C1: char, const C2: char, const C3: char> Parse for ThreePunct<C1, C2, C3> {
-    fn parse(tokens: &mut TokenIter) -> Result<Self> {
-        let mut ptokens = tokens.clone();
-        match (ptokens.next(), ptokens.next(), ptokens.next()) {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        match (tokens.next(), tokens.next(), tokens.next()) {
             (
                 Some(TokenTree::Punct(c1)),
                 Some(TokenTree::Punct(c2)),
@@ -165,7 +158,6 @@ impl<const C1: char, const C2: char, const C3: char> Parse for ThreePunct<C1, C2
                 && c3.spacing() == Spacing::Alone
                 && c3.as_char() == C3 =>
             {
-                *tokens = ptokens;
                 Ok(Self)
             }
             (Some(other), then1, then2) => Err(format!(
