@@ -1,38 +1,10 @@
-use std::fmt::Display;
-
 use crate::*;
-
-/// A `Ident` with cached `String` value.
-pub struct IdentString {
-    pub ident: Ident,
-    pub string: String,
-}
-
-impl Parser for IdentString {
-    fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        let ident = Ident::parser(tokens)?;
-        let string = ident.to_string();
-        Ok(Self { ident, string })
-    }
-}
-
-impl Display for IdentString {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.string)
-    }
-}
-
-impl AsRef<str> for IdentString {
-    fn as_ref(&self) -> &str {
-        &self.string
-    }
-}
 
 /// Define types matching keywords.
 ///
 /// `keyword!{ Name = "identifier", ...}`
 ///
-/// * `Name` is the name for the (`struct Name(IdentString)`) to be generated
+/// * `Name` is the name for the (`struct Name(Cached<Ident>)`) to be generated
 /// * `"identifier"` is the case sensitive keyword
 ///
 /// `Name::parse()` will then only match the defined identifier.  Additionally `AsRef<str>` is
@@ -58,12 +30,12 @@ impl AsRef<str> for IdentString {
 macro_rules! keyword{
     ($($name:ident = $str:literal),*$(,)?) => {
         $(
-            pub struct $name($crate::IdentString);
+            pub struct $name($crate::CachedIdent);
 
             impl Parser for $name {
                 fn parser(tokens: &mut TokenIter) -> Result<Self> {
-                    Ok(Self($crate::IdentString::parse_with(tokens, |keyword| {
-                        if keyword.string == $str {
+                    Ok(Self($crate::CachedIdent::parse_with(tokens, |keyword| {
+                        if keyword == $str {
                             Some(keyword)
                         } else {
                             None

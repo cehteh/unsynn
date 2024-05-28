@@ -75,6 +75,11 @@ impl<T: Parser> Parse for T {}
 
 // Parsers for the `proc_macro2` entities
 mod procmacro;
+pub use procmacro::*;
+
+// Cache the underlying source code as string for any Type that implements Parser + ToString
+mod cached;
+pub use cached::*;
 
 // Groups by explicit bracket types
 mod group;

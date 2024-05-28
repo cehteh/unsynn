@@ -68,3 +68,14 @@ impl Parser for Literal {
         }
     }
 }
+
+/// `TokenTree` with cached string representation.
+pub type CachedTokenTree = Cached<TokenTree>;
+/// `Group` with cached string representation.
+pub type CachedGroup = Cached<Group>;
+/// `Ident` with cached string representation.
+pub type CachedIdent = Cached<Ident>;
+/// `Punct` with cached string representation.
+pub type CachedPunct = Cached<Punct>;
+/// `Literal` with cached string representation.
+pub type CachedLiteral = Cached<Literal>;
