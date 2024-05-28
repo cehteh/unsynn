@@ -164,7 +164,7 @@ pub type CachedPunct = Cached<Punct>;
 pub type CachedLiteral = Cached<Literal>;
 
 /// A unit that always matches without consuming any tokens.  This is required when one wants
-/// to parse a Repetition without a delimiter.  Note that using `Nothing` as primary entity in
+/// to parse a `Repetition` without a delimiter.  Note that using `Nothing` as primary entity in
 /// a `Vec`, `DelimitedVec` or `Repetition` will result in an infinite loop.
 pub struct Nothing;
 
@@ -181,6 +181,15 @@ impl Display for Nothing {
 }
 
 /// Succeeds when the next token does not match T. Will not consume any tokens.
+///
+/// # Example
+///
+/// ```
+/// # use unsynn::*;
+/// let mut token_iter = quote::quote! {ident}.into_iter();
+///
+/// let _ = Except::<Punct>::parser(&mut token_iter).unwrap();
+/// ```
 pub struct Except<T: Parser>(PhantomData<T>);
 
 impl<T: Parser> Parser for Except<T> {
@@ -199,9 +208,9 @@ impl<T: Parser> Parser for Except<T> {
 ///
 /// ```
 /// # use unsynn::*;
-/// let mut token_iter = quote::quote! { }.into_iter();
+/// let mut token_iter = quote::quote!{ }.into_iter();
 ///
-/// let _eos = EndOfStream::parser(&mut token_iter).unwrap();
+/// let _end_ = EndOfStream::parser(&mut token_iter).unwrap();
 /// ```
 pub struct EndOfStream;
 

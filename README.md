@@ -12,7 +12,20 @@ grammar.
 # use unsynn::*;
 let mut token_iter = quote::quote!{ foo ( bar, baz, barf ) }.into_iter();
 
+// Composition
 let ast =
     Cons::<Ident, ParenthesisGroupContaining::<CommaDelimitedVec<Ident>>>
         ::parse(&mut token_iter).unwrap();
+
+// The same defining a custom type
+unsynn!{
+    struct IdentThenParenthesisedIdents {
+        ident: Ident,
+        pidents: ParenthesisGroupContaining::<CommaDelimitedVec<Ident>>,
+    }
+}
+
+let mut token_iter = quote::quote!{ foo ( bar, baz, barf ) }.into_iter();
+
+let ast = IdentThenParenthesisedIdents::parse(&mut token_iter).unwrap();
 ```

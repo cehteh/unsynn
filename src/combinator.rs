@@ -1,6 +1,6 @@
 use crate::*;
 
-/// A followed by B
+/// Conjunctive `A` followed by `B`
 pub struct Cons<A: Parser, B: Parser>(A, B);
 
 impl<A: Parser, B: Parser> Parser for Cons<A, B> {
@@ -9,9 +9,11 @@ impl<A: Parser, B: Parser> Parser for Cons<A, B> {
     }
 }
 
-/// Either A or B in that order.
+/// Disjunctive `A` or `B` tried in that order.
 pub enum Either<A: Parser, B: Parser> {
+    /// The first alternative
     First(A),
+    /// The second alternative
     Second(B),
 }
 

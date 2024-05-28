@@ -1,10 +1,12 @@
 use crate::*;
 
-/// A simple unsigned 128 bit integer. Sometimes macros need integers passed. This is the most
-/// simple form to parse these. Note that only decimal integers without any other characters,
-/// signs or suffixes are supported, this is not full rust syntax.
+/// A simple unsigned 128 bit integer. This is the most simple form to parse integers. Note
+/// that only decimal integers without any other characters, signs or suffixes are supported,
+/// this is *not* full rust syntax.
 pub struct LiteralInteger {
+    /// Literal representing an integer
     pub literal: Literal,
+    /// Value of the integer
     pub value: u128,
 }
 
@@ -18,7 +20,9 @@ impl Parser for LiteralInteger {
 
 /// A single quoted character literal (`'x'`).
 pub struct LiteralCharacter {
+    /// Literal representing a single quoted character
     pub literal: Literal,
+    /// The character value
     pub value: char,
 }
 
@@ -39,7 +43,9 @@ impl Parser for LiteralCharacter {
 
 /// A double quoted string literal (`"hello"`). The quotes are included in the value.
 pub struct LiteralString {
+    /// Literal representing a double quoted string
     pub literal: Literal,
+    /// The string value
     pub value: String,
 }
 

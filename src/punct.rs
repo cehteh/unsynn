@@ -38,9 +38,9 @@ impl<const C: char> Display for OnePunct<C> {
 }
 
 /// A single character punctuation token where the lexer joined it with the next `Punct` or a
-/// single quote followed by a identifier (eg. rust lifetime). Note that the rust lexer
-/// already knows about rust operators, the rules when `Punct` are `Spacing::Alone` or
-/// `Spacing::Joint` are geared towards rust syntax.
+/// single quote followed by a identifier (rust lifetime). Note that the rust lexer knows
+/// about rust operators, the rules when `Punct` are `Spacing::Alone` or `Spacing::Joint` are
+/// geared towards rust syntax.
 ///
 /// # Example
 ///
@@ -88,7 +88,7 @@ impl<const C: char> Display for JointPunct<C> {
     }
 }
 
-/// double character punctuation
+/// Double character joint punctuation.
 pub struct TwoPunct<const C1: char, const C2: char>;
 
 impl<const C1: char, const C2: char> Parser for TwoPunct<C1, C2> {
@@ -124,7 +124,7 @@ impl<const C1: char, const C2: char> Display for TwoPunct<C1, C2> {
     }
 }
 
-/// triple character punctuation
+/// Triple character joint punctuation.
 pub struct ThreePunct<const C1: char, const C2: char, const C3: char>;
 
 impl<const C1: char, const C2: char, const C3: char> Parser for ThreePunct<C1, C2, C3> {
@@ -171,7 +171,7 @@ impl<const C1: char, const C2: char, const C3: char> Display for ThreePunct<C1, 
 
 // unsynn policy is not to implement rust grammar, for the Punct tokens we make an exception
 // because they are mostly universal and already partial lexed (Spacing::Alone/Joint) it would
-// add a lot confusion when every grammar has to define its own Punct types.
+// add a lot confusion when every grammar has to redefine its own Punct types.
 
 /// `+`
 pub type Plus = OnePunct<'+'>;

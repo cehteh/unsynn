@@ -1,6 +1,6 @@
 use crate::*;
 
-/// A entity `T` followed by a optional delimiting entity 'D'
+/// A entity `T` followed by a optional delimiting entity `D`
 pub struct Delimited<T: Parse, D: Parse>(pub T, pub Option<D>);
 
 impl<T: Parse, D: Parse> Parser for Delimited<T, D> {
@@ -17,5 +17,5 @@ pub type ColonDelimited<T> = Delimited<T, Colon>;
 pub type SemicolonDelimited<T> = Delimited<T, Semicolon>;
 /// `T` followed by an optional `.`
 pub type DotDelimited<T> = Delimited<T, Dot>;
-/// `T` followed by an optional '::'
+/// `T` followed by an optional `::`
 pub type PathSepDelimited<T> = Delimited<T, PathSep>;
