@@ -73,6 +73,10 @@ where
 
 impl<T: Parser> Parse for T {}
 
+// various declarative macros
+mod macros;
+pub use macros::*;
+
 // Parsers for the `proc_macro2` entities
 mod procmacro;
 pub use procmacro::*;
