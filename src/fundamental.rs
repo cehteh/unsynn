@@ -187,3 +187,24 @@ impl<T: Parser> Parser for Except<T> {
         }
     }
 }
+
+/// Matches the end of the stream when no tokens are left
+///
+/// # Example
+///
+/// ```
+/// # use unsynn::*;
+/// let mut token_iter = quote::quote! { }.into_iter();
+///
+/// let _eos = EndOfStream::parser(&mut token_iter).unwrap();
+/// ```
+pub struct EndOfStream;
+
+impl Parser for EndOfStream {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        match tokens.next() {
+            None => Ok(Self),
+            Some(next) => Err(format!("expected end of file, found {next:?}").into()),
+        }
+    }
+}
