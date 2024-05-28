@@ -1,4 +1,6 @@
-use crate::*;
+#![allow(clippy::module_name_repetitions)]
+
+use crate::{Parser, Result, Spacing, TokenIter, TokenTree};
 use std::fmt::Display;
 
 /// A single character punctuation token lexed with `Spacing::Alone`.
@@ -6,6 +8,7 @@ pub struct OnePunct<const C: char>;
 
 impl<const C: char> OnePunct<C> {
     /// Get the `char` value this object represents.
+    #[must_use]
     pub fn as_char(&self) -> char {
         C
     }
@@ -26,7 +29,7 @@ impl<const C: char> Parser for OnePunct<C> {
                 other.span().start()
             )
             .into()),
-            None => Err(format!("expected OnePunct<{:?}>, got end of stream", C).into()),
+            None => Err(format!("expected OnePunct<{C:?}>, got end of stream").into()),
         }
     }
 }
@@ -57,6 +60,7 @@ pub struct JointPunct<const C: char>;
 
 impl<const C: char> JointPunct<C> {
     /// Get the `char` value this object represents.
+    #[must_use]
     pub fn as_char(&self) -> char {
         C
     }
@@ -77,7 +81,7 @@ impl<const C: char> Parser for JointPunct<C> {
                 other.span().start()
             )
             .into()),
-            None => Err(format!("expected JointPunct<{:?}>, got end of stream", C).into()),
+            None => Err(format!("expected JointPunct<{C:?}>, got end of stream").into()),
         }
     }
 }
@@ -112,7 +116,7 @@ impl<const C1: char, const C2: char> Parser for TwoPunct<C1, C2> {
             )
             .into()),
             (None, _) => {
-                Err(format!("expected TwoPunct<{:?}, {:?}>, got end of stream", C1, C2).into())
+                Err(format!("expected TwoPunct<{C1:?}, {C2:?}>, got end of stream").into())
             }
         }
     }
@@ -155,8 +159,7 @@ impl<const C1: char, const C2: char, const C3: char> Parser for ThreePunct<C1, C
             )
             .into()),
             (None, _, _) => Err(format!(
-                "expected ThreePunct<{:?}, {:?}, {:?}>, got end of stream",
-                C1, C2, C3
+                "expected ThreePunct<{C1:?}, {C2:?}, {C3:?}>, got end of stream"
             )
             .into()),
         }

@@ -1,4 +1,6 @@
-use crate::*;
+#![allow(clippy::module_name_repetitions)]
+
+use crate::{Colon, Comma, Dot, Parse, Parser, PathSep, Result, Semicolon, TokenIter};
 
 /// A entity `T` followed by a optional delimiting entity `D`
 pub struct Delimited<T: Parse, D: Parse>(pub T, pub Option<D>);

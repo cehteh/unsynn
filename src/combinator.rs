@@ -1,4 +1,4 @@
-use crate::*;
+use crate::{Parse, Parser, Result, TokenIter};
 
 /// Conjunctive `A` followed by `B`
 pub struct Cons<A: Parser, B: Parser>(A, B);

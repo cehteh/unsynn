@@ -2,10 +2,10 @@ use unsynn::*;
 
 #[test]
 fn test_integer() {
-    let mut token_iter = quote::quote! {1234567890}.into_iter();
+    let mut token_iter = quote::quote! {1234}.into_iter();
 
     let integer = LiteralInteger::parse(&mut token_iter).unwrap();
-    assert_eq!(integer.value, 1234567890);
+    assert_eq!(integer.value, 1234);
 }
 
 #[test]

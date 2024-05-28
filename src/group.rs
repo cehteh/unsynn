@@ -1,4 +1,6 @@
-use crate::*;
+#![allow(clippy::module_name_repetitions)]
+
+use crate::{private, Delimiter, Group, Parser, Result, TokenIter, TokenTree};
 
 /// A group of tokens within `( )`
 pub struct ParenthesisGroup(pub Group);

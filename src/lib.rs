@@ -33,6 +33,12 @@ where
     /// is a conjunctive operation and a failure is returned immediately by the `?`
     /// operator. Failing to do so will leave the iterator in a consumed state which breaks
     /// further parsing. When in doubt use `parse()` which is never wrong.
+    ///
+    /// # Errors
+    ///
+    /// The `parser()` implementation must return an error if it cannot parse the input. This
+    /// error must be a `Box<dyn std::error::Error>`. The user code will call `parser()` in a
+    /// transaction and roll back the transaction on error.
     fn parser(tokens: &mut TokenIter) -> Result<Self>;
 }
 
@@ -46,9 +52,13 @@ pub trait Parse
 where
     Self: Parser + Sized,
 {
-    /// This is the user facing API to parse grammatical entities. Parses a value within a
-    /// transaction. Commits changes on success and returns the parsed value. Rolls the
-    /// transaction back on failure and returns an error.
+    /// This is the user facing API to parse grammatical entities. Calls a `parser()` within a
+    /// transaction. Commits changes on success and returns the parsed value.
+    ///
+    /// # Errors
+    ///
+    /// When the parser returns an error the transaction is rolled back and the errors is
+    /// returned.
     fn parse(tokens: &mut TokenIter) -> Result<Self> {
         let mut ptokens = tokens.clone();
         let result = Self::parser(&mut ptokens)?;
@@ -56,9 +66,13 @@ where
         Ok(result)
     }
 
-    /// Parse a value in a transaction, pass it to a closure which may modify or drop it.  If
-    /// the closure returns `Some`, the value is returned, otherwise the transaction is rolled
-    /// back and an error is returned.
+    /// Parse a value in a transaction, pass it to a closure which may modify it or return an Error.
+    /// When the closure returns an `Ok()` value it is returned.
+    ///
+    /// # Errors
+    ///
+    /// When the parser or the closure returns an error, the transaction is rolled back and
+    /// the errors is returned.
     fn parse_with(tokens: &mut TokenIter, f: impl FnOnce(Self) -> Result<Self>) -> Result<Self> {
         let mut ptokens = tokens.clone();
         let result = f(Self::parser(&mut ptokens)?)?;

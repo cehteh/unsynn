@@ -1,9 +1,11 @@
+use crate::{
+    Colon, Comma, Delimited, Dot, Nothing, Parse, Parser, PathSep, Result, Semicolon, TokenIter,
+};
+
 use std::{
     cell::{Cell, RefCell},
     rc::Rc,
 };
-
-use crate::*;
 
 /// Zero or One of T
 impl<T: Parser> Parser for Option<T> {
@@ -42,7 +44,7 @@ impl<T: Parser> Parser for Rc<T> {
     }
 }
 
-/// Put any parseable entity in a RefCell. In case one wants to mutate the a parse tree on the
+/// Put any parseable entity in a `RefCell`. In case one wants to mutate the a parse tree on the
 /// fly.
 impl<T: Parser> Parser for RefCell<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
@@ -81,7 +83,7 @@ impl<T: Parser, D: Parser> Parser for DelimitedVec<T, D> {
 pub type CommaDelimitedVec<T> = DelimitedVec<T, Comma>;
 /// Vector of `T` delimited by `;`
 pub type SemicolonDelimitedVec<T> = DelimitedVec<T, Semicolon>;
-/// Vector of `T` delimited by `::'
+/// Vector of `T` delimited by `::`
 pub type PathSepDelimitedVec<T> = DelimitedVec<T, PathSep>;
 /// Vector of `T` delimited by `.`
 pub type DotDelimitedVec<T> = DelimitedVec<T, Dot>;
