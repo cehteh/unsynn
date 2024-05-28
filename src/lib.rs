@@ -75,7 +75,6 @@ impl<T: Parser> Parse for T {}
 
 // various declarative macros
 mod macros;
-pub use macros::*;
 
 // Parsers for the `proc_macro2` entities and other fundamental types
 mod fundamental;
@@ -88,10 +87,6 @@ pub use group::*;
 // Punctuation, delimiters and operators
 mod punct;
 pub use punct::*;
-
-// Keyword macro and stuff
-mod ident;
-pub use ident::*;
 
 // Literals
 mod literal;

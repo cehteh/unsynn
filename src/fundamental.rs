@@ -73,7 +73,7 @@ impl Parser for Literal {
     }
 }
 
-/// Getting the underlying source code as string from a parser is expensive. This struct
+/// Getting the underlying source code as string from a parser is expensive. This type
 /// caches the string representation given entity.
 ///
 /// # Example
@@ -103,6 +103,11 @@ impl<T: Parser + ToString> Cached<T> {
     pub fn set(&mut self, value: T) {
         self.value = value;
         self.string = self.value.to_string();
+    }
+
+    /// Deconstructs self and returns the inner value.
+    pub fn into_inner(self) -> T {
+        self.value
     }
 }
 
