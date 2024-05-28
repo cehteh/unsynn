@@ -1,23 +1,6 @@
 use crate::*;
 use std::fmt::Display;
 
-/// A unit that always matches without consuming any tokens.  This is required when one wants
-/// to parse a Repetition without a delimiter.  Note that using `Nothing` as primary entity in
-/// a `Vec`, `DelimitedVec` or `Repetition` will result in an infinite loop.
-pub struct Nothing;
-
-impl Parser for Nothing {
-    fn parser(_tokens: &mut TokenIter) -> Result<Self> {
-        Ok(Self)
-    }
-}
-
-impl Display for Nothing {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "")
-    }
-}
-
 /// A single character punctuation token lexed with `Spacing::Alone`.
 pub struct OnePunct<const C: char>;
 

@@ -1,26 +1,11 @@
 use crate::*;
 
-use std::marker::PhantomData;
-
 /// A followed by B
 pub struct Cons<A: Parser, B: Parser>(A, B);
 
 impl<A: Parser, B: Parser> Parser for Cons<A, B> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         Ok(Self(A::parser(tokens)?, B::parser(tokens)?))
-    }
-}
-
-/// Succeeds when the next token does not match T. Will not consume any tokens.
-pub struct Except<T: Parser>(PhantomData<T>);
-
-impl<T: Parser> Parser for Except<T> {
-    fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        let mut ptokens = tokens.clone();
-        match T::parser(&mut ptokens) {
-            Ok(_) => Err(format!("unexpected {}", std::any::type_name::<T>()).into()),
-            Err(_) => Ok(Self(PhantomData)),
-        }
     }
 }
 
