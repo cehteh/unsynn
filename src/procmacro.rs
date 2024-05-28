@@ -1,6 +1,6 @@
 use crate::*;
 
-impl Parse for TokenTree {
+impl Parser for TokenTree {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(token) => Ok(token),
@@ -9,7 +9,7 @@ impl Parse for TokenTree {
     }
 }
 
-impl Parse for Group {
+impl Parser for Group {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(TokenTree::Group(group)) => Ok(group),
@@ -24,7 +24,7 @@ impl Parse for Group {
     }
 }
 
-impl Parse for Ident {
+impl Parser for Ident {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(TokenTree::Ident(ident)) => Ok(ident),
@@ -39,7 +39,7 @@ impl Parse for Ident {
     }
 }
 
-impl Parse for Punct {
+impl Parser for Punct {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(TokenTree::Punct(punct)) => Ok(punct),
@@ -54,7 +54,7 @@ impl Parse for Punct {
     }
 }
 
-impl Parse for Literal {
+impl Parser for Literal {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(TokenTree::Literal(literal)) => Ok(literal),

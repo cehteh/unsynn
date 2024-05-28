@@ -6,7 +6,7 @@ use std::fmt::Display;
 /// a `Vec`, `DelimitedVec` or `Repetition` will result in an infinite loop.
 pub struct Nothing;
 
-impl Parse for Nothing {
+impl Parser for Nothing {
     fn parser(_tokens: &mut TokenIter) -> Result<Self> {
         Ok(Self)
     }
@@ -28,7 +28,7 @@ impl<const C: char> OnePunct<C> {
     }
 }
 
-impl<const C: char> Parse for OnePunct<C> {
+impl<const C: char> Parser for OnePunct<C> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(TokenTree::Punct(punct))
@@ -79,7 +79,7 @@ impl<const C: char> JointPunct<C> {
     }
 }
 
-impl<const C: char> Parse for JointPunct<C> {
+impl<const C: char> Parser for JointPunct<C> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(TokenTree::Punct(punct))
@@ -108,7 +108,7 @@ impl<const C: char> Display for JointPunct<C> {
 /// double character punctuation
 pub struct TwoPunct<const C1: char, const C2: char>;
 
-impl<const C1: char, const C2: char> Parse for TwoPunct<C1, C2> {
+impl<const C1: char, const C2: char> Parser for TwoPunct<C1, C2> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match (tokens.next(), tokens.next()) {
             (Some(TokenTree::Punct(c1)), Some(TokenTree::Punct(c2)))
@@ -144,7 +144,7 @@ impl<const C1: char, const C2: char> Display for TwoPunct<C1, C2> {
 /// triple character punctuation
 pub struct ThreePunct<const C1: char, const C2: char, const C3: char>;
 
-impl<const C1: char, const C2: char, const C3: char> Parse for ThreePunct<C1, C2, C3> {
+impl<const C1: char, const C2: char, const C3: char> Parser for ThreePunct<C1, C2, C3> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match (tokens.next(), tokens.next(), tokens.next()) {
             (

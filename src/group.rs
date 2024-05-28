@@ -18,7 +18,7 @@ impl From<ParenthesisGroup> for Group {
     }
 }
 
-impl Parse for ParenthesisGroup {
+impl Parser for ParenthesisGroup {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(TokenTree::Group(group)) if group.delimiter() == Delimiter::Parenthesis => {
@@ -41,7 +41,7 @@ impl From<BraceGroup> for Group {
     }
 }
 
-impl Parse for BraceGroup {
+impl Parser for BraceGroup {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(TokenTree::Group(group)) if group.delimiter() == Delimiter::Brace => {
@@ -64,7 +64,7 @@ impl From<BracketGroup> for Group {
     }
 }
 
-impl Parse for BracketGroup {
+impl Parser for BracketGroup {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(TokenTree::Group(group)) if group.delimiter() == Delimiter::Bracket => {
@@ -87,7 +87,7 @@ impl From<NoneGroup> for Group {
     }
 }
 
-impl Parse for NoneGroup {
+impl Parser for NoneGroup {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(TokenTree::Group(group)) if group.delimiter() == Delimiter::None => {
@@ -105,57 +105,57 @@ impl Parse for NoneGroup {
 }
 
 /// Common trait for all groups
-pub trait ParseGroup: Parse + sealed::Sealed {
+pub trait ParserGroup: Parser + private::Sealed {
     /// Get the underlying group from any group type.
     fn as_group(&self) -> &Group;
 }
 
-impl sealed::Sealed for Group {}
-impl sealed::Sealed for ParenthesisGroup {}
-impl sealed::Sealed for BraceGroup {}
-impl sealed::Sealed for BracketGroup {}
-impl sealed::Sealed for NoneGroup {}
+impl private::Sealed for ParenthesisGroup {}
+impl private::Sealed for BraceGroup {}
+impl private::Sealed for BracketGroup {}
+impl private::Sealed for NoneGroup {}
+impl private::Sealed for Group {}
 
-impl ParseGroup for Group {
+impl ParserGroup for Group {
     fn as_group(&self) -> &Group {
         self
     }
 }
 
-impl ParseGroup for ParenthesisGroup {
+impl ParserGroup for ParenthesisGroup {
     fn as_group(&self) -> &Group {
         &self.0
     }
 }
 
-impl ParseGroup for BraceGroup {
+impl ParserGroup for BraceGroup {
     fn as_group(&self) -> &Group {
         &self.0
     }
 }
 
-impl ParseGroup for BracketGroup {
+impl ParserGroup for BracketGroup {
     fn as_group(&self) -> &Group {
         &self.0
     }
 }
 
-impl ParseGroup for NoneGroup {
+impl ParserGroup for NoneGroup {
     fn as_group(&self) -> &Group {
         &self.0
     }
 }
 
 /// Any kind of Group with some parseable content.
-pub struct GroupContaining<G: ParseGroup, C: Parse> {
+pub struct GroupContaining<G: ParserGroup, C: Parser> {
     /// The underlying group type. This can be `ParenthesisGroup`, `BraceGroup`,
     /// `BracketGroup`, `NoneGroup` or `Group`.
     pub group: G,
-    /// The content of the group. That can be anything that implements `Parse`.
+    /// The content of the group. That can be anything that implements `Parser`.
     pub content: C,
 }
 
-impl<G: ParseGroup, C: Parse> Parse for GroupContaining<G, C> {
+impl<G: ParserGroup, C: Parser> Parser for GroupContaining<G, C> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let group = G::parser(tokens)?;
         let mut c_iter = group.as_group().stream().into_iter();

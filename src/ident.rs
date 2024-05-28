@@ -8,7 +8,7 @@ pub struct IdentString {
     pub string: String,
 }
 
-impl Parse for IdentString {
+impl Parser for IdentString {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let ident = Ident::parser(tokens)?;
         let string = ident.to_string();
@@ -60,7 +60,7 @@ macro_rules! keyword{
         $(
             pub struct $name($crate::IdentString);
 
-            impl Parse for $name {
+            impl Parser for $name {
                 fn parser(tokens: &mut TokenIter) -> Result<Self> {
                     Ok(Self($crate::IdentString::parse_with(tokens, |keyword| {
                         if keyword.string == $str {

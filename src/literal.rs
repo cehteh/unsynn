@@ -8,7 +8,7 @@ pub struct LiteralInteger {
     pub value: u128,
 }
 
-impl Parse for LiteralInteger {
+impl Parser for LiteralInteger {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let literal = Literal::parser(tokens)?;
         let value = literal.to_string().parse()?;
@@ -22,7 +22,7 @@ pub struct LiteralCharacter {
     pub value: char,
 }
 
-impl Parse for LiteralCharacter {
+impl Parser for LiteralCharacter {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let literal = Literal::parser(tokens)?;
         let string = literal.to_string();
@@ -43,7 +43,7 @@ pub struct LiteralString {
     pub value: String,
 }
 
-impl Parse for LiteralString {
+impl Parser for LiteralString {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let literal = Literal::parser(tokens)?;
         let string = literal.to_string();
