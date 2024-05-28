@@ -132,9 +132,9 @@ macro_rules! keyword{
                 fn parser(tokens: &mut TokenIter) -> Result<Self> {
                     Ok(Self($crate::CachedIdent::parse_with(tokens, |keyword| {
                         if keyword == $str {
-                            Some(keyword)
+                            Ok(keyword)
                         } else {
-                            None
+                            Err("keword didnt match".into())
                         }
                     })?))
                 }

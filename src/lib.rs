@@ -59,15 +59,11 @@ where
     /// Parse a value in a transaction, pass it to a closure which may modify or drop it.  If
     /// the closure returns `Some`, the value is returned, otherwise the transaction is rolled
     /// back and an error is returned.
-    fn parse_with(tokens: &mut TokenIter, f: impl FnOnce(Self) -> Option<Self>) -> Result<Self> {
+    fn parse_with(tokens: &mut TokenIter, f: impl FnOnce(Self) -> Result<Self>) -> Result<Self> {
         let mut ptokens = tokens.clone();
-        let result = Self::parser(&mut ptokens)?;
-        if let Some(result) = f(result) {
-            *tokens = ptokens;
-            Ok(result)
-        } else {
-            Err("condition failed".into())
-        }
+        let result = f(Self::parser(&mut ptokens)?)?;
+        *tokens = ptokens;
+        Ok(result)
     }
 }
 
