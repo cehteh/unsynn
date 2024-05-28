@@ -106,6 +106,7 @@ impl Parse for NoneGroup {
 
 /// Common trait for all groups
 pub trait ParseGroup: Parse + sealed::Sealed {
+    /// Get the underlying group from any group type.
     fn as_group(&self) -> &Group;
 }
 
@@ -145,9 +146,12 @@ impl ParseGroup for NoneGroup {
     }
 }
 
-/// A group and its contents
+/// Any kind of Group with some parseable content.
 pub struct GroupContaining<G: ParseGroup, C: Parse> {
+    /// The underlying group type. This can be `ParenthesisGroup`, `BraceGroup`,
+    /// `BracketGroup`, `NoneGroup` or `Group`.
     pub group: G,
+    /// The content of the group. That can be anything that implements `Parse`.
     pub content: C,
 }
 
@@ -160,11 +164,11 @@ impl<G: ParseGroup, C: Parse> Parse for GroupContaining<G, C> {
     }
 }
 
-/// `C` within `( )`
+/// Parseable content within `( )`
 pub type ParenthesisGroupContaining<C> = GroupContaining<ParenthesisGroup, C>;
-/// `C` within `{ }`
+/// Parseable content within `{ }`
 pub type BraceGroupContaining<C> = GroupContaining<BraceGroup, C>;
-/// `C` within `[ ]`
+/// Parseable content within `[ ]`
 pub type BracketGroupContaining<C> = GroupContaining<BracketGroup, C>;
-/// `C` with no group delimiters
+/// Parseable content with no group delimiters
 pub type NoneGroupContaining<C> = GroupContaining<NoneGroup, C>;

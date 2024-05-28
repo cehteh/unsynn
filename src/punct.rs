@@ -57,7 +57,7 @@ impl<const C: char> Display for OnePunct<C> {
 /// A single character punctuation token where the lexer joined it with the next `Punct` or a
 /// single quote followed by a identifier (eg. rust lifetime). Note that the rust lexer
 /// already knows about rust operators, the rules when `Punct` are `Spacing::Alone` or
-/// `Spacing::Joint` are geared towards rust syntax. Not all combinations work as expected.
+/// `Spacing::Joint` are geared towards rust syntax.
 ///
 /// # Example
 ///
