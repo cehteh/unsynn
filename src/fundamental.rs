@@ -1,4 +1,4 @@
-use crate::{Group, Ident, Literal, Parser, Punct, Result, TokenIter, TokenTree};
+use crate::{Error, Group, Ident, Literal, Parser, Punct, Result, TokenIter, TokenTree};
 
 use std::fmt::Display;
 use std::marker::PhantomData;
@@ -8,7 +8,7 @@ impl Parser for TokenTree {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(token) => Ok(token),
-            None => Err("expected TokenTree, got end of stream".into()),
+            None => Error::unexpected_end(),
         }
     }
 }
@@ -17,13 +17,8 @@ impl Parser for Group {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(TokenTree::Group(group)) => Ok(group),
-            Some(other) => Err(format!(
-                "expected Group, got {:?} at {:?}",
-                other,
-                other.span().start()
-            )
-            .into()),
-            None => Err("expected Group, got end of stream".into()),
+            Some(other) => Error::unexpected_token(other),
+            None => Error::unexpected_end(),
         }
     }
 }
@@ -32,13 +27,8 @@ impl Parser for Ident {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(TokenTree::Ident(ident)) => Ok(ident),
-            Some(other) => Err(format!(
-                "expected Ident, got {:?} at {:?}",
-                other,
-                other.span().start()
-            )
-            .into()),
-            None => Err("expected Ident, got end of stream".into()),
+            Some(other) => Error::unexpected_token(other),
+            None => Error::unexpected_end(),
         }
     }
 }
@@ -47,13 +37,8 @@ impl Parser for Punct {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(TokenTree::Punct(punct)) => Ok(punct),
-            Some(other) => Err(format!(
-                "expected Punct, got {:?} at {:?}",
-                other,
-                other.span().start()
-            )
-            .into()),
-            None => Err("expected Punct, got end of stream".into()),
+            Some(other) => Error::unexpected_token(other),
+            None => Error::unexpected_end(),
         }
     }
 }
@@ -62,13 +47,8 @@ impl Parser for Literal {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(TokenTree::Literal(literal)) => Ok(literal),
-            Some(other) => Err(format!(
-                "expected Literal, got {:?} at {:?}",
-                other,
-                other.span().start()
-            )
-            .into()),
-            None => Err("expected Literal, got end of stream".into()),
+            Some(other) => Error::unexpected_token(other),
+            None => Error::unexpected_end(),
         }
     }
 }
@@ -85,6 +65,7 @@ impl Parser for Literal {
 /// let cached_ident = Cached::<Ident>::parse(&mut token_iter).unwrap();
 /// assert!(cached_ident == "ident");
 /// ```
+#[derive(Debug)]
 pub struct Cached<T: Parser + ToString> {
     value: T,
     string: String,
@@ -108,6 +89,11 @@ impl<T: Parser + ToString> Cached<T> {
     /// Deconstructs self and returns the inner value.
     pub fn into_inner(self) -> T {
         self.value
+    }
+
+    /// Gets the cached string representation
+    pub fn string(&self) -> &str {
+        &self.string
     }
 }
 
@@ -196,7 +182,7 @@ impl<T: Parser> Parser for Except<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let mut ptokens = tokens.clone();
         match T::parser(&mut ptokens) {
-            Ok(_) => Err(format!("unexpected {}", std::any::type_name::<T>()).into()),
+            Ok(_) => Error::unexpected_token(tokens.clone().next().unwrap()),
             Err(_) => Ok(Self(PhantomData)),
         }
     }
@@ -218,7 +204,7 @@ impl Parser for EndOfStream {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             None => Ok(Self),
-            Some(next) => Err(format!("expected end of file, found {next:?}").into()),
+            Some(next) => Error::unexpected_token(next),
         }
     }
 }

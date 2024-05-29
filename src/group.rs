@@ -1,6 +1,6 @@
 #![allow(clippy::module_name_repetitions)]
 
-use crate::{private, Delimiter, Group, Parser, Result, TokenIter, TokenTree};
+use crate::{private, Delimiter, Error, Group, Parser, Result, TokenIter, TokenTree};
 
 /// A group of tokens within `( )`
 pub struct ParenthesisGroup(pub Group);
@@ -26,13 +26,8 @@ impl Parser for ParenthesisGroup {
             Some(TokenTree::Group(group)) if group.delimiter() == Delimiter::Parenthesis => {
                 Ok(Self(group))
             }
-            Some(other) => Err(format!(
-                "expected ParenthesisGroup, got {:?} at {:?}",
-                other,
-                other.span().start()
-            )
-            .into()),
-            None => Err("expected ParenthesisGroup, got end of stream".into()),
+            Some(other) => Error::unexpected_token(other),
+            None => Error::unexpected_end(),
         }
     }
 }
@@ -49,13 +44,8 @@ impl Parser for BraceGroup {
             Some(TokenTree::Group(group)) if group.delimiter() == Delimiter::Brace => {
                 Ok(Self(group))
             }
-            Some(other) => Err(format!(
-                "expected BraceGroup, got {:?} at {:?}",
-                other,
-                other.span().start()
-            )
-            .into()),
-            None => Err("expected BraceGroup, got end of stream".into()),
+            Some(other) => Error::unexpected_token(other),
+            None => Error::unexpected_end(),
         }
     }
 }
@@ -72,13 +62,8 @@ impl Parser for BracketGroup {
             Some(TokenTree::Group(group)) if group.delimiter() == Delimiter::Bracket => {
                 Ok(Self(group))
             }
-            Some(other) => Err(format!(
-                "expected BracketGroup, got {:?} at {:?}",
-                other,
-                other.span().start()
-            )
-            .into()),
-            None => Err("expected BracketGroup, got end of stream".into()),
+            Some(other) => Error::unexpected_token(other),
+            None => Error::unexpected_end(),
         }
     }
 }
@@ -95,13 +80,8 @@ impl Parser for NoneGroup {
             Some(TokenTree::Group(group)) if group.delimiter() == Delimiter::None => {
                 Ok(Self(group))
             }
-            Some(other) => Err(format!(
-                "expected NoneGroup, got {:?} at {:?}",
-                other,
-                other.span().start()
-            )
-            .into()),
-            None => Err("expected NoneGroup, got end of stream".into()),
+            Some(other) => Error::unexpected_token(other),
+            None => Error::unexpected_end(),
         }
     }
 }

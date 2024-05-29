@@ -21,15 +21,8 @@ impl<A: Parser, B: Parser> Parser for Either<A, B> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         if let Ok(first) = A::parse(tokens) {
             Ok(Either::First(first))
-        } else if let Ok(second) = B::parser(tokens) {
-            Ok(Either::Second(second))
         } else {
-            Err(format!(
-                "neither of Either<{}, {}> matched",
-                std::any::type_name::<A>(),
-                std::any::type_name::<B>()
-            )
-            .into())
+            Ok(Either::Second(B::parser(tokens)?))
         }
     }
 }

@@ -1,6 +1,6 @@
 #![allow(clippy::module_name_repetitions)]
 
-use crate::{Literal, Parser, Result, TokenIter};
+use crate::{Error, Literal, Parser, Result, TokenIter, TokenTree};
 
 /// A simple unsigned 128 bit integer. This is the most simple form to parse integers. Note
 /// that only decimal integers without any other characters, signs or suffixes are supported,
@@ -15,7 +15,7 @@ pub struct LiteralInteger {
 impl Parser for LiteralInteger {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let literal = Literal::parser(tokens)?;
-        let value = literal.to_string().parse()?;
+        let value = literal.to_string().parse().map_err(Error::boxed)?;
         Ok(Self { literal, value })
     }
 }
@@ -38,7 +38,7 @@ impl Parser for LiteralCharacter {
         if let (Some('\''), Some(value)) = (chars.next(), chars.next()) {
             Ok(Self { literal, value })
         } else {
-            Err(format!("Expected a single character literal, got {literal:?}").into())
+            Error::unexpected_token(TokenTree::Literal(literal))
         }
     }
 }
@@ -62,7 +62,7 @@ impl Parser for LiteralString {
                 value: string,
             })
         } else {
-            Err(format!("Expected a double quoted string literal, got {literal:?}").into())
+            Error::unexpected_token(TokenTree::Literal(literal))
         }
     }
 }

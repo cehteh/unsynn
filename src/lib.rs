@@ -4,9 +4,6 @@
 
 pub use proc_macro2::{Delimiter, Group, Ident, Literal, Punct, Spacing, TokenStream, TokenTree};
 
-/// Error type for parsing.
-pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
-
 /// Type alias for the iterator type we use for parsing. This Iterator is Clone and produces
 /// `&TokenTree`.
 pub type TokenIter = <TokenStream as IntoIterator>::IntoIter;
@@ -82,6 +79,10 @@ where
 }
 
 impl<T: Parser> Parse for T {}
+
+// Result and error type
+mod error;
+pub use error::*;
 
 // various declarative macros
 mod macros;

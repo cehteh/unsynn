@@ -1,6 +1,6 @@
 #![allow(clippy::module_name_repetitions)]
 
-use crate::{Parser, Result, Spacing, TokenIter, TokenTree};
+use crate::{Error, Parser, Result, Spacing, TokenIter, TokenTree};
 use std::fmt::Display;
 
 /// A single character punctuation token lexed with `Spacing::Alone`.
@@ -22,14 +22,8 @@ impl<const C: char> Parser for OnePunct<C> {
             {
                 Ok(Self)
             }
-            Some(other) => Err(format!(
-                "expected OnePunct<{:?}>, got {:?} at {:?}",
-                C,
-                other,
-                other.span().start()
-            )
-            .into()),
-            None => Err(format!("expected OnePunct<{C:?}>, got end of stream").into()),
+            Some(other) => Error::unexpected_token(other),
+            None => Error::unexpected_end(),
         }
     }
 }
@@ -74,14 +68,8 @@ impl<const C: char> Parser for JointPunct<C> {
             {
                 Ok(Self)
             }
-            Some(other) => Err(format!(
-                "expected JointPunct<{:?}>, got {:?} at {:?}",
-                C,
-                other,
-                other.span().start()
-            )
-            .into()),
-            None => Err(format!("expected JointPunct<{C:?}>, got end of stream").into()),
+            Some(other) => Error::unexpected_token(other),
+            None => Error::unexpected_end(),
         }
     }
 }
@@ -106,18 +94,8 @@ impl<const C1: char, const C2: char> Parser for TwoPunct<C1, C2> {
             {
                 Ok(Self)
             }
-            (Some(other), then) => Err(format!(
-                "expected TwoPunct<{:?}, {:?}>, got {:?} {:?} at {:?}",
-                C1,
-                C2,
-                other,
-                then,
-                other.span().start()
-            )
-            .into()),
-            (None, _) => {
-                Err(format!("expected TwoPunct<{C1:?}, {C2:?}>, got end of stream").into())
-            }
+            (Some(other), _) => Error::unexpected_token(other),
+            (None, _) => Error::unexpected_end(),
         }
     }
 }
@@ -147,21 +125,8 @@ impl<const C1: char, const C2: char, const C3: char> Parser for ThreePunct<C1, C
             {
                 Ok(Self)
             }
-            (Some(other), then1, then2) => Err(format!(
-                "expected TreePunct<{:?}, {:?}, {:?}>, got {:?} {:?} {:?} at {:?}",
-                C1,
-                C2,
-                C3,
-                other,
-                then1,
-                then2,
-                other.span().start()
-            )
-            .into()),
-            (None, _, _) => Err(format!(
-                "expected ThreePunct<{C1:?}, {C2:?}, {C3:?}>, got end of stream"
-            )
-            .into()),
+            (Some(other), _, _) => Error::unexpected_token(other),
+            (None, _, _) => Error::unexpected_end(),
         }
     }
 }

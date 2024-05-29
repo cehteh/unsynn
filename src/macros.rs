@@ -60,10 +60,15 @@ macro_rules! unsynn{
 
             impl Parser for $name {
                 fn parser(tokens: &mut TokenIter) -> Result<Self> {
-                    $(if let Ok(parsed) = <$parse>::parse(tokens) {
-                        return Ok($name::$variant(parsed));
-                    })*
-                        Err(format!("neither of {} matched", stringify!($name)).into())
+                    $(
+                        if let Ok(parsed) = <$parse>::parse(tokens) {
+                            return Ok($name::$variant(parsed));
+                        }
+                    )*
+                        match tokens.next() {
+                            Some(token) => $crate::Error::unexpected_token(token),
+                            None => $crate::Error::unexpected_end()
+                        }
                 }
             }
         )*
@@ -134,7 +139,14 @@ macro_rules! keyword{
                         if keyword == $str {
                             Ok(keyword)
                         } else {
-                            Err("keword didnt match".into())
+                            $crate::Error::other::<$crate::CachedIdent>(
+                                format!(
+                                    "keyword {:?} expected, got {:?} at {:?}",
+                                    $str,
+                                    keyword.string(),
+                                    keyword.span().start()
+                                )
+                            )
                         }
                     })?))
                 }

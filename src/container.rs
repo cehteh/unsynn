@@ -1,5 +1,6 @@
 use crate::{
-    Colon, Comma, Delimited, Dot, Nothing, Parse, Parser, PathSep, Result, Semicolon, TokenIter,
+    Colon, Comma, Delimited, Dot, Error, Nothing, Parse, Parser, PathSep, Result, Semicolon,
+    TokenIter,
 };
 
 use std::{
@@ -114,15 +115,12 @@ impl<const MIN: usize, const MAX: usize, T: Parser, D: Parser> Parser for Repeat
         if output.len() >= MIN {
             Ok(Self(output))
         } else {
-            Err(format!(
-                "expected Repeats<MIN={MIN}, MAX={MAX}, {}, {} >, got {:?} {:?} at {:?}",
+            Error::other(format!(
+                "less than MIN Repeats<MIN={MIN}, MAX={MAX}, {}, {} >, got {} repeats",
                 std::any::type_name::<T>(),
                 std::any::type_name::<D>(),
-                "foo",
-                "bar",
-                "baz"
-            )
-            .into())
+                output.len()
+            ))
         }
     }
 }
