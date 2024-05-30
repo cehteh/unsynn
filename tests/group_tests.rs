@@ -19,3 +19,13 @@ fn test_group_contains_empty() {
 
     assert_eq!(group_containing.delimiter, Delimiter::Brace);
 }
+
+#[test]
+#[should_panic = "Unexpected token: expected unsynn::fundamental::EndOfStream, found Ident"]
+fn test_group_contains_leftover_tokens() {
+    let mut token_iter = quote::quote! { { leftover } }.into_iter();
+
+    let group_containing = GroupContaining::<BraceGroup, Nothing>::parse(&mut token_iter).unwrap();
+
+    assert_eq!(group_containing.delimiter, Delimiter::Brace);
+}

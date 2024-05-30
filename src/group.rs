@@ -132,11 +132,12 @@ impl ParseGroup for NoneGroup {
     }
 }
 
-/// Any kind of Group with some parseable content.
+/// Any kind of Group `G` with parseable content `C`.  The content `C` must parse exhaustive,
+/// a `EndOfStream` is automatically implied.
 pub struct GroupContaining<G: ParseGroup, C: Parse> {
     /// The delimiters around the group.
     pub delimiter: Delimiter,
-    /// The content of the group. That can be anything that implements `Parser`.
+    /// The content of the group. That can be anything that implements `Parse`.
     pub content: C,
     group: PhantomData<G>,
 }
@@ -146,6 +147,7 @@ impl<G: ParseGroup, C: Parse> Parser for GroupContaining<G, C> {
         let group = G::parser(tokens)?;
         let mut c_iter = group.as_group().stream().into_iter();
         let content = C::parser(&mut c_iter)?;
+        EndOfStream::parser(&mut c_iter)?;
         Ok(Self {
             delimiter: group.as_group().delimiter(),
             content,
