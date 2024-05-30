@@ -1,7 +1,10 @@
 #![allow(clippy::module_name_repetitions)]
 
-use crate::{private, Delimiter, Error, Group, Parser, Result, TokenIter, TokenTree};
 use std::marker::PhantomData;
+
+use crate::{
+    private, Delimiter, EndOfStream, Error, Group, Parse, Parser, Result, ToTokens, TokenIter, TokenStream, TokenTree
+};
 
 /// A group of tokens within `( )`
 pub struct ParenthesisGroup(pub Group);
@@ -88,7 +91,7 @@ impl Parser for NoneGroup {
 }
 
 /// Common trait for all groups
-pub trait ParserGroup: Parser + private::Sealed {
+pub trait ParseGroup: Parse + private::Sealed {
     /// Get the underlying group from any group type.
     fn as_group(&self) -> &Group;
 }
@@ -99,38 +102,38 @@ impl private::Sealed for BracketGroup {}
 impl private::Sealed for NoneGroup {}
 impl private::Sealed for Group {}
 
-impl ParserGroup for Group {
+impl ParseGroup for Group {
     fn as_group(&self) -> &Group {
         self
     }
 }
 
-impl ParserGroup for ParenthesisGroup {
+impl ParseGroup for ParenthesisGroup {
     fn as_group(&self) -> &Group {
         &self.0
     }
 }
 
-impl ParserGroup for BraceGroup {
+impl ParseGroup for BraceGroup {
     fn as_group(&self) -> &Group {
         &self.0
     }
 }
 
-impl ParserGroup for BracketGroup {
+impl ParseGroup for BracketGroup {
     fn as_group(&self) -> &Group {
         &self.0
     }
 }
 
-impl ParserGroup for NoneGroup {
+impl ParseGroup for NoneGroup {
     fn as_group(&self) -> &Group {
         &self.0
     }
 }
 
 /// Any kind of Group with some parseable content.
-pub struct GroupContaining<G: ParserGroup, C: Parser> {
+pub struct GroupContaining<G: ParseGroup, C: Parse> {
     /// The delimiters around the group.
     pub delimiter: Delimiter,
     /// The content of the group. That can be anything that implements `Parser`.
@@ -138,7 +141,7 @@ pub struct GroupContaining<G: ParserGroup, C: Parser> {
     group: PhantomData<G>,
 }
 
-impl<G: ParserGroup, C: Parser> Parser for GroupContaining<G, C> {
+impl<G: ParseGroup, C: Parse> Parser for GroupContaining<G, C> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let group = G::parser(tokens)?;
         let mut c_iter = group.as_group().stream().into_iter();
