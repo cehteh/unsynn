@@ -3,7 +3,8 @@
 use std::marker::PhantomData;
 
 use crate::{
-    private, Delimiter, EndOfStream, Error, Group, Parse, Parser, Result, ToTokens, TokenIter, TokenStream, TokenTree
+    private, Delimiter, EndOfStream, Error, Group, Parse, Parser, Result, ToTokens, TokenIter,
+    TokenStream, TokenTree,
 };
 
 /// A group of tokens within `( )`
@@ -36,6 +37,12 @@ impl Parser for ParenthesisGroup {
     }
 }
 
+impl ToTokens for ParenthesisGroup {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.0.to_tokens(tokens);
+    }
+}
+
 impl From<BraceGroup> for Group {
     fn from(group: BraceGroup) -> Self {
         group.0
@@ -51,6 +58,12 @@ impl Parser for BraceGroup {
             Some(other) => Error::unexpected_token(other),
             None => Error::unexpected_end(),
         }
+    }
+}
+
+impl ToTokens for BraceGroup {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.0.to_tokens(tokens);
     }
 }
 
@@ -72,6 +85,12 @@ impl Parser for BracketGroup {
     }
 }
 
+impl ToTokens for BracketGroup {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.0.to_tokens(tokens);
+    }
+}
+
 impl From<NoneGroup> for Group {
     fn from(group: NoneGroup) -> Self {
         group.0
@@ -87,6 +106,12 @@ impl Parser for NoneGroup {
             Some(other) => Error::unexpected_token(other),
             None => Error::unexpected_end(),
         }
+    }
+}
+
+impl ToTokens for NoneGroup {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.0.to_tokens(tokens);
     }
 }
 
@@ -153,6 +178,12 @@ impl<G: ParseGroup, C: Parse> Parser for GroupContaining<G, C> {
             content,
             group: PhantomData,
         })
+    }
+}
+
+impl<G: ParseGroup, C: Parse> ToTokens for GroupContaining<G, C> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        Group::new(self.delimiter, self.content.to_token_stream()).to_tokens(tokens);
     }
 }
 

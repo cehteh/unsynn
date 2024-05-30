@@ -1,4 +1,4 @@
-/// Construct types with a `Parser` implementation that will try to parse each variant in
+/// Construct types with a `Parser` implementation that will try to parse each entity in
 /// order. This macro supports enums, tuple structs and normal structs. Generics are not
 /// supported and all entities in a single `unsynn!` invocation have to be of the same kind.
 ///
@@ -71,6 +71,12 @@ macro_rules! unsynn{
                         }
                 }
             }
+
+            impl ToTokens for $name {
+                fn to_tokens(&self, tokens: &mut TokenStream) {
+                    todo!();
+                }
+            }
         )*
     };
     ($($(#[$attribute:meta])* $pub:vis struct $name:ident { $($member:ident: $parse:ty),* $(,)? })*) => {
@@ -84,6 +90,12 @@ macro_rules! unsynn{
                     Ok(Self{$($member: <$parse>::parser(tokens)?),*})
                 }
             }
+
+            impl ToTokens for $name {
+                fn to_tokens(&self, tokens: &mut TokenStream) {
+                    todo!();
+                }
+            }
         )*
     };
     ($($(#[$attribute:meta])* $pub:vis struct $name:ident ($($parse:ty),* $(,)?);)*) => {
@@ -95,6 +107,12 @@ macro_rules! unsynn{
             impl Parser for $name {
                 fn parser(tokens: &mut TokenIter) -> Result<Self> {
                     Ok(Self($(<$parse>::parser(tokens)?),*))
+                }
+            }
+
+            impl ToTokens for $name {
+                fn to_tokens(&self, tokens: &mut TokenStream) {
+                    todo!();
                 }
             }
         )*
@@ -149,6 +167,12 @@ macro_rules! keyword{
                             )
                         }
                     })?))
+                }
+            }
+
+            impl ToTokens for $name {
+                fn to_tokens(&self, tokens: &mut TokenStream) {
+                    todo!();
                 }
             }
 

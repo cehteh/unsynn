@@ -1,15 +1,12 @@
 use crate::{
     Colon, Comma, Delimited, Dot, Error, Nothing, Parse, Parser, PathSep, Result, Semicolon,
-    TokenIter,
+    ToTokens, TokenIter, TokenStream,
 };
 
-use std::{
-    cell::{Cell, RefCell},
-    rc::Rc,
-};
+use std::{cell::RefCell, rc::Rc};
 
 /// Zero or One of T
-impl<T: Parser> Parser for Option<T> {
+impl<T: Parse> Parser for Option<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match T::parse(tokens) {
             Ok(value) => Ok(Some(value)),
@@ -18,8 +15,16 @@ impl<T: Parser> Parser for Option<T> {
     }
 }
 
+impl<T: Parse> ToTokens for Option<T> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        if self.is_some() {
+            self.as_ref().unwrap().to_tokens(tokens);
+        }
+    }
+}
+
 /// Any number of T
-impl<T: Parser> Parser for Vec<T> {
+impl<T: Parse> Parser for Vec<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let mut output = Vec::new();
         while let Ok(value) = T::parse(tokens) {
@@ -29,44 +34,60 @@ impl<T: Parser> Parser for Vec<T> {
     }
 }
 
+impl<T: Parse> ToTokens for Vec<T> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.iter().for_each(|value| value.to_tokens(tokens));
+    }
+}
+
 /// Box any parseable entity. In a enum it may happen that most variants are rather small
 /// while few variants are large. In this case it may be beneficial to box the large variants.
-impl<T: Parser> Parser for Box<T> {
+impl<T: Parse> Parser for Box<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         Ok(Box::new(T::parser(tokens)?))
     }
 }
 
+impl<T: Parse> ToTokens for Box<T> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.as_ref().to_tokens(tokens);
+    }
+}
+
 /// Rc any parseable entity. Just because we can. Sometimes when a value is shared between
 /// multiple entities it may be beneficial to use Rc.
-impl<T: Parser> Parser for Rc<T> {
+impl<T: Parse> Parser for Rc<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         Ok(Rc::new(T::parser(tokens)?))
     }
 }
 
+impl<T: Parse> ToTokens for Rc<T> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.as_ref().to_tokens(tokens);
+    }
+}
+
 /// Put any parseable entity in a `RefCell`. In case one wants to mutate the a parse tree on the
 /// fly.
-impl<T: Parser> Parser for RefCell<T> {
+impl<T: Parse> Parser for RefCell<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         Ok(RefCell::new(T::parser(tokens)?))
     }
 }
 
-/// Put any parseable entity in a Cell. This is useful for when one has an immutable AST and
-/// wants to swap values.
-impl<T: Parser> Parser for Cell<T> {
-    fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        Ok(Cell::new(T::parser(tokens)?))
+impl<T: ToTokens> ToTokens for RefCell<T> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.borrow().to_tokens(tokens);
     }
 }
 
 /// Since the delimiter in `Delimited<T,D>` is optional a `Vec<Delimited<T,D>>` would parse
 /// consecutive values even without delimiters. `DelimimitedVec<T,D>` will stop
 /// parsing after the first value without a delimiter.
-pub struct DelimitedVec<T: Parser, D: Parser>(pub Vec<Delimited<T, D>>);
+pub struct DelimitedVec<T: Parse, D: Parse>(pub Vec<Delimited<T, D>>);
 
-impl<T: Parser, D: Parser> Parser for DelimitedVec<T, D> {
+impl<T: Parse, D: Parse> Parser for DelimitedVec<T, D> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let mut output = Vec::new();
         while let Ok(value) = Delimited::<T, D>::parse(tokens) {
@@ -77,6 +98,12 @@ impl<T: Parser, D: Parser> Parser for DelimitedVec<T, D> {
             }
         }
         Ok(Self(output))
+    }
+}
+
+impl<T: Parse, D: Parse> ToTokens for DelimitedVec<T, D> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.0.iter().for_each(|value| value.to_tokens(tokens));
     }
 }
 
@@ -95,11 +122,11 @@ pub type ColonDelimitedVec<T> = DelimitedVec<T, Colon>;
 /// Parsing will succeed when the minimum number of elements is reached and stop at the
 /// maximum number.  The delimiter `D` defaults to 'Nothing' to parse sequences which don't
 /// have delimiters.
-pub struct Repeats<const MIN: usize, const MAX: usize, T: Parser, D: Parser = Nothing>(
+pub struct Repeats<const MIN: usize, const MAX: usize, T: Parse, D: Parse = Nothing>(
     pub Vec<Delimited<T, D>>,
 );
 
-impl<const MIN: usize, const MAX: usize, T: Parser, D: Parser> Parser for Repeats<MIN, MAX, T, D> {
+impl<const MIN: usize, const MAX: usize, T: Parse, D: Parse> Parser for Repeats<MIN, MAX, T, D> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let mut output = Vec::new();
         while let Ok(value) = Delimited::<T, D>::parse(tokens) {
@@ -125,6 +152,12 @@ impl<const MIN: usize, const MAX: usize, T: Parser, D: Parser> Parser for Repeat
     }
 }
 
+impl<const MIN: usize, const MAX: usize, T: Parse, D: Parse> ToTokens for Repeats<MIN, MAX, T, D> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.0.iter().for_each(|value| value.to_tokens(tokens));
+    }
+}
+
 /// Any number of T delimited by D or Nothing
 pub type Any<T, D = Nothing> = Repeats<0, { usize::MAX }, T, D>;
 /// One or more of T delimited by D or Nothing
@@ -138,4 +171,4 @@ pub type AtMost<const N: usize, T, D = Nothing> = Repeats<0, N, T, D>;
 /// At least N of T delimited by D or Nothing
 pub type AtLeast<const N: usize, T, D = Nothing> = Repeats<N, { usize::MAX }, T, D>;
 
-// PLANNED: needs https://github.com/rust-lang/rust/issues/96097 impl<const N: usize, T: Parser> Parser for [T;N] {
+// PLANNED: needs https://github.com/rust-lang/rust/issues/96097 impl<const N: usize, T: Parse> Parser for [T;N] {

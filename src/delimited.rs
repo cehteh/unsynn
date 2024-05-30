@@ -1,6 +1,8 @@
 #![allow(clippy::module_name_repetitions)]
 
-use crate::{Colon, Comma, Dot, Parse, Parser, PathSep, Result, Semicolon, TokenIter};
+use crate::{
+    Colon, Comma, Dot, Parse, Parser, PathSep, Result, Semicolon, ToTokens, TokenIter, TokenStream,
+};
 
 /// A entity `T` followed by a optional delimiting entity `D`
 pub struct Delimited<T: Parse, D: Parse>(pub T, pub Option<D>);
@@ -8,6 +10,13 @@ pub struct Delimited<T: Parse, D: Parse>(pub T, pub Option<D>);
 impl<T: Parse, D: Parse> Parser for Delimited<T, D> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         Ok(Self(T::parser(tokens)?, Option::<D>::parser(tokens)?))
+    }
+}
+
+impl<T: Parse, D: Parse> ToTokens for Delimited<T, D> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.0.to_tokens(tokens);
+        self.1.to_tokens(tokens);
     }
 }
 

@@ -44,10 +44,11 @@ where
 /// that is used for parsing into a transaction. This iterator is always `Copy`. Instead using
 /// a peekable iterator or implementing deeper peeking parsers clone this iterator when
 /// necessary, operate on that clone and commit changes back to the original iterator when
-/// successful.  This trait cannot be implemented by user code.
+/// successful.  This trait cannot be implemented by user code. It is bound to `ToTokens` as
+/// well to ensure that everything that can be parsed can be generated as well.
 pub trait Parse
 where
-    Self: Parser + Sized,
+    Self: Parser + ToTokens,
 {
     /// This is the user facing API to parse grammatical entities. Calls a `parser()` within a
     /// transaction. Commits changes on success and returns the parsed value.
@@ -78,7 +79,20 @@ where
     }
 }
 
-impl<T: Parser> Parse for T {}
+impl<T: Parser + ToTokens> Parse for T {}
+
+/// We need our own `ToTokens` to be able to implement it for std container types
+pub trait ToTokens {
+    /// Write `self` to the given `TokenStream`.
+    fn to_tokens(&self, tokens: &mut TokenStream);
+
+    /// Convert `self` directly into a `TokenStream` object.
+    fn to_token_stream(&self) -> TokenStream {
+        let mut tokens = TokenStream::new();
+        self.to_tokens(&mut tokens);
+        tokens
+    }
+}
 
 // Result and error type
 mod error;

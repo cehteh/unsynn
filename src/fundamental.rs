@@ -1,4 +1,7 @@
-use crate::{Error, Group, Ident, Literal, Parser, Punct, Result, TokenIter, TokenTree};
+use crate::{
+    Error, Group, Ident, Literal, Parse, Parser, Punct, Result, ToTokens, TokenIter, TokenStream,
+    TokenTree,
+};
 
 use std::fmt::Display;
 use std::marker::PhantomData;
@@ -13,6 +16,13 @@ impl Parser for TokenTree {
     }
 }
 
+impl ToTokens for TokenTree {
+    #[inline]
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        quote::ToTokens::to_tokens(self, tokens);
+    }
+}
+
 impl Parser for Group {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
@@ -20,6 +30,13 @@ impl Parser for Group {
             Some(other) => Error::unexpected_token(other),
             None => Error::unexpected_end(),
         }
+    }
+}
+
+impl ToTokens for Group {
+    #[inline]
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        quote::ToTokens::to_tokens(self, tokens);
     }
 }
 
@@ -33,6 +50,13 @@ impl Parser for Ident {
     }
 }
 
+impl ToTokens for Ident {
+    #[inline]
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        quote::ToTokens::to_tokens(self, tokens);
+    }
+}
+
 impl Parser for Punct {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
@@ -43,6 +67,13 @@ impl Parser for Punct {
     }
 }
 
+impl ToTokens for Punct {
+    #[inline]
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        quote::ToTokens::to_tokens(self, tokens);
+    }
+}
+
 impl Parser for Literal {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
@@ -50,6 +81,13 @@ impl Parser for Literal {
             Some(other) => Error::unexpected_token(other),
             None => Error::unexpected_end(),
         }
+    }
+}
+
+impl ToTokens for Literal {
+    #[inline]
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        quote::ToTokens::to_tokens(self, tokens);
     }
 }
 
@@ -66,12 +104,12 @@ impl Parser for Literal {
 /// assert!(cached_ident == "ident");
 /// ```
 #[derive(Debug)]
-pub struct Cached<T: Parser + ToString> {
+pub struct Cached<T: Parse + ToString> {
     value: T,
     string: String,
 }
 
-impl<T: Parser + ToString> Parser for Cached<T> {
+impl<T: Parse + ToString> Parser for Cached<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let value = T::parser(tokens)?;
         let string = value.to_string();
@@ -79,7 +117,14 @@ impl<T: Parser + ToString> Parser for Cached<T> {
     }
 }
 
-impl<T: Parser + ToString> Cached<T> {
+impl<T: Parse + ToString> ToTokens for Cached<T> {
+    #[inline]
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.value.to_tokens(tokens);
+    }
+}
+
+impl<T: Parse + ToString> Cached<T> {
     /// Sets the value and updates the string representation.
     pub fn set(&mut self, value: T) {
         self.value = value;
@@ -97,7 +142,7 @@ impl<T: Parser + ToString> Cached<T> {
     }
 }
 
-impl<T: Parser + ToString> Deref for Cached<T> {
+impl<T: Parse + ToString> Deref for Cached<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -105,34 +150,25 @@ impl<T: Parser + ToString> Deref for Cached<T> {
     }
 }
 
-impl<T: Parser + ToString + Clone> Clone for Cached<T> {
-    fn clone(&self) -> Self {
-        Self {
-            value: self.value.clone(),
-            string: self.string.clone(),
-        }
-    }
-}
-
-impl<T: Parser + ToString> PartialEq<&str> for Cached<T> {
+impl<T: Parse + ToString> PartialEq<&str> for Cached<T> {
     fn eq(&self, other: &&str) -> bool {
         &self.string == other
     }
 }
 
-impl<T: Parser + ToString> Display for Cached<T> {
+impl<T: Parse + ToString> Display for Cached<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.string)
     }
 }
 
-impl<T: Parser + ToString> AsRef<T> for Cached<T> {
+impl<T: Parse + ToString> AsRef<T> for Cached<T> {
     fn as_ref(&self) -> &T {
         &self.value
     }
 }
 
-impl<T: Parser + ToString> AsRef<str> for Cached<T> {
+impl<T: Parse + ToString> AsRef<str> for Cached<T> {
     fn as_ref(&self) -> &str {
         &self.string
     }
@@ -155,8 +191,16 @@ pub type CachedLiteral = Cached<Literal>;
 pub struct Nothing;
 
 impl Parser for Nothing {
+    #[inline]
     fn parser(_tokens: &mut TokenIter) -> Result<Self> {
         Ok(Self)
+    }
+}
+
+impl ToTokens for Nothing {
+    #[inline]
+    fn to_tokens(&self, _tokens: &mut TokenStream) {
+        /*NOP*/
     }
 }
 
@@ -176,15 +220,22 @@ impl Display for Nothing {
 ///
 /// let _ = Except::<Punct>::parser(&mut token_iter).unwrap();
 /// ```
-pub struct Except<T: Parser>(PhantomData<T>);
+pub struct Except<T: Parse>(PhantomData<T>);
 
-impl<T: Parser> Parser for Except<T> {
+impl<T: Parse> Parser for Except<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let mut ptokens = tokens.clone();
         match T::parser(&mut ptokens) {
             Ok(_) => Error::unexpected_token(tokens.clone().next().unwrap()),
             Err(_) => Ok(Self(PhantomData)),
         }
+    }
+}
+
+impl<T: Parse> ToTokens for Except<T> {
+    #[inline]
+    fn to_tokens(&self, _tokens: &mut TokenStream) {
+        /*NOP*/
     }
 }
 
@@ -206,5 +257,12 @@ impl Parser for EndOfStream {
             None => Ok(Self),
             Some(next) => Error::unexpected_token(next),
         }
+    }
+}
+
+impl ToTokens for EndOfStream {
+    #[inline]
+    fn to_tokens(&self, _tokens: &mut TokenStream) {
+        /*NOP*/
     }
 }

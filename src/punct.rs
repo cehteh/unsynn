@@ -1,6 +1,8 @@
 #![allow(clippy::module_name_repetitions)]
 
-use crate::{Error, Parser, Result, Spacing, TokenIter, TokenTree};
+use proc_macro2::Punct;
+
+use crate::{Error, Parser, Result, Spacing, ToTokens, TokenIter, TokenStream, TokenTree};
 use std::fmt::Display;
 
 /// A single character punctuation token lexed with `Spacing::Alone`.
@@ -25,6 +27,12 @@ impl<const C: char> Parser for OnePunct<C> {
             Some(other) => Error::unexpected_token(other),
             None => Error::unexpected_end(),
         }
+    }
+}
+
+impl<const C: char> ToTokens for OnePunct<C> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        Punct::new(C, Spacing::Alone).to_tokens(tokens);
     }
 }
 
@@ -74,6 +82,12 @@ impl<const C: char> Parser for JointPunct<C> {
     }
 }
 
+impl<const C: char> ToTokens for JointPunct<C> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        Punct::new(C, Spacing::Joint).to_tokens(tokens);
+    }
+}
+
 impl<const C: char> Display for JointPunct<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{C}")
@@ -97,6 +111,13 @@ impl<const C1: char, const C2: char> Parser for TwoPunct<C1, C2> {
             (Some(other), _) => Error::unexpected_token(other),
             (None, _) => Error::unexpected_end(),
         }
+    }
+}
+
+impl<const C1: char, const C2: char> ToTokens for TwoPunct<C1, C2> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        Punct::new(C1, Spacing::Joint).to_tokens(tokens);
+        Punct::new(C2, Spacing::Alone).to_tokens(tokens);
     }
 }
 
@@ -128,6 +149,14 @@ impl<const C1: char, const C2: char, const C3: char> Parser for ThreePunct<C1, C
             (Some(other), _, _) => Error::unexpected_token(other),
             (None, _, _) => Error::unexpected_end(),
         }
+    }
+}
+
+impl<const C1: char, const C2: char, const C3: char> ToTokens for ThreePunct<C1, C2, C3> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        Punct::new(C1, Spacing::Joint).to_tokens(tokens);
+        Punct::new(C2, Spacing::Joint).to_tokens(tokens);
+        Punct::new(C3, Spacing::Alone).to_tokens(tokens);
     }
 }
 
