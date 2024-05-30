@@ -7,10 +7,7 @@ fn test_group_contains() {
     let group_containing =
         GroupContaining::<ParenthesisGroup, Ident>::parse(&mut token_iter).unwrap();
 
-    assert_eq!(
-        group_containing.group.as_group().delimiter(),
-        Delimiter::Parenthesis
-    );
+    assert_eq!(group_containing.delimiter, Delimiter::Parenthesis);
     assert_eq!(group_containing.content.to_string(), "ident");
 }
 
@@ -20,8 +17,5 @@ fn test_group_contains_empty() {
 
     let group_containing = GroupContaining::<BraceGroup, Nothing>::parse(&mut token_iter).unwrap();
 
-    assert_eq!(
-        group_containing.group.as_group().delimiter(),
-        Delimiter::Brace
-    );
+    assert_eq!(group_containing.delimiter, Delimiter::Brace);
 }

@@ -1,6 +1,7 @@
 #![allow(clippy::module_name_repetitions)]
 
 use crate::{private, Delimiter, Error, Group, Parser, Result, TokenIter, TokenTree};
+use std::marker::PhantomData;
 
 /// A group of tokens within `( )`
 pub struct ParenthesisGroup(pub Group);
@@ -130,11 +131,11 @@ impl ParserGroup for NoneGroup {
 
 /// Any kind of Group with some parseable content.
 pub struct GroupContaining<G: ParserGroup, C: Parser> {
-    /// The underlying group type. This can be `ParenthesisGroup`, `BraceGroup`,
-    /// `BracketGroup`, `NoneGroup` or `Group`.
-    pub group: G,
+    /// The delimiters around the group.
+    pub delimiter: Delimiter,
     /// The content of the group. That can be anything that implements `Parser`.
     pub content: C,
+    group: PhantomData<G>,
 }
 
 impl<G: ParserGroup, C: Parser> Parser for GroupContaining<G, C> {
@@ -142,7 +143,11 @@ impl<G: ParserGroup, C: Parser> Parser for GroupContaining<G, C> {
         let group = G::parser(tokens)?;
         let mut c_iter = group.as_group().stream().into_iter();
         let content = C::parser(&mut c_iter)?;
-        Ok(Self { group, content })
+        Ok(Self {
+            delimiter: group.as_group().delimiter(),
+            content,
+            group: PhantomData,
+        })
     }
 }
 
