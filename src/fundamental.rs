@@ -5,7 +5,7 @@ use crate::{
 
 use std::fmt::Display;
 use std::marker::PhantomData;
-use std::ops::Deref;
+use std::ops::{Deref, DerefMut};
 
 impl Parser for TokenStream {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
@@ -275,6 +275,41 @@ impl Parser for EndOfStream {
 }
 
 impl ToTokens for EndOfStream {
+    #[inline]
+    fn to_tokens(&self, _tokens: &mut TokenStream) {
+        /*NOP*/
+    }
+}
+
+/// Sometimes one want to automatically create structures for unsynn that have members that
+/// are not part of the parsed syntax but add some additional information. This struct can be
+/// used to hold such members. `HiddenState` will not consume any tokens when parsing and will
+/// not emit any tokens when generating a `TokenStream`. On parsing it is initialized with a
+/// default value. It has `Deref` and `DerefMut` implemented to access the inner value.
+struct HiddenState<T: Sized + Default>(T);
+
+impl<T: Sized + Default> Deref for HiddenState<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<T: Sized + Default> DerefMut for HiddenState<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl<T: Sized + Default> Parser for HiddenState<T> {
+    #[inline]
+    fn parser(_ctokens: &mut TokenIter) -> Result<Self> {
+        Ok(Self(T::default()))
+    }
+}
+
+impl<T: Sized + Default> ToTokens for HiddenState<T> {
     #[inline]
     fn to_tokens(&self, _tokens: &mut TokenStream) {
         /*NOP*/
