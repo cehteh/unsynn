@@ -7,6 +7,20 @@ use std::fmt::Display;
 use std::marker::PhantomData;
 use std::ops::Deref;
 
+impl Parser for TokenStream {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        let mut output = TokenStream::new();
+        output.extend(tokens);
+        Ok(output)
+    }
+}
+
+impl ToTokens for TokenStream {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        tokens.extend(self.clone());
+    }
+}
+
 impl Parser for TokenTree {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
