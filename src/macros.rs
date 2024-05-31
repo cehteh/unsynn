@@ -1,6 +1,9 @@
-/// Construct types with a `Parser` implementation that will try to parse each entity in
-/// order. This macro supports enums, tuple structs and normal structs. Generics are not
-/// supported and all entities in a single `unsynn!` invocation have to be of the same kind.
+/// Construct types with a `Parser` and `ToTokens` implementation that will try to
+/// parse/generate each entity in order. This macro supports enums, tuple structs and normal
+/// structs. Generics are not supported and all entities in a single `unsynn!` invocation have
+/// to be of the same kind. Note: eventually a derive macro for `Parser` and `ToTokens` will
+/// become supported to give finer control over the expansion, while using this declarative
+/// macro may still be more efficient for the general case.
 ///
 /// # Examples
 ///
@@ -74,15 +77,19 @@ macro_rules! unsynn{
 
             impl ToTokens for $name {
                 fn to_tokens(&self, tokens: &mut TokenStream) {
-                    todo!();
+                    match self {
+                        $(
+                            $name::$variant(matched) => matched.to_tokens(tokens),
+                        )*
+                    }
                 }
             }
         )*
     };
-    ($($(#[$attribute:meta])* $pub:vis struct $name:ident { $($member:ident: $parse:ty),* $(,)? })*) => {
+    ($($(#[$attribute:meta])* $pub:vis struct $name:ident { $($mpub:vis $member:ident: $parse:ty),* $(,)? })*) => {
         $(
             $(#[$attribute])* $pub struct $name {
-                $($member : $parse),*
+                $($mpub $member : $parse),*
             }
 
             impl Parser for $name {
@@ -93,15 +100,15 @@ macro_rules! unsynn{
 
             impl ToTokens for $name {
                 fn to_tokens(&self, tokens: &mut TokenStream) {
-                    todo!();
+                    $(self.$member.to_tokens(tokens);)*
                 }
             }
         )*
     };
-    ($($(#[$attribute:meta])* $pub:vis struct $name:ident ($($parse:ty),* $(,)?);)*) => {
+    ($($(#[$attribute:meta])* $pub:vis struct $name:ident ($($mpub:vis $parse:ty),* $(,)?);)*) => {
         $(
             $(#[$attribute])* $pub struct $name (
-                $($parse),*
+                $($mpub $parse),*
             );
 
             impl Parser for $name {
@@ -112,11 +119,22 @@ macro_rules! unsynn{
 
             impl ToTokens for $name {
                 fn to_tokens(&self, tokens: &mut TokenStream) {
-                    todo!();
+                    $crate::unsynn!{@tuple $name(self, tokens) $($parse),*}
                 }
             }
         )*
     };
+
+
+    // For the tuple struct ToTokens impl we need to match each tuple member and call to_tokens on it
+    (@tuple $name:ident($this:ident,$param:ident) $element:ty $(,$rest:ty)* $(,)?) => {
+        $crate::unsynn!{@tuple $name($this,$param) $($rest),*}
+        let $name($($crate::unsynn!{@_ $rest},)*  that, .. ) = $this;
+        that.to_tokens($param);
+    };
+    (@tuple $name:ident($this:ident,$param:ident)) => {};
+    // replaces a ty with a underscore
+    (@_ $unused:ty) => {_};
 }
 
 /// Define types matching keywords.
@@ -172,7 +190,7 @@ macro_rules! keyword{
 
             impl ToTokens for $name {
                 fn to_tokens(&self, tokens: &mut TokenStream) {
-                    todo!();
+                    self.to_tokens(tokens);
                 }
             }
 
