@@ -328,3 +328,9 @@ impl<T: Sized + Default> ToTokens for HiddenState<T> {
         /*NOP*/
     }
 }
+
+impl<T: Sized + Default> Default for HiddenState<T> {
+    fn default() -> Self {
+        Self(Default::default())
+    }
+}
