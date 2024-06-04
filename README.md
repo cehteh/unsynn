@@ -4,7 +4,7 @@ reporting. In exchange it offers simple composeable Parsers and ergonomic Parser
 construction. Grammars will be implemented in their own crates (see unsynn-rust).
 
 It is primarly intended use is when one wants to create proc macros for rust that define their
-own grammar.
+own grammar or need only sparse rust parsers.
 
 # Example
 
@@ -17,7 +17,7 @@ let ast =
     Cons::<Ident, ParenthesisGroupContaining::<CommaDelimitedVec<Ident>>>
         ::parse(&mut token_iter).unwrap();
 
-// The same defining a custom type
+// The same defining a custom type, the macro will generate the `Parser` and `ToToken` impls.
 unsynn!{
     struct IdentThenParenthesisedIdents {
         ident: Ident,
