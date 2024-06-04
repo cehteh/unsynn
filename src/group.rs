@@ -124,6 +124,9 @@ impl ToTokens for NoneGroup {
 pub trait ParseGroup: Parse + private::Sealed {
     /// Get the underlying group from any group type.
     fn as_group(&self) -> &Group;
+
+    /// Get the delimiter of the group.
+    fn delimiter() -> Delimiter;
 }
 
 impl private::Sealed for ParenthesisGroup {}
@@ -136,30 +139,54 @@ impl ParseGroup for Group {
     fn as_group(&self) -> &Group {
         self
     }
+
+    fn delimiter() -> Delimiter {
+        Delimiter::None
+    }
 }
 
 impl ParseGroup for ParenthesisGroup {
     fn as_group(&self) -> &Group {
         &self.0
     }
+
+    fn delimiter() -> Delimiter {
+        Delimiter::Parenthesis
+    }
+}
 }
 
 impl ParseGroup for BraceGroup {
     fn as_group(&self) -> &Group {
         &self.0
     }
+
+    fn delimiter() -> Delimiter {
+        Delimiter::Brace
+    }
+}
 }
 
 impl ParseGroup for BracketGroup {
     fn as_group(&self) -> &Group {
         &self.0
     }
+
+    fn delimiter() -> Delimiter {
+        Delimiter::Bracket
+    }
+}
 }
 
 impl ParseGroup for NoneGroup {
     fn as_group(&self) -> &Group {
         &self.0
     }
+
+    fn delimiter() -> Delimiter {
+        Delimiter::None
+    }
+}
 }
 
 /// Any kind of Group `G` with parseable content `C`.  The content `C` must parse exhaustive,
@@ -170,6 +197,31 @@ pub struct GroupContaining<G: ParseGroup, C: Parse> {
     /// The content of the group. That can be anything that implements `Parse`.
     pub content: C,
     group: PhantomData<G>,
+}
+
+impl<G: ParseGroup, C: Parse> GroupContaining<G, C> {
+    /// Create a new `GroupContaining` instance. Note that the actual type is best picked from
+    /// one of the type aliases that include the `Delimiter` type as shown in the example
+    /// below. Otherwise when using `GroupContaining` the turbofish notation is needed to
+    /// specify the types.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use unsynn::*;
+    ///
+    /// let group = ParenthesisGroupContaining::new(
+    ///     Literal::i32_unsuffixed(123),
+    /// );
+    /// assert_eq!(group.to_string(), "(123)");
+    /// ```
+    pub fn new(content: C) -> Self {
+        Self {
+            delimiter: G::delimiter(),
+            content,
+            group: PhantomData,
+        }
+    }
 }
 
 impl<G: ParseGroup, C: Parse> Parser for GroupContaining<G, C> {
