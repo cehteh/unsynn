@@ -16,7 +16,7 @@ pub enum Error {
         /// type name of what was expected
         expected: &'static str,
     },
-    /// Something else failed when trying to parse `expected`.
+    /// Something else failed which can be fully formatted as `String`.
     Other {
         /// explanation what failed
         reason: String,

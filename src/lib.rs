@@ -32,8 +32,9 @@ where
     /// # Errors
     ///
     /// The `parser()` implementation must return an error if it cannot parse the input. This
-    /// error must be a `Box<dyn std::error::Error>`. The user code will call `parser()` in a
-    /// transaction and roll back the transaction on error.
+    /// error must be a `unsynn::Error`. User code will call `parser()` in a transaction
+    /// trough `Parser::parse` which will call the parser in a transaction and roll back on
+    /// error.
     fn parser(tokens: &mut TokenIter) -> Result<Self>;
 }
 
@@ -53,7 +54,7 @@ where
     ///
     /// # Errors
     ///
-    /// When the parser returns an error the transaction is rolled back and the errors is
+    /// When the parser returns an error the transaction is rolled back and the error is
     /// returned.
     fn parse(tokens: &mut TokenIter) -> Result<Self> {
         let mut ptokens = tokens.clone();
@@ -63,7 +64,7 @@ where
     }
 
     /// Parse a value in a transaction, pass it to a closure which may modify it or return an Error.
-    /// When the closure returns an `Ok()` value it is returned.
+    /// When the closure returns an `Ok(Self)` value it is returned.
     ///
     /// # Errors
     ///

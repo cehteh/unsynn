@@ -1,7 +1,7 @@
 //! Groups are a way to group tokens together. They are used to represent the contents between
-//! `()`, `{}`, `[]` or no delimiters at all.  This module provides the `Group` type and the
-//! `GroupContaining` type to parse the content of groups.  The `GroupContaining` type is a
-//! generic type that parses the content of any group type.
+//! `()`, `{}`, `[]` or no delimiters at all.  This module provides parser implementations for
+//! group types with defined delimiters and the `GroupContaining` type is a generic type that
+//! parses the surrounding delimiters and content of any group type.
 
 #![allow(clippy::module_name_repetitions)]
 
