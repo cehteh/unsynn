@@ -1,3 +1,11 @@
+//! This module contains types for punctuation tokens. These are used to represent single and
+//! multi character punctuation tokens. The types are generic over the character they
+//! represent, for example `TwoPunct<'+', '='>` represents the `+=` token. There are type
+//! aliases named after the punctuation they represent, for example `PlusEq` for the `+=`
+//! token. Note that the rust lexer is already aware of the rust operators and augments single
+//! `Punct` tokens with `Spacing::Alone` or `Spacing::Joint` to implement multi character
+//! punctuation as rust defines.
+
 #![allow(clippy::module_name_repetitions)]
 
 use proc_macro2::Punct;

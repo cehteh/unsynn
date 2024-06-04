@@ -1,3 +1,7 @@
+//! This module provides parsers for types that contain possibly multiple values.  This
+//! includes `std` types like `Option`, `Vec`, `Box`, `Rc`, `RefCell` and types for delimited
+//! and repeated values with numbered repeats.
+
 use crate::{
     Colon, Comma, Delimited, Dot, Error, Nothing, Parse, Parser, PathSep, Result, Semicolon,
     ToTokens, TokenIter, TokenStream,
@@ -41,7 +45,8 @@ impl<T: Parse> ToTokens for Vec<T> {
 }
 
 /// Box any parseable entity. In a enum it may happen that most variants are rather small
-/// while few variants are large. In this case it may be beneficial to box the large variants.
+/// while few variants are large. In this case it may be beneficial to box the large variants
+/// to keep the enum lean.
 impl<T: Parse> Parser for Box<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         Ok(Box::new(T::parser(tokens)?))
@@ -119,9 +124,9 @@ pub type DotDelimitedVec<T> = DelimitedVec<T, Dot>;
 pub type ColonDelimitedVec<T> = DelimitedVec<T, Colon>;
 
 /// Like `DelimitedVec` but with a minimum and maximum (inclusive) number of elements.
-/// Parsing will succeed when the minimum number of elements is reached and stop at the
-/// maximum number.  The delimiter `D` defaults to 'Nothing' to parse sequences which don't
-/// have delimiters.
+/// Parsing will succeed when at least the minimum number of elements is reached and stop at
+/// the maximum number.  The delimiter `D` defaults to 'Nothing' to parse sequences which
+/// don't have delimiters.
 pub struct Repeats<const MIN: usize, const MAX: usize, T: Parse, D: Parse = Nothing>(
     pub Vec<Delimited<T, D>>,
 );
@@ -162,7 +167,7 @@ impl<const MIN: usize, const MAX: usize, T: Parse, D: Parse> ToTokens for Repeat
 pub type Any<T, D = Nothing> = Repeats<0, { usize::MAX }, T, D>;
 /// One or more of T delimited by D or Nothing
 pub type Many<T, D = Nothing> = Repeats<1, { usize::MAX }, T, D>;
-/// Zero or one of T delimited by D or Nothing, i.e. optional (just for completeness)
+/// Zero or one of T delimited by D or Nothing
 pub type Optional<T, D = Nothing> = Repeats<0, 1, T, D>;
 /// Exactly N of T delimited by D or Nothing
 pub type Exactly<const N: usize, T, D = Nothing> = Repeats<N, N, T, D>;

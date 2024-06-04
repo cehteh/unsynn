@@ -1,3 +1,11 @@
+//! This module contains the fundamental parsers. These parsers are used to parse the basic
+//! tokens like `Ident`, `Punct`, `Literal`, `Group`, `TokenTree` and `TokenStream` from
+//! `proc_macro2`.  The `Cached` type is used to cache the string representation of the parsed
+//! entity. The `Nothing` type is used to match without consuming any tokens. The `Except`
+//! type is used to match when the next token does not match the given type. The `EndOfStream`
+//! type is used to match the end of the stream when no tokens are left. The `HiddenState`
+//! type is used to hold additional information that is not part of the parsed syntax.
+
 use crate::{
     Error, Group, Ident, Literal, Parse, Parser, Punct, Result, ToTokens, TokenIter, TokenStream,
     TokenTree,

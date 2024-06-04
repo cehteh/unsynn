@@ -1,3 +1,7 @@
+//! For easier composition we define the `Delimited` type here which is a `T` followed by a
+//! optional delimiting entity `D`. This is used by the `DelimitedVec` type to parse a list of
+//! entities separated by a delimiter.
+
 #![allow(clippy::module_name_repetitions)]
 
 use crate::{

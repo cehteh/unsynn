@@ -1,7 +1,5 @@
 #![doc = include_str!("../README.md")]
 
-//use std::fmt::Display;
-
 pub use proc_macro2::{Delimiter, Group, Ident, Literal, Punct, Spacing, TokenStream, TokenTree};
 
 /// Type alias for the iterator type we use for parsing. This Iterator is Clone and produces
@@ -21,7 +19,7 @@ where
     ///
     /// # Implementing Parsers
     ///
-    /// The parsers for `proc_macro2::TokenTree::{self, Group, Ident, Punct, Literal}`,
+    /// The parsers for `TokenStream`, `TokenTree`, `Group`, `Ident`, `Punct`, `Literal`,
     /// `Except` and `Nothing` are the fundamental parsers. Any other parser is composed from
     /// those. This composition is done by calling other `parse()` (or `parser()`)
     /// implementations until eventually one of the above fundamental parsers is called.
@@ -102,31 +100,38 @@ pub use error::*;
 mod macros;
 
 // Parsers for the `proc_macro2` entities and other fundamental types
-mod fundamental;
+pub mod fundamental;
+#[doc(inline)]
 pub use fundamental::*;
 
 // Groups by explicit bracket types
-mod group;
+pub mod group;
+#[doc(inline)]
 pub use group::*;
 
 // Punctuation, delimiters and operators
-mod punct;
+pub mod punct;
+#[doc(inline)]
 pub use punct::*;
 
 // Literals
-mod literal;
+pub mod literal;
+#[doc(inline)]
 pub use literal::*;
 
 // Delimited sequences
-mod delimited;
+pub mod delimited;
+#[doc(inline)]
 pub use delimited::*;
 
 // containers and smart pointers
-mod container;
+pub mod container;
+#[doc(inline)]
 pub use container::*;
 
 // combinators
-mod combinator;
+pub mod combinator;
+#[doc(inline)]
 pub use combinator::*;
 
 mod private {

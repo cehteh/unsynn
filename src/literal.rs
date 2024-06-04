@@ -1,3 +1,9 @@
+//! This module provides a set of literal types that can be used to parse and tokenize
+//! literals.  The literals are parsed from the token stream and can be used to represent the
+//! parsed value. unsynn defines only simplified literals, such as integers, characters and
+//! strings. The literals are not full rust syntax which will be defined in the `unsynn-rust`
+//! crate.
+
 #![allow(clippy::module_name_repetitions)]
 
 use crate::{Error, Literal, Parser, Result, ToTokens, TokenIter, TokenStream, TokenTree};
