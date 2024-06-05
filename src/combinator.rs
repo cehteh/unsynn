@@ -7,7 +7,7 @@
 use crate::{Parse, Parser, Result, ToTokens, TokenIter, TokenStream};
 
 /// Conjunctive `A` followed by `B`
-pub struct Cons<A: Parse, B: Parse>(A, B);
+pub struct Cons<A: Parse, B: Parse>(pub A, pub B);
 
 impl<A: Parse, B: Parse> Parser for Cons<A, B> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
