@@ -108,3 +108,11 @@ fn test_delimited_undelimited() {
     assert_eq!(delim.0.to_string(), "bar");
     assert!(delim.1.is_none());
 }
+
+#[test]
+#[should_panic = "Unexpected token: expected unsynn::fundamental::EndOfStream, found Ident"]
+fn test_parse_all() {
+    let mut token_iter = quote::quote! { foo bar }.into_iter();
+
+    let _ident = Ident::parse_all(&mut token_iter).unwrap();
+}

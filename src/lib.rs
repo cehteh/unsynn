@@ -63,6 +63,20 @@ where
         Ok(result)
     }
 
+    /// Exhaustive parsing within a transaction. This is a convenience method that implies a
+    /// `EndOfStream` at the end. Thus it will error if parsing is not exhaustive.
+    ///
+    /// # Errors
+    ///
+    /// When the parser returns an error or there are tokens left in the stream the
+    /// transaction is rolled back and a error is returned.
+    fn parse_all(tokens: &mut TokenIter) -> Result<Self> {
+        let mut ptokens = tokens.clone();
+        let result = Cons::<Self, EndOfStream>::parser(&mut ptokens)?;
+        *tokens = ptokens;
+        Ok(result.0)
+    }
+
     /// Parse a value in a transaction, pass it to a closure which may modify it or return an Error.
     /// When the closure returns an `Ok(Self)` value it is returned.
     ///
