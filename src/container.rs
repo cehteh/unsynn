@@ -87,6 +87,52 @@ impl<T: ToTokens> ToTokens for RefCell<T> {
     }
 }
 
+/// Repeat trying to parse `S` and when this fails try to parse `T` and append that to a
+/// vector, until a `S` is finally seen and stored. `S` may be a subset of `T`, thus parsing
+/// become lazy and stopping at the first `S`.  This is the same as
+/// `Cons<Vec<Cons<Except<S>,T>>>,S>` but more convenient and efficient.
+///
+/// # Example
+///
+/// Parse anything until a `;`.
+///
+/// ```
+/// # use unsynn::*;
+/// let mut token_iter = quote::quote! {foo bar ; baz ;}.into_iter();
+///
+/// type Example = LazyVec<TokenTree, Semicolon>;
+///
+/// let _example = Example::parse(&mut token_iter).unwrap();
+/// let _example = Example::parse(&mut token_iter).unwrap();
+/// ```
+pub struct LazyVec<T: Parse, S: Parse>{
+    /// The vector of repeating `T`
+    pub vec: Vec<T>,
+    /// The terminating `S`
+    pub then: S,
+}
+
+impl<T: Parse, S: Parse> Parser for LazyVec<T, S> {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        let mut vec = Vec::new();
+
+        loop {
+            if let Ok(then) = S::parse(tokens) {
+                return Ok(Self { vec, then });
+            }
+
+            vec.push(T::parse(tokens)?);
+        }
+    }
+}
+
+impl<T: Parse, S: Parse> ToTokens for LazyVec<T, S> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.vec.iter().for_each(|value| value.to_tokens(tokens));
+        self.then.to_tokens(tokens);
+    }
+}
+
 /// Since the delimiter in `Delimited<T,D>` is optional a `Vec<Delimited<T,D>>` would parse
 /// consecutive values even without delimiters. `DelimimitedVec<T,D>` will stop
 /// parsing after the first value without a delimiter.
