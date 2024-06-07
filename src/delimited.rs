@@ -24,6 +24,38 @@ impl<T: Parse, D: Parse> ToTokens for Delimited<T, D> {
     }
 }
 
+#[cfg(feature = "impl_debug")]
+impl<T: Parse + std::fmt::Debug, D: Parse + std::fmt::Debug> std::fmt::Debug for Delimited<T, D> {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        f.debug_tuple(&format!(
+            "Delimited<{}, {}>",
+            std::any::type_name::<T>(),
+            std::any::type_name::<D>()
+        ))
+        .field(&self.0)
+        .field(&self.1)
+        .finish()
+    }
+}
+
+#[cfg(feature = "impl_display")]
+impl<T: Parse + std::fmt::Display, D: Parse + std::fmt::Display> std::fmt::Display
+    for Delimited<T, D>
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(
+            f,
+            "{}{}",
+            self.0,
+            self.1
+                .as_ref()
+                // use a space when there is no delimiter otherwise tokens it would be
+                // indistinguishable where one token ends and the next begins.
+                .map_or(String::from(" "), ToString::to_string)
+        )
+    }
+}
+
 /// `T` followed by an optional `,`
 pub type CommaDelimited<T> = Delimited<T, Comma>;
 /// `T` followed by an optional `:`

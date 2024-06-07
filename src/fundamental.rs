@@ -14,7 +14,6 @@ use crate::{
     TokenTree,
 };
 
-use std::fmt::Display;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 
@@ -128,7 +127,6 @@ impl ToTokens for Literal {
 /// let cached_ident = Cached::<Ident>::parse(&mut token_iter).unwrap();
 /// assert!(cached_ident == "ident");
 /// ```
-#[derive(Debug)]
 pub struct Cached<T: Parse + ToString> {
     value: T,
     string: String,
@@ -181,12 +179,6 @@ impl<T: Parse + ToString> PartialEq<&str> for Cached<T> {
     }
 }
 
-impl<T: Parse + ToString> Display for Cached<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.string)
-    }
-}
-
 impl<T: Parse + ToString> AsRef<T> for Cached<T> {
     fn as_ref(&self) -> &T {
         &self.value
@@ -196,6 +188,23 @@ impl<T: Parse + ToString> AsRef<T> for Cached<T> {
 impl<T: Parse + ToString> AsRef<str> for Cached<T> {
     fn as_ref(&self) -> &str {
         &self.string
+    }
+}
+
+#[cfg(feature = "impl_debug")]
+impl<T: Parse + ToString + std::fmt::Debug> std::fmt::Debug for Cached<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct(&format!("Cached<{}>", std::any::type_name::<T>()))
+            .field("value", &self.value)
+            .field("string", &self.string)
+            .finish()
+    }
+}
+
+#[cfg(feature = "impl_display")]
+impl<T: Parse + std::fmt::Display> std::fmt::Display for Cached<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.string)
     }
 }
 
@@ -213,6 +222,7 @@ pub type CachedLiteral = Cached<Literal>;
 /// A unit that always matches without consuming any tokens.  This is required when one wants
 /// to parse a `Repetition` without a delimiter.  Note that using `Nothing` as primary entity in
 /// a `Vec`, `DelimitedVec` or `Repetition` will result in an infinite loop.
+#[cfg_attr(feature = "impl_debug", derive(Debug))]
 pub struct Nothing;
 
 impl Parser for Nothing {
@@ -229,9 +239,10 @@ impl ToTokens for Nothing {
     }
 }
 
-impl Display for Nothing {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "")
+#[cfg(feature = "impl_display")]
+impl std::fmt::Display for Nothing {
+    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Ok(())
     }
 }
 
@@ -264,6 +275,21 @@ impl<T: Parse> ToTokens for Except<T> {
     }
 }
 
+#[cfg(feature = "impl_debug")]
+impl<T: Parse + std::fmt::Debug> std::fmt::Debug for Except<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct(&format!("Except<{}>", std::any::type_name::<T>()))
+            .finish()
+    }
+}
+
+#[cfg(feature = "impl_display")]
+impl<T: Parse> std::fmt::Display for Except<T> {
+    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Ok(())
+    }
+}
+
 /// Matches the end of the stream when no tokens are left
 ///
 /// # Example
@@ -274,6 +300,7 @@ impl<T: Parse> ToTokens for Except<T> {
 ///
 /// let _end_ = EndOfStream::parser(&mut token_iter).unwrap();
 /// ```
+#[cfg_attr(feature = "impl_debug", derive(Debug))]
 pub struct EndOfStream;
 
 impl Parser for EndOfStream {
@@ -299,9 +326,9 @@ impl ToTokens for EndOfStream {
 /// `HiddenState` will not consume any tokens when parsing and will not emit any tokens when
 /// generating a `TokenStream`. On parsing it is initialized with a default value. It has
 /// `Deref` and `DerefMut` implemented to access the inner value.
-pub struct HiddenState<T: Sized + Default>(T);
+pub struct HiddenState<T: Default>(T);
 
-impl<T: Sized + Default> Deref for HiddenState<T> {
+impl<T: Default> Deref for HiddenState<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -309,28 +336,44 @@ impl<T: Sized + Default> Deref for HiddenState<T> {
     }
 }
 
-impl<T: Sized + Default> DerefMut for HiddenState<T> {
+impl<T: Default> DerefMut for HiddenState<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
 }
 
-impl<T: Sized + Default> Parser for HiddenState<T> {
+impl<T: Default> Parser for HiddenState<T> {
     #[inline]
     fn parser(_ctokens: &mut TokenIter) -> Result<Self> {
         Ok(Self(T::default()))
     }
 }
 
-impl<T: Sized + Default> ToTokens for HiddenState<T> {
+impl<T: Default> ToTokens for HiddenState<T> {
     #[inline]
     fn to_tokens(&self, _tokens: &mut TokenStream) {
         /*NOP*/
     }
 }
 
-impl<T: Sized + Default> Default for HiddenState<T> {
+impl<T: Default> Default for HiddenState<T> {
     fn default() -> Self {
         Self(Default::default())
+    }
+}
+
+#[cfg(feature = "impl_debug")]
+impl<T: Default + std::fmt::Debug> std::fmt::Debug for HiddenState<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple(&format!("HiddenState<{}>", std::any::type_name::<T>()))
+            .field(&self.0)
+            .finish()
+    }
+}
+
+#[cfg(feature = "impl_display")]
+impl<T: Default> std::fmt::Display for HiddenState<T> {
+    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Ok(())
     }
 }

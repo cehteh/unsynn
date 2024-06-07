@@ -105,7 +105,7 @@ impl<T: ToTokens> ToTokens for RefCell<T> {
 /// let _example = Example::parse(&mut token_iter).unwrap();
 /// let _example = Example::parse(&mut token_iter).unwrap();
 /// ```
-pub struct LazyVec<T: Parse, S: Parse>{
+pub struct LazyVec<T: Parse, S: Parse> {
     /// The vector of repeating `T`
     pub vec: Vec<T>,
     /// The terminating `S`
@@ -133,6 +133,32 @@ impl<T: Parse, S: Parse> ToTokens for LazyVec<T, S> {
     }
 }
 
+#[cfg(feature = "impl_debug")]
+impl<T: Parse + std::fmt::Debug, S: Parse + std::fmt::Debug> std::fmt::Debug for LazyVec<T, S> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct(&format!(
+            "LazyVec<{}, {}>",
+            std::any::type_name::<T>(),
+            std::any::type_name::<s>()
+        ))
+        .field("vec", &self.vec)
+        .field("then", &self.then)
+        .finish()
+    }
+}
+
+#[cfg(feature = "impl_display")]
+impl<T: Parse + std::fmt::Display, S: Parse + std::fmt::Display> std::fmt::Display
+    for LazyVec<T, S>
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for value in &self.vec {
+            write!(f, "{value} ",)?;
+        }
+        write!(f, "{}", self.then)
+    }
+}
+
 /// Since the delimiter in `Delimited<T,D>` is optional a `Vec<Delimited<T,D>>` would parse
 /// consecutive values even without delimiters. `DelimimitedVec<T,D>` will stop
 /// parsing after the first value without a delimiter.
@@ -155,6 +181,33 @@ impl<T: Parse, D: Parse> Parser for DelimitedVec<T, D> {
 impl<T: Parse, D: Parse> ToTokens for DelimitedVec<T, D> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.0.iter().for_each(|value| value.to_tokens(tokens));
+    }
+}
+
+#[cfg(feature = "impl_debug")]
+impl<T: Parse + std::fmt::Debug, D: Parse + std::fmt::Debug> std::fmt::Debug
+    for DelimitedVec<T, D>
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple(&format!(
+            "DelimitedVec<{}, {}>",
+            std::any::type_name::<T>(),
+            std::any::type_name::<D>()
+        ))
+        .field(&self.0)
+        .finish()
+    }
+}
+
+#[cfg(feature = "impl_display")]
+impl<T: Parse + std::fmt::Display, D: Parse + std::fmt::Display> std::fmt::Display
+    for DelimitedVec<T, D>
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for value in &self.0 {
+            write!(f, "{}", &value)?;
+        }
+        Ok(())
     }
 }
 
@@ -206,6 +259,41 @@ impl<const MIN: usize, const MAX: usize, T: Parse, D: Parse> Parser for Repeats<
 impl<const MIN: usize, const MAX: usize, T: Parse, D: Parse> ToTokens for Repeats<MIN, MAX, T, D> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.0.iter().for_each(|value| value.to_tokens(tokens));
+    }
+}
+
+#[cfg(feature = "impl_debug")]
+impl<
+        const MIN: usize,
+        const MAX: usize,
+        T: Parse + std::fmt::Debug,
+        D: Parse + std::fmt::Debug,
+    > std::fmt::Debug for Repeats<MIN, MAX, T, D>
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple(&format!(
+            "Repeats<{MIN}, {MAX}, {}, {}>",
+            std::any::type_name::<T>(),
+            std::any::type_name::<D>()
+        ))
+        .field(&self.0)
+        .finish()
+    }
+}
+
+#[cfg(feature = "impl_display")]
+impl<
+        const MIN: usize,
+        const MAX: usize,
+        T: Parse + std::fmt::Display,
+        D: Parse + std::fmt::Display,
+    > std::fmt::Display for Repeats<MIN, MAX, T, D>
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for value in &self.0 {
+            write!(f, "{}", &value)?;
+        }
+        Ok(())
     }
 }
 

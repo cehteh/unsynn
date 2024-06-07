@@ -1,9 +1,10 @@
 /// Construct types with a `Parser` and `ToTokens` implementation that will try to
-/// parse/generate each entity in order. This macro supports enums, tuple structs and normal
-/// structs. Generics are not supported and all entities in a single `unsynn!` invocation have
-/// to be of the same kind. Note: eventually a derive macro for `Parser` and `ToTokens` will
-/// become supported to give finer control over the expansion, while using this declarative
-/// macro may still be more efficient for the general case.
+/// parse/generate each entity in order. Will also implement `Debug` and `Display` if the
+/// `impl_debug` and `impl_display` features are enabled. This macro supports enums, tuple
+/// structs and normal structs. Generics/Lifetimes are not supported and all entities in a
+/// single `unsynn!` invocation have to be of the same kind. Note: eventually a derive macro
+/// for `Parser` and `ToTokens` will become supported by the 'unsynn-derive' crate to give
+/// finer control over the expansion.
 ///
 /// # Examples
 ///
@@ -57,6 +58,7 @@
 macro_rules! unsynn{
     ($($(#[$attribute:meta])* $pub:vis enum $name:ident { $($variant:ident($parse:ty)),* $(,)? })*) => {
         $(
+            #[cfg_attr(feature = "impl_debug", derive(Debug))]
             $(#[$attribute])* $pub enum $name {
                 $($variant($parse)),*
             }
@@ -84,10 +86,22 @@ macro_rules! unsynn{
                     }
                 }
             }
+
+            #[cfg(feature = "impl_display")]
+            impl std::fmt::Display for $name {
+                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                    match self {
+                        $(
+                            $name::$variant(matched) => write!(f, "{matched} "),
+                        )*
+                    }
+                }
+            }
         )*
     };
     ($($(#[$attribute:meta])* $pub:vis struct $name:ident { $($mpub:vis $member:ident: $parse:ty),* $(,)? })*) => {
         $(
+            #[cfg_attr(feature = "impl_debug", derive(Debug))]
             $(#[$attribute])* $pub struct $name {
                 $($mpub $member : $parse),*
             }
@@ -103,10 +117,19 @@ macro_rules! unsynn{
                     $(self.$member.to_tokens(tokens);)*
                 }
             }
+
+            #[cfg(feature = "impl_display")]
+            impl std::fmt::Display for $name {
+                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                    $(write!(f, "{} ", &self.$member);)*
+                        Ok(())
+                }
+            }
         )*
     };
     ($($(#[$attribute:meta])* $pub:vis struct $name:ident ($($mpub:vis $parse:ty),* $(,)?);)*) => {
         $(
+            #[cfg_attr(feature = "impl_debug", derive(Debug))]
             $(#[$attribute])* $pub struct $name (
                 $($mpub $parse),*
             );
@@ -119,20 +142,36 @@ macro_rules! unsynn{
 
             impl ToTokens for $name {
                 fn to_tokens(&self, tokens: &mut TokenStream) {
-                    $crate::unsynn!{@tuple $name(self, tokens) $($parse),*}
+                    $crate::unsynn!{@tuple_to_tokens $name(self, tokens) $($parse),*}
+                }
+            }
+
+            #[cfg(feature = "impl_display")]
+            impl std::fmt::Display for $name {
+                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                    $crate::unsynn!{@tuple_write $name(self, f) $($parse),*}
+                    Ok(())
                 }
             }
         )*
     };
 
-
     // For the tuple struct ToTokens impl we need to match each tuple member and call to_tokens on it
-    (@tuple $name:ident($this:ident,$param:ident) $element:ty $(,$rest:ty)* $(,)?) => {
-        $crate::unsynn!{@tuple $name($this,$param) $($rest),*}
+    (@tuple_to_tokens $name:ident($this:ident,$param:ident) $element:ty $(,$rest:ty)* $(,)?) => {
+        $crate::unsynn!{@tuple_to_tokens $name($this,$param) $($rest),*}
         let $name($($crate::unsynn!{@_ $rest},)*  that, .. ) = $this;
         that.to_tokens($param);
     };
-    (@tuple $name:ident($this:ident,$param:ident)) => {};
+    (@tuple_to_tokens $name:ident($this:ident,$param:ident)) => {};
+
+    // same for write
+    (@tuple_write $name:ident($this:ident,$f:ident) $element:ty $(,$rest:ty)* $(,)?) => {
+        $crate::unsynn!{@tuple_write $name($this,$f) $($rest),*}
+        let $name($($crate::unsynn!{@_ $rest},)*  that, .. ) = $this;
+        write!($f, "{} ", &that)?;
+    };
+    (@tuple_write $name:ident($this:ident,$f:ident)) => {};
+
     // replaces a ty with a underscore
     (@_ $unused:ty) => {_};
 }

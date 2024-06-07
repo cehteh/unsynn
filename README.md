@@ -6,6 +6,7 @@ construction. Grammars will be implemented in their own crates (see unsynn-rust)
 It is primarly intended use is when one wants to create proc macros for rust that define their
 own grammar or need only sparse rust parsers.
 
+
 # Example
 
 ```rust
@@ -29,3 +30,20 @@ let mut token_iter = quote::quote!{ foo ( bar, baz, barf ) }.into_iter();
 
 let ast = IdentThenParenthesisedIdents::parse(&mut token_iter).unwrap();
 ```
+
+
+# Features
+
+By defaut unsynn is very lean and does not include extra features. The only thing that are
+always present are the `Parser`, `Parse` and `ToToken` traits.  The following features 
+enable extra traits:
+
+- **impl_debug**  
+  Adds `Debug` implementations to generic unsynn types.
+
+- **impl_display**  
+  Adds `Display` implementations to generic unsynn types.
+
+Note that `Display` can't be implemented for some std types (eg. `Option`). Further `Display`
+may sometimes be surprising since we do not have rules how to pretty-print tokens (eg. spaces
+around Delimiters)

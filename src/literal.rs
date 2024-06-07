@@ -11,6 +11,7 @@ use crate::{Error, Literal, Parser, Result, ToTokens, TokenIter, TokenStream, To
 /// A simple unsigned 128 bit integer. This is the most simple form to parse integers. Note
 /// that only decimal integers without any other characters, signs or suffixes are supported,
 /// this is *not* full rust syntax.
+#[cfg_attr(feature = "impl_debug", derive(Debug))]
 pub struct LiteralInteger {
     /// Literal representing an integer
     literal: Literal,
@@ -67,7 +68,15 @@ impl PartialEq<u128> for LiteralInteger {
     }
 }
 
+#[cfg(feature = "impl_display")]
+impl std::fmt::Display for LiteralInteger {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.value)
+    }
+}
+
 /// A single quoted character literal (`'x'`).
+#[cfg_attr(feature = "impl_debug", derive(Debug))]
 pub struct LiteralCharacter {
     /// Literal representing a single quoted character
     literal: Literal,
@@ -131,7 +140,15 @@ impl PartialEq<char> for LiteralCharacter {
     }
 }
 
+#[cfg(feature = "impl_display")]
+impl std::fmt::Display for LiteralCharacter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.value)
+    }
+}
+
 /// A double quoted string literal (`"hello"`). The quotes are included in the value.
+#[cfg_attr(feature = "impl_debug", derive(Debug))]
 pub struct LiteralString {
     /// Literal representing a double quoted string
     literal: Literal,
@@ -193,6 +210,13 @@ impl ToTokens for LiteralString {
 impl PartialEq<&str> for LiteralString {
     fn eq(&self, other: &&str) -> bool {
         &self.value == other
+    }
+}
+
+#[cfg(feature = "impl_display")]
+impl std::fmt::Display for LiteralString {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.value)
     }
 }
 

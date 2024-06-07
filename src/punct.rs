@@ -11,7 +11,6 @@
 use proc_macro2::Punct;
 
 use crate::{Error, Parser, Result, Spacing, ToTokens, TokenIter, TokenStream, TokenTree};
-use std::fmt::Display;
 
 /// A single character punctuation token lexed with `Spacing::Alone`.
 pub struct OnePunct<const C: char>;
@@ -44,9 +43,17 @@ impl<const C: char> ToTokens for OnePunct<C> {
     }
 }
 
-impl<const C: char> Display for OnePunct<C> {
+#[cfg(feature = "impl_display")]
+impl<const C: char> std::fmt::Display for OnePunct<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{C}")
+    }
+}
+
+#[cfg(feature = "impl_debug")]
+impl<const C: char> std::fmt::Debug for OnePunct<C> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "OnePunct<{C:?}>")
     }
 }
 
@@ -96,9 +103,17 @@ impl<const C: char> ToTokens for JointPunct<C> {
     }
 }
 
-impl<const C: char> Display for JointPunct<C> {
+#[cfg(feature = "impl_display")]
+impl<const C: char> std::fmt::Display for JointPunct<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{C}")
+    }
+}
+
+#[cfg(feature = "impl_debug")]
+impl<const C: char> std::fmt::Debug for JointPunct<C> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "JointPunct<{C:?}>")
     }
 }
 
@@ -129,9 +144,17 @@ impl<const C1: char, const C2: char> ToTokens for TwoPunct<C1, C2> {
     }
 }
 
-impl<const C1: char, const C2: char> Display for TwoPunct<C1, C2> {
+#[cfg(feature = "impl_display")]
+impl<const C1: char, const C2: char> std::fmt::Display for TwoPunct<C1, C2> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{C1}{C2}")
+    }
+}
+
+#[cfg(feature = "impl_debug")]
+impl<const C1: char, const C2: char> std::fmt::Debug for TwoPunct<C1, C2> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "TwoPunct<'{C1}{C2}'>")
     }
 }
 
@@ -168,9 +191,17 @@ impl<const C1: char, const C2: char, const C3: char> ToTokens for ThreePunct<C1,
     }
 }
 
-impl<const C1: char, const C2: char, const C3: char> Display for ThreePunct<C1, C2, C3> {
+#[cfg(feature = "impl_display")]
+impl<const C1: char, const C2: char, const C3: char> std::fmt::Display for ThreePunct<C1, C2, C3> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{C1}{C2}{C3}")
+    }
+}
+
+#[cfg(feature = "impl_debug")]
+impl<const C1: char, const C2: char, const C3: char> std::fmt::Debug for ThreePunct<C1, C2, C3> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "ThreePunct<'{C1}{C2}{C3}'>")
     }
 }
 

@@ -13,15 +13,19 @@ use crate::{
 };
 
 /// A group of tokens within `( )`
+#[cfg_attr(feature = "impl_debug", derive(Debug))]
 pub struct ParenthesisGroup(pub Group);
 
 /// A group of tokens within `{ }`
+#[cfg_attr(feature = "impl_debug", derive(Debug))]
 pub struct BraceGroup(pub Group);
 
 /// A group of tokens within `[ ]`
+#[cfg_attr(feature = "impl_debug", derive(Debug))]
 pub struct BracketGroup(pub Group);
 
 /// A group of tokens with no delimiters
+#[cfg_attr(feature = "impl_debug", derive(Debug))]
 pub struct NoneGroup(pub Group);
 
 impl From<ParenthesisGroup> for Group {
@@ -154,6 +158,12 @@ impl ParseGroup for ParenthesisGroup {
         Delimiter::Parenthesis
     }
 }
+
+#[cfg(feature = "impl_display")]
+impl std::fmt::Display for ParenthesisGroup {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
 }
 
 impl ParseGroup for BraceGroup {
@@ -165,6 +175,12 @@ impl ParseGroup for BraceGroup {
         Delimiter::Brace
     }
 }
+
+#[cfg(feature = "impl_display")]
+impl std::fmt::Display for BraceGroup {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
 }
 
 impl ParseGroup for BracketGroup {
@@ -176,6 +192,12 @@ impl ParseGroup for BracketGroup {
         Delimiter::Bracket
     }
 }
+
+#[cfg(feature = "impl_display")]
+impl std::fmt::Display for BracketGroup {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
 }
 
 impl ParseGroup for NoneGroup {
@@ -187,6 +209,12 @@ impl ParseGroup for NoneGroup {
         Delimiter::None
     }
 }
+
+#[cfg(feature = "impl_display")]
+impl std::fmt::Display for NoneGroup {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
 }
 
 /// Any kind of Group `G` with parseable content `C`.  The content `C` must parse exhaustive,
@@ -213,7 +241,8 @@ impl<G: ParseGroup, C: Parse> GroupContaining<G, C> {
     /// let group = ParenthesisGroupContaining::new(
     ///     Literal::i32_unsuffixed(123),
     /// );
-    /// assert_eq!(group.to_string(), "(123)");
+    /// # #[cfg(feature = "impl_display")]
+    /// # assert_eq!(group.to_string(), "(123)");
     /// ```
     pub fn new(content: C) -> Self {
         Self {
@@ -241,6 +270,29 @@ impl<G: ParseGroup, C: Parse> Parser for GroupContaining<G, C> {
 impl<G: ParseGroup, C: Parse> ToTokens for GroupContaining<G, C> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         Group::new(self.delimiter, self.content.to_token_stream()).to_tokens(tokens);
+    }
+}
+
+#[cfg(feature = "impl_debug")]
+impl<G: ParseGroup + std::fmt::Debug, C: Parse + std::fmt::Debug> std::fmt::Debug
+    for GroupContaining<G, C>
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        f.debug_struct(&format!(
+            "GroupContaining<{},{}>",
+            std::any::type_name::<G>(),
+            std::any::type_name::<C>()
+        ))
+        .field("delimiter", &self.delimiter)
+        .field("content", &self.content)
+        .finish()
+    }
+}
+
+#[cfg(feature = "impl_display")]
+impl<G: ParseGroup, C: Parse> std::fmt::Display for GroupContaining<G, C> {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.to_token_stream())
     }
 }
 

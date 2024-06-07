@@ -41,7 +41,7 @@ fn test_groupcontaining_gen() {
 
     let mut out = TokenStream::new();
     group.to_tokens(&mut out);
-    dbg!(&out);
+
     assert_eq!(out.to_string(), "{ braced }");
 }
 

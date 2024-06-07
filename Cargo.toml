@@ -12,6 +12,13 @@ categories = ["development-tools::procedural-macro-helpers", "parser-implementat
 readme = "README.md"
 rust-version = "1.59.0"
 
+[features]
+default = []
+#default = ["impl_debug", "impl_display"]
+
+impl_debug = []
+impl_display = []
+
 [dependencies]
 proc-macro2 = { version = "1.0.81", features = ["proc-macro", "span-locations"]}
 quote = "1.0.36"
