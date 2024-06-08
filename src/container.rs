@@ -90,7 +90,7 @@ impl<T: ToTokens> ToTokens for RefCell<T> {
 /// Repeat trying to parse `S` and when this fails try to parse `T` and append that to a
 /// vector, until a `S` is finally seen and stored. `S` may be a subset of `T`, thus parsing
 /// become lazy and stopping at the first `S`.  This is the same as
-/// `Cons<Vec<Cons<Except<S>,T>>>,S>` but more convenient and efficient.
+/// `Cons<Vec<Cons<Except<S>,T>>,S>` but more convenient and efficient.
 ///
 /// # Example
 ///
@@ -139,7 +139,7 @@ impl<T: Parse + std::fmt::Debug, S: Parse + std::fmt::Debug> std::fmt::Debug for
         f.debug_struct(&format!(
             "LazyVec<{}, {}>",
             std::any::type_name::<T>(),
-            std::any::type_name::<s>()
+            std::any::type_name::<S>()
         ))
         .field("vec", &self.vec)
         .field("then", &self.then)
@@ -247,7 +247,7 @@ impl<const MIN: usize, const MAX: usize, T: Parse, D: Parse> Parser for Repeats<
             Ok(Self(output))
         } else {
             Error::other(format!(
-                "less than MIN Repeats<MIN={MIN}, MAX={MAX}, {}, {} >, got {} repeats",
+                "less than MIN Repeats<MIN={MIN}, MAX={MAX}, {}, {}>, got {} repeats",
                 std::any::type_name::<T>(),
                 std::any::type_name::<D>(),
                 output.len()

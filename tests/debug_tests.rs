@@ -30,7 +30,14 @@ fn test_lazy_vec() {
     let example = Example::parse(&mut token_iter).unwrap();
     assert_eq!(
         format!("{example:?}").strip_whitespace(),
-        "LazyVec { vec: [Ident {sym: foo}, Ident {sym:bar}], then: ';'}".strip_whitespace()
+        "LazyVec<proc_macro2::TokenTree,unsynn::punct::OnePunct<';'>>{
+             vec:[
+                 Ident{sym:foo},
+                 Ident{sym:bar}
+             ],
+         then:OnePunct<';'>
+         }"
+        .strip_whitespace()
     );
 }
 
@@ -44,11 +51,17 @@ fn test_repeats() {
     assert_eq!(
         format!("{example:?}").strip_whitespace(),
         "Repeats<3,3,proc_macro2::Ident,unsynn::punct::OnePunct<';'>>(
-          [
-           Delimited(Ident{sym:foo},Some(';')),
-           Delimited(Ident{sym:bar},Some(';')),
-           Delimited(Ident{sym:baz},None)
-          ]
+             [
+                 Delimited<proc_macro2::Ident, unsynn::punct::OnePunct<';'>>(
+                     Ident{sym:foo},Some(OnePunct<';'>)
+                 ),
+                 Delimited<proc_macro2::Ident,unsynn::punct::OnePunct<';'>>(
+                     Ident{sym:bar},Some(OnePunct<';'>)
+                 ),
+                 Delimited<proc_macro2::Ident,unsynn::punct::OnePunct<';'>>(
+                     Ident{sym:baz},None
+                 )
+             ]
          )"
         .strip_whitespace()
     );
