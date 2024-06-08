@@ -5,8 +5,6 @@
 
 #![allow(clippy::module_name_repetitions)]
 
-use std::marker::PhantomData;
-
 use crate::{
     private, Delimiter, EndOfStream, Error, Group, Parse, Parser, Result, ToTokens, TokenIter,
     TokenStream, TokenTree,
@@ -124,55 +122,10 @@ impl ToTokens for NoneGroup {
     }
 }
 
-/// Common trait for all groups
-pub trait ParseGroup: Parse + private::Sealed {
-    /// Get the underlying group from any group type.
-    fn as_group(&self) -> &Group;
-
-    /// Get the delimiter of the group.
-    fn delimiter() -> Delimiter;
-}
-
-impl private::Sealed for ParenthesisGroup {}
-impl private::Sealed for BraceGroup {}
-impl private::Sealed for BracketGroup {}
-impl private::Sealed for NoneGroup {}
-impl private::Sealed for Group {}
-
-impl ParseGroup for Group {
-    fn as_group(&self) -> &Group {
-        self
-    }
-
-    fn delimiter() -> Delimiter {
-        Delimiter::None
-    }
-}
-
-impl ParseGroup for ParenthesisGroup {
-    fn as_group(&self) -> &Group {
-        &self.0
-    }
-
-    fn delimiter() -> Delimiter {
-        Delimiter::Parenthesis
-    }
-}
-
 #[cfg(feature = "impl_display")]
 impl std::fmt::Display for ParenthesisGroup {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{}", self.0)
-    }
-}
-
-impl ParseGroup for BraceGroup {
-    fn as_group(&self) -> &Group {
-        &self.0
-    }
-
-    fn delimiter() -> Delimiter {
-        Delimiter::Brace
     }
 }
 
@@ -183,30 +136,10 @@ impl std::fmt::Display for BraceGroup {
     }
 }
 
-impl ParseGroup for BracketGroup {
-    fn as_group(&self) -> &Group {
-        &self.0
-    }
-
-    fn delimiter() -> Delimiter {
-        Delimiter::Bracket
-    }
-}
-
 #[cfg(feature = "impl_display")]
 impl std::fmt::Display for BracketGroup {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{}", self.0)
-    }
-}
-
-impl ParseGroup for NoneGroup {
-    fn as_group(&self) -> &Group {
-        &self.0
-    }
-
-    fn delimiter() -> Delimiter {
-        Delimiter::None
     }
 }
 
@@ -217,90 +150,170 @@ impl std::fmt::Display for NoneGroup {
     }
 }
 
+/// Access to the surrounding `Delimiter` of a `GroupContaining` and its variants.
+pub trait GroupDelimiter: private::Sealed {
+    /// The surrounding `Delimiter` of the group.
+    fn delimiter(&self) -> Delimiter;
+}
+
+/// Access to the content of a `GroupContaining` and its variants.
+pub trait GroupContent<C: Parse>: private::Sealed {
+    /// The content of the group.
+    fn content(&self) -> &C;
+}
+
 /// Any kind of Group `G` with parseable content `C`.  The content `C` must parse exhaustive,
 /// a `EndOfStream` is automatically implied.
-pub struct GroupContaining<G: ParseGroup, C: Parse> {
+pub struct GroupContaining<C: Parse> {
     /// The delimiters around the group.
     pub delimiter: Delimiter,
     /// The content of the group. That can be anything that implements `Parse`.
     pub content: C,
-    group: PhantomData<G>,
 }
 
-impl<G: ParseGroup, C: Parse> GroupContaining<G, C> {
-    /// Create a new `GroupContaining` instance. Note that the actual type is best picked from
-    /// one of the type aliases that include the `Delimiter` type as shown in the example
-    /// below. Otherwise when using `GroupContaining` the turbofish notation is needed to
-    /// specify the types.
+impl<C: Parse> GroupContaining<C> {
+    /// Create a new `GroupContaining` instance.
     ///
     /// # Example
     ///
     /// ```
     /// # use unsynn::*;
     ///
-    /// let group = ParenthesisGroupContaining::new(
+    /// let group = GroupContaining::new(
+    ///     Delimiter::Parenthesis,
     ///     Literal::i32_unsuffixed(123),
     /// );
     /// # #[cfg(feature = "impl_display")]
     /// # assert_eq!(group.to_string(), "(123)");
     /// ```
-    pub fn new(content: C) -> Self {
-        Self {
-            delimiter: G::delimiter(),
-            content,
-            group: PhantomData,
-        }
+    pub fn new(delimiter: Delimiter, content: C) -> Self {
+        Self { delimiter, content }
     }
 }
 
-impl<G: ParseGroup, C: Parse> Parser for GroupContaining<G, C> {
+impl<C: Parse> Parser for GroupContaining<C> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        let group = G::parser(tokens)?;
-        let mut c_iter = group.as_group().stream().into_iter();
+        let group = Group::parser(tokens)?;
+        let mut c_iter = group.stream().into_iter();
         let content = C::parser(&mut c_iter)?;
         EndOfStream::parser(&mut c_iter)?;
         Ok(Self {
-            delimiter: group.as_group().delimiter(),
+            delimiter: group.delimiter(),
             content,
-            group: PhantomData,
         })
     }
 }
 
-impl<G: ParseGroup, C: Parse> ToTokens for GroupContaining<G, C> {
+impl<C: Parse> ToTokens for GroupContaining<C> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         Group::new(self.delimiter, self.content.to_token_stream()).to_tokens(tokens);
     }
 }
 
 #[cfg(feature = "impl_debug")]
-impl<G: ParseGroup + std::fmt::Debug, C: Parse + std::fmt::Debug> std::fmt::Debug
-    for GroupContaining<G, C>
-{
+impl<C: Parse + std::fmt::Debug> std::fmt::Debug for GroupContaining<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        f.debug_struct(&format!(
-            "GroupContaining<{},{}>",
-            std::any::type_name::<G>(),
-            std::any::type_name::<C>()
-        ))
-        .field("delimiter", &self.delimiter)
-        .field("content", &self.content)
-        .finish()
+        f.debug_struct(&format!("GroupContaining<{}>", std::any::type_name::<C>()))
+            .field("delimiter", &self.delimiter)
+            .field("content", &self.content)
+            .finish()
     }
 }
 
 #[cfg(feature = "impl_display")]
-impl<G: ParseGroup, C: Parse> std::fmt::Display for GroupContaining<G, C> {
+impl<C: Parse> std::fmt::Display for GroupContaining<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{}", self.to_token_stream())
     }
 }
 
-/// Parseable content within `( )`
-pub type ParenthesisGroupContaining<C> = GroupContaining<ParenthesisGroup, C>;
-/// Parseable content within `{ }`
-pub type BraceGroupContaining<C> = GroupContaining<BraceGroup, C>;
-/// Parseable content within `[ ]`
-pub type BracketGroupContaining<C> = GroupContaining<BracketGroup, C>;
-/// Parseable content with no group delimiters
-pub type NoneGroupContaining<C> = GroupContaining<NoneGroup, C>;
+impl<C: Parse> private::Sealed for GroupContaining<C> {}
+
+impl<C: Parse> GroupDelimiter for GroupContaining<C> {
+    fn delimiter(&self) -> Delimiter {
+        self.delimiter
+    }
+}
+
+impl<C: Parse> GroupContent<C> for GroupContaining<C> {
+    fn content(&self) -> &C {
+        &self.content
+    }
+}
+
+macro_rules! make_group_containing {
+    ($($name:ident: $delimiter:ident);* $(;)?) => {
+        $(
+            /// Parseable content within `$delimiter`
+            pub struct $name<C: Parse>(GroupContaining<C>);
+
+            impl<C: Parse> $name<C> {
+                /// Create a new `$name` instance.
+                pub fn new(content: C) -> Self {
+                    Self ( GroupContaining::new(Delimiter::$delimiter, content ))
+                }
+            }
+
+            impl<C: Parse> Parser for $name<C> {
+                fn parser(tokens: &mut TokenIter) -> Result<Self> {
+                    Ok(Self(GroupContaining::<C>::parse_with(
+                        &mut tokens.clone(),
+                        |group| if group.delimiter == Delimiter::$delimiter {
+                            Ok(group)
+                        } else {
+                            Error::unexpected_token(tokens.next().unwrap())
+                        },
+                    )?))
+                }
+            }
+
+            impl<C: Parse> ToTokens for $name<C> {
+                fn to_tokens(&self, tokens: &mut TokenStream) {
+                    self.0.to_tokens(tokens);
+                }
+            }
+
+            #[cfg(feature = "impl_debug")]
+            impl<C: Parse + std::fmt::Debug> std::fmt::Debug
+                for $name<C>
+            {
+                fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                    f.debug_tuple(&format!(
+                        stringify!($name<{}>),
+                        std::any::type_name::<C>()
+                    ))
+                     .field(&self.0)
+                     .finish()
+                }
+            }
+
+            #[cfg(feature = "impl_display")]
+            impl<C: Parse> std::fmt::Display for $name<C> {
+                fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                    write!(f, "{}", self.0.to_token_stream())
+                }
+            }
+
+            impl<C: Parse> private::Sealed for $name<C> {}
+
+            impl<C: Parse> GroupDelimiter for $name<C> {
+                fn delimiter(&self) -> Delimiter {
+                    self.0.delimiter()
+                }
+            }
+
+            impl<C: Parse> GroupContent<C> for $name<C> {
+                fn content(&self) -> &C {
+                    self.0.content()
+                }
+            }
+        )*
+    };
+}
+
+make_group_containing! {
+    ParenthesisGroupContaining: Parenthesis;
+    BraceGroupContaining: Brace;
+    BracketGroupContaining: Bracket;
+    NoneGroupContaining: None;
+}

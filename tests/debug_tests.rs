@@ -76,12 +76,12 @@ fn test_group_containing() {
     let example = Example::parse(&mut token_iter).unwrap();
     assert_eq!(
         format!("{example:?}").strip_whitespace(),
-        "GroupContaining<unsynn::group::BraceGroup,proc_macro2::Ident> {
-          delimiter: Brace,
-          content: Ident {
-           sym: foo
-          }
-         }"
+        "BraceGroupContaining<proc_macro2::Ident>(
+             GroupContaining<proc_macro2::Ident>{
+                 delimiter:Brace,
+                 content:Ident{sym:foo}
+             }
+         )"
         .strip_whitespace()
     );
 }

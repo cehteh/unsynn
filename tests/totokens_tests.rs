@@ -37,7 +37,7 @@ fn test_parenthesisgroup_gen() {
 fn test_groupcontaining_gen() {
     let mut token_iter = quote::quote! { { braced } }.into_iter();
 
-    let group = GroupContaining::<BraceGroup, Ident>::parse(&mut token_iter).unwrap();
+    let group = GroupContaining::<Ident>::parse(&mut token_iter).unwrap();
 
     let mut out = TokenStream::new();
     group.to_tokens(&mut out);
