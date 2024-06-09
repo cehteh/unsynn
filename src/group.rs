@@ -1,6 +1,6 @@
 //! Groups are a way to group tokens together. They are used to represent the contents between
 //! `()`, `{}`, `[]` or no delimiters at all.  This module provides parser implementations for
-//! group types with defined delimiters and the `GroupContaining` types that parses the
+//! opaque group types with defined delimiters and the `GroupContaining` types that parses the
 //! surrounding delimiters and content of a group type.
 
 #![allow(clippy::module_name_repetitions)]
@@ -12,144 +12,60 @@ use crate::{
     TokenStream, TokenTree, Cons
 };
 
-/// A group of tokens within `( )`
-#[cfg_attr(feature = "impl_debug", derive(Debug))]
-pub struct ParenthesisGroup(pub Group);
+macro_rules! make_group {
+    ($($name:ident: $delimiter:ident);* $(;)?) => {
+        $(
+            /// A opaque group of tokens within $delimiter
+            #[cfg_attr(feature = "impl_debug", derive(Debug))]
+            pub struct $name(pub Group);
 
-/// A group of tokens within `{ }`
-#[cfg_attr(feature = "impl_debug", derive(Debug))]
-pub struct BraceGroup(pub Group);
-
-/// A group of tokens within `[ ]`
-#[cfg_attr(feature = "impl_debug", derive(Debug))]
-pub struct BracketGroup(pub Group);
-
-/// A group of tokens with no delimiters
-#[cfg_attr(feature = "impl_debug", derive(Debug))]
-pub struct NoneGroup(pub Group);
-
-impl From<ParenthesisGroup> for Group {
-    fn from(group: ParenthesisGroup) -> Self {
-        group.0
-    }
-}
-
-impl Parser for ParenthesisGroup {
-    fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        match tokens.next() {
-            Some(TokenTree::Group(group)) if group.delimiter() == Delimiter::Parenthesis => {
-                Ok(Self(group))
+            impl From<$name> for Group {
+                fn from(group: $name) -> Self {
+                    group.0
+                }
             }
-            Some(other) => Error::unexpected_token(other),
-            None => Error::unexpected_end(),
-        }
-    }
-}
 
-impl ToTokens for ParenthesisGroup {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.0.to_tokens(tokens);
-    }
-}
-
-impl From<BraceGroup> for Group {
-    fn from(group: BraceGroup) -> Self {
-        group.0
-    }
-}
-
-impl Parser for BraceGroup {
-    fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        match tokens.next() {
-            Some(TokenTree::Group(group)) if group.delimiter() == Delimiter::Brace => {
-                Ok(Self(group))
+            impl Parser for $name {
+                fn parser(tokens: &mut TokenIter) -> Result<Self> {
+                    match tokens.next() {
+                        Some(TokenTree::Group(group)) if group.delimiter() == Delimiter::$delimiter => {
+                            Ok(Self(group))
+                        }
+                        Some(other) => Error::unexpected_token(other),
+                        None => Error::unexpected_end(),
+                    }
+                }
             }
-            Some(other) => Error::unexpected_token(other),
-            None => Error::unexpected_end(),
-        }
-    }
-}
 
-impl ToTokens for BraceGroup {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.0.to_tokens(tokens);
-    }
-}
-
-impl From<BracketGroup> for Group {
-    fn from(group: BracketGroup) -> Self {
-        group.0
-    }
-}
-
-impl Parser for BracketGroup {
-    fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        match tokens.next() {
-            Some(TokenTree::Group(group)) if group.delimiter() == Delimiter::Bracket => {
-                Ok(Self(group))
+            impl ToTokens for $name {
+                fn to_tokens(&self, tokens: &mut TokenStream) {
+                    self.0.to_tokens(tokens);
+                }
             }
-            Some(other) => Error::unexpected_token(other),
-            None => Error::unexpected_end(),
-        }
-    }
-}
 
-impl ToTokens for BracketGroup {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.0.to_tokens(tokens);
-    }
-}
+            impl private::Sealed for $name {}
 
-impl From<NoneGroup> for Group {
-    fn from(group: NoneGroup) -> Self {
-        group.0
-    }
-}
-
-impl Parser for NoneGroup {
-    fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        match tokens.next() {
-            Some(TokenTree::Group(group)) if group.delimiter() == Delimiter::None => {
-                Ok(Self(group))
+            impl GroupDelimiter for $name {
+                fn delimiter(&self) -> Delimiter {
+                    Delimiter::$delimiter
+                }
             }
-            Some(other) => Error::unexpected_token(other),
-            None => Error::unexpected_end(),
-        }
-    }
+
+            #[cfg(feature = "impl_display")]
+            impl std::fmt::Display for $name {
+                fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                    write!(f, "{}", self.0)
+                }
+            }
+        )*
+    };
 }
 
-impl ToTokens for NoneGroup {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.0.to_tokens(tokens);
-    }
-}
-
-#[cfg(feature = "impl_display")]
-impl std::fmt::Display for ParenthesisGroup {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-#[cfg(feature = "impl_display")]
-impl std::fmt::Display for BraceGroup {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-#[cfg(feature = "impl_display")]
-impl std::fmt::Display for BracketGroup {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-#[cfg(feature = "impl_display")]
-impl std::fmt::Display for NoneGroup {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
+make_group! {
+    ParenthesisGroup: Parenthesis;
+    BraceGroup: Brace;
+    BracketGroup: Bracket;
+    NoneGroup: None;
 }
 
 /// Access to the surrounding `Delimiter` of a `GroupContaining` and its variants.
