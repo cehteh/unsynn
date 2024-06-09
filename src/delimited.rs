@@ -1,12 +1,12 @@
 //! For easier composition we define the `Delimited` type here which is a `T` followed by a
-//! optional delimiting entity `D`. This is used by the `DelimitedVec` type to parse a list of
-//! entities separated by a delimiter.
+//! optional delimiting entity `D`. This is used by the
+//! [`DelimitedVec`] type to parse a list of entities
+//! separated by a delimiter.
 
 #![allow(clippy::module_name_repetitions)]
 
-use crate::{
-    Colon, Comma, Dot, Parse, Parser, PathSep, Result, Semicolon, ToTokens, TokenIter, TokenStream,
-};
+#[allow(clippy::wildcard_imports)]
+use crate::*;
 
 /// A entity `T` followed by a optional delimiting entity `D`
 pub struct Delimited<T: Parse, D: Parse>(pub T, pub Option<D>);

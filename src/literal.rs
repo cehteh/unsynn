@@ -1,8 +1,8 @@
 //! This module provides a set of literal types that can be used to parse and tokenize
 //! literals.  The literals are parsed from the token stream and can be used to represent the
 //! parsed value. unsynn defines only simplified literals, such as integers, characters and
-//! strings. The literals are not full rust syntax which will be defined in the `unsynn-rust`
-//! crate.
+//! strings. The literals here are not full rust syntax, which will be defined in the
+//! `unsynn-rust` crate.
 
 #![allow(clippy::module_name_repetitions)]
 
@@ -147,7 +147,9 @@ impl std::fmt::Display for LiteralCharacter {
     }
 }
 
-/// A double quoted string literal (`"hello"`). The quotes are included in the value.
+/// A double quoted string literal (`"hello"`). The quotes are included in the value.  Note
+/// that this is a simplified string literal, and only double quoted strings are supported,
+/// this is *not* full rust syntax, eg. byte and C string literals are not supported.
 #[cfg_attr(feature = "impl_debug", derive(Debug))]
 pub struct LiteralString {
     /// Literal representing a double quoted string

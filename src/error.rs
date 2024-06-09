@@ -1,5 +1,8 @@
 pub use proc_macro2::{Span, TokenTree};
 
+/// Result type for parsing.
+pub type Result<T> = std::result::Result<T, Error>;
+
 // To keep the Error passing simple and allocation free for the common cases we define these
 // common cases plus adding the generic case as dyn boxed error.
 /// Error type for parsing.
@@ -102,6 +105,3 @@ impl std::fmt::Display for Error {
         }
     }
 }
-
-/// Result type for parsing.
-pub type Result<T> = std::result::Result<T, Error>;

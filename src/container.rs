@@ -1,5 +1,5 @@
 //! This module provides parsers for types that contain possibly multiple values.  This
-//! includes `std` types like `Option`, `Vec`, `Box`, `Rc`, `RefCell` and types for delimited
+//! includes stdlib types like `Option`, `Vec`, `Box`, `Rc`, `RefCell` and types for delimited
 //! and repeated values with numbered repeats.
 
 use crate::{
@@ -44,9 +44,9 @@ impl<T: Parse> ToTokens for Vec<T> {
     }
 }
 
-/// Box any parseable entity. In a enum it may happen that most variants are rather small
-/// while few variants are large. In this case it may be beneficial to box the large variants
-/// to keep the enum lean.
+/// Box a parseable entity. In a enum it may happen that most variants are rather small while
+/// few variants are large. In this case it may be beneficial to box the large variants to
+/// keep the enum lean.
 impl<T: Parse> Parser for Box<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         Ok(Box::new(T::parser(tokens)?))
@@ -59,7 +59,7 @@ impl<T: Parse> ToTokens for Box<T> {
     }
 }
 
-/// Rc any parseable entity. Just because we can. Sometimes when a value is shared between
+/// Rc a parseable entity. Just because we can. Sometimes when a value is shared between
 /// multiple entities it may be beneficial to use Rc.
 impl<T: Parse> Parser for Rc<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
@@ -87,9 +87,8 @@ impl<T: ToTokens> ToTokens for RefCell<T> {
     }
 }
 
-/// Repeat trying to parse `S` and when this fails try to parse `T` and append that to a
-/// vector, until a `S` is finally seen and stored. `S` may be a subset of `T`, thus parsing
-/// become lazy and stopping at the first `S`.  This is the same as
+/// A `Vec<T>` that is filled up to the first appearance of an terminating `S`.  This `S` may
+/// be a subset of `T`, thus parsing become lazy.  This is the same as
 /// `Cons<Vec<Cons<Except<S>,T>>,S>` but more convenient and efficient.
 ///
 /// # Example
@@ -159,9 +158,9 @@ impl<T: Parse + std::fmt::Display, S: Parse + std::fmt::Display> std::fmt::Displ
     }
 }
 
-/// Since the delimiter in `Delimited<T,D>` is optional a `Vec<Delimited<T,D>>` would parse
-/// consecutive values even without delimiters. `DelimimitedVec<T,D>` will stop
-/// parsing after the first value without a delimiter.
+/// Since the delimiter in [`Delimited<T,D>`] is optional a `Vec<Delimited<T,D>>` would parse
+/// consecutive values even without delimiters. `DelimimitedVec<T,D>` will stop parsing after
+/// the first value without a delimiter.
 pub struct DelimitedVec<T: Parse, D: Parse>(pub Vec<Delimited<T, D>>);
 
 impl<T: Parse, D: Parse> Parser for DelimitedVec<T, D> {
@@ -222,9 +221,9 @@ pub type DotDelimitedVec<T> = DelimitedVec<T, Dot>;
 /// Vector of `T` delimited by `:`
 pub type ColonDelimitedVec<T> = DelimitedVec<T, Colon>;
 
-/// Like `DelimitedVec` but with a minimum and maximum (inclusive) number of elements.
+/// Like `DelimitedVec<T,D>` but with a minimum and maximum (inclusive) number of elements.
 /// Parsing will succeed when at least the minimum number of elements is reached and stop at
-/// the maximum number.  The delimiter `D` defaults to 'Nothing' to parse sequences which
+/// the maximum number.  The delimiter `D` defaults to [`Nothing`] to parse sequences which
 /// don't have delimiters.
 pub struct Repeats<const MIN: usize, const MAX: usize, T: Parse, D: Parse = Nothing>(
     pub Vec<Delimited<T, D>>,
@@ -301,7 +300,7 @@ impl<
 pub type Any<T, D = Nothing> = Repeats<0, { usize::MAX }, T, D>;
 /// One or more of T delimited by D or Nothing
 pub type Many<T, D = Nothing> = Repeats<1, { usize::MAX }, T, D>;
-/// Zero or one of T delimited by D or Nothing
+/// Zero or one of T delimited by D or Nothing, similar to `Option` but implements `Display`
 pub type Optional<T, D = Nothing> = Repeats<0, 1, T, D>;
 /// Exactly N of T delimited by D or Nothing
 pub type Exactly<const N: usize, T, D = Nothing> = Repeats<N, N, T, D>;

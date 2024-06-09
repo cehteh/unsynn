@@ -1,21 +1,23 @@
 #![doc = include_str!("../README.md")]
-
-pub use proc_macro2::{Delimiter, Group, Ident, Literal, Punct, Spacing, TokenStream, TokenTree};
+//!
+//! # Detailed Introduction
+//!
+//! For a more detailed introduction about how to use unsynn see the
+//! [Cookbook](Parse#cookbook) section in the Parse trait.
 
 /// Type alias for the iterator type we use for parsing. This Iterator is Clone and produces
 /// `&TokenTree`.
 pub type TokenIter = <TokenStream as IntoIterator>::IntoIter;
 
-/// The `Parser` trait that must be implemented by anything we want to parse.  We are parsing
+/// The `Parser` trait that must be implemented by anything we want to parse. We are parsing
 /// over a `proc_macro2::TokenStream` iterator.
 pub trait Parser
 where
     Self: Sized,
 {
     /// The actual parsing function that must be implemented. This mutates the `tokens`
-    /// iterator directly without a transaction. This should not be called from user code
-    /// except for implementing parsers itself and then only when the rules below are
-    /// followed.
+    /// iterator directly. It should not be called from user code except for implementing
+    /// parsers itself and then only when the rules below are followed.
     ///
     /// # Implementing Parsers
     ///
@@ -24,27 +26,32 @@ where
     /// those. This composition is done by calling other `parse()` (or `parser()`)
     /// implementations until eventually one of the above fundamental parsers is called.
     ///
-    /// Calling another `parser()` from a `parser()` implementation is only valid when this
-    /// is a conjunctive operation and a failure is returned immediately by the `?`
+    /// Calling another `T::parser()` from a `Parser::parser()` implementation is only valid
+    /// when this is a conjunctive operation and a failure is returned immediately by the `?`
     /// operator. Failing to do so will leave the iterator in a consumed state which breaks
-    /// further parsing. When in doubt use `parse()` which is never wrong.
+    /// further parsing. This can be used as performance optimization. When in doubt use
+    /// `parse()` which is never wrong.
     ///
     /// # Errors
     ///
-    /// The `parser()` implementation must return an error if it cannot parse the input. This
-    /// error must be a `unsynn::Error`. User code will call `parser()` in a transaction
-    /// trough `Parser::parse` which will call the parser in a transaction and roll back on
-    /// error.
+    /// The `parser()` implementation must return an error when it cannot parse the
+    /// input. This error must be a [`Error`]. User code will parse a grammar by
+    /// calling [`Parse::parse_all()`], [`Parse::parse()`] or [`Parse::parse_with()`] which
+    /// will call `Parser::parse()` within a transaction and roll back on error.
     fn parser(tokens: &mut TokenIter) -> Result<Self>;
 }
 
 /// This trait provides the user facing API to parse grammatical entities. It is implemented
-/// for anything that implements the `Parser` trait. The methods here putting the iterator
-/// that is used for parsing into a transaction. This iterator is always `Copy`. Instead using
-/// a peekable iterator or implementing deeper peeking parsers clone this iterator when
-/// necessary, operate on that clone and commit changes back to the original iterator when
-/// successful.  This trait cannot be implemented by user code. It is bound to `ToTokens` as
-/// well to ensure that everything that can be parsed can be generated as well.
+/// for anything that implements the `Parser` trait. The methods here encapsulating the
+/// iterator that is used for parsing into a transaction. This iterator is always
+/// `Copy`. Instead using a peekable iterator or implementing deeper peeking, parse clones
+/// this iterator to make access transactional, when parsing succeeds then the transaction
+/// becomes committed, otherwise it is rolled back.
+///
+/// This trait cannot be implemented by user code. It has a constraint to `ToTokens` as well
+/// to ensure that everything that can be parsed can be generated as well.
+///
+#[doc = include_str!("../COOKBOOK.md")]
 pub trait Parse
 where
     Self: Parser + ToTokens,

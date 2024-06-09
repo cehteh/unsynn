@@ -1,10 +1,16 @@
-/// Construct types with a `Parser` and `ToTokens` implementation that will try to
+#[cfg(doc)]
+use crate::*;
+
+/// Construct types with a [`Parser`] and [`ToTokens`] implementation that will try to
 /// parse/generate each entity in order. Will also implement `Debug` and `Display` if the
 /// `impl_debug` and `impl_display` features are enabled. This macro supports enums, tuple
-/// structs and normal structs. Generics/Lifetimes are not supported and all entities in a
-/// single `unsynn!` invocation have to be of the same kind. Note: eventually a derive macro
-/// for `Parser` and `ToTokens` will become supported by the 'unsynn-derive' crate to give
+/// structs and normal structs. Generics/Lifetimes are not supported (yet) and all entities in
+/// a single `unsynn!` invocation have to be of the same kind. Note: eventually a derive macro
+/// for `Parser` and `ToTokens` will become supported by a 'unsynn-derive' crate to give
 /// finer control over the expansion.
+///
+/// Common for all three variants is that entries are tried in order. Disjunctive for enums
+/// and conjunctive in structures.
 ///
 /// # Examples
 ///

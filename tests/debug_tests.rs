@@ -3,8 +3,8 @@
 use unsynn::*;
 
 // Debug formats are not stable, we're stripping whitespace from strings to make the tests
-// more reliable. Only a few tests are included here to check it works, when it breaks please
-// investigate and PR
+// more reliable and readable. Only a few tests are included here to check it works, when it
+// breaks please investigate and PR. Note: this is a hack as it joins text/tokens together.
 trait StripWhitespace {
     fn strip_whitespace(self) -> String;
 }

@@ -1,6 +1,6 @@
 //! Groups are a way to group tokens together. They are used to represent the contents between
 //! `()`, `{}`, `[]` or no delimiters at all.  This module provides parser implementations for
-//! opaque group types with defined delimiters and the `GroupContaining` types that parses the
+//! opaque group types with defined delimiters and the [`GroupContaining`] types that parses the
 //! surrounding delimiters and content of a group type.
 
 #![allow(clippy::module_name_repetitions)]
@@ -8,8 +8,8 @@
 pub use proc_macro2::Delimiter;
 
 use crate::{
-    private, EndOfStream, Error, Group, Parse, Parser, Result, ToTokens, TokenIter,
-    TokenStream, TokenTree, Cons
+    private, Cons, EndOfStream, Error, Group, Parse, Parser, Result, ToTokens, TokenIter,
+    TokenStream, TokenTree,
 };
 
 macro_rules! make_group {

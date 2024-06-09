@@ -1,7 +1,7 @@
 //! A unique feature of unsynn is that one can define a parser as a composition of other
-//! parsers on the fly without the need to define custom structures. This is done by using
-//! the `Cons` and `Either` types. The `Cons` type is used to define a parser that is a
-//! conjunction of two other parsers, while the `Either` type is used to define a parser
+//! parsers on the fly without the need to define custom structures. This is done by using the
+//! `Cons` and `Either` types. The [`Cons`] type is used to define a parser that is a
+//! conjunction of two other parsers, while the [`Either`] type is used to define a parser
 //! that is a disjunction of two other parsers.
 
 use crate::{Parse, Parser, Result, ToTokens, TokenIter, TokenStream};

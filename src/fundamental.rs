@@ -1,21 +1,17 @@
-//! This module contains the fundamental parsers. These parsers are used to parse the basic
-//! tokens like `Ident`, `Punct`, `Literal`, `Group`, `TokenTree` and `TokenStream` from
-//! `proc_macro2`. Every other Parser eventually parses one of these fundamentals in its
-//! leafs.  Being able to parse `TokenTree` and `TokenStream` allows one to parse sparse
-//! entities where details are left out. The `Cached` type is used to cache the string
-//! representation of the parsed entity. The `Nothing` type is used to match without consuming
-//! any tokens. The `Except` type is used to match when the next token does not match the
-//! given type. The `EndOfStream` type is used to match the end of the stream when no tokens
-//! are left. The `HiddenState` type is used to hold additional information that is not part
-//! of the parsed syntax.
+//! This module contains the fundamental parsers. These parsers are the basic tokens from
+//! `proc_macro2` and a few other ones defined by unsynn. These are the terminal entities when
+//! parsing tokens. Being able to parse [`TokenTree`] and [`TokenStream`] allows one to parse
+//! opaque entities where internal details are left out. The [`Cached`] type is used to cache
+//! the string representation of the parsed entity. The [`Nothing`] type is used to match
+//! without consuming any tokens. The [`Except`] type is used to match when the next token
+//! does not match the given type. The [`EndOfStream`] type is used to match the end of the
+//! stream when no tokens are left. The [`HiddenState`] type is used to hold additional
+//! information that is not part of the parsed syntax.
 
-pub use proc_macro2::{
-    Group, Ident, Literal, Punct, TokenStream, TokenTree
-};
+pub use proc_macro2::{Group, Ident, Literal, Punct, TokenStream, TokenTree};
 
-use crate::{
-    Error,  Parse, Parser,  Result, ToTokens, TokenIter, 
-};
+#[allow(clippy::wildcard_imports)]
+use crate::*;
 
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
@@ -118,8 +114,10 @@ impl ToTokens for Literal {
     }
 }
 
-/// Getting the underlying source code as string from a parser is expensive. This type
-/// caches the string representation given entity.
+/// Getting the underlying source code as string expensive as it always allocates a new
+/// `String`. This type caches the string representation of a given entity. Note that this is
+/// only reliable for fundamental entities that represent a single token. Spacing between
+/// composed tokens is not stable and should be considered informal only.
 ///
 /// # Example
 ///
@@ -223,8 +221,9 @@ pub type CachedPunct = Cached<Punct>;
 pub type CachedLiteral = Cached<Literal>;
 
 /// A unit that always matches without consuming any tokens.  This is required when one wants
-/// to parse a `Repetition` without a delimiter.  Note that using `Nothing` as primary entity in
-/// a `Vec`, `DelimitedVec` or `Repetition` will result in an infinite loop.
+/// to parse a [`Repeats`] without a delimiter.  Note that using `Nothing` as primary entity
+/// in a [`Vec`], [`LazyVec`], [`DelimitedVec`] or [`Repeats`] will result in an infinite
+/// loop.
 #[cfg_attr(feature = "impl_debug", derive(Debug))]
 pub struct Nothing;
 
@@ -249,7 +248,7 @@ impl std::fmt::Display for Nothing {
     }
 }
 
-/// Succeeds when the next token does not match T. Will not consume any tokens.
+/// Succeeds when the next token does not match `T`. Will not consume any tokens.
 ///
 /// # Example
 ///
@@ -293,7 +292,7 @@ impl<T: Parse> std::fmt::Display for Except<T> {
     }
 }
 
-/// Matches the end of the stream when no tokens are left
+/// Matches the end of the stream when no tokens are left. The [`Parse::parse()`] and
 ///
 /// # Example
 ///

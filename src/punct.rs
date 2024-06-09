@@ -10,7 +10,7 @@
 
 use proc_macro2::Spacing;
 
-use crate::{Error, Parser, Result, Punct, ToTokens, TokenIter, TokenStream, TokenTree};
+use crate::{Error, Parser, Punct, Result, ToTokens, TokenIter, TokenStream, TokenTree};
 
 /// A single character punctuation token lexed with `Spacing::Alone`.
 pub struct OnePunct<const C: char>;
