@@ -32,10 +32,10 @@ fn test_lazy_vec() {
         format!("{example:?}").strip_whitespace(),
         "LazyVec<proc_macro2::TokenTree,unsynn::punct::OnePunct<';'>>{
              vec:[
-                 Ident{sym:foo},
-                 Ident{sym:bar}
+                 Ident{sym: foo},
+                 Ident{sym: bar}
              ],
-         then:OnePunct<';'>
+         terminator: OnePunct<';'>
          }"
         .strip_whitespace()
     );

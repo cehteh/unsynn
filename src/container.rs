@@ -109,7 +109,7 @@ pub struct LazyVec<T: Parse, S: Parse> {
     /// The vector of repeating `T`
     pub vec: Vec<T>,
     /// The terminating `S`
-    pub then: S,
+    pub terminator: S,
 }
 
 impl<T: Parse, S: Parse> Parser for LazyVec<T, S> {
@@ -117,8 +117,8 @@ impl<T: Parse, S: Parse> Parser for LazyVec<T, S> {
         let mut vec = Vec::new();
 
         loop {
-            if let Ok(then) = S::parse(tokens) {
-                return Ok(Self { vec, then });
+            if let Ok(terminator) = S::parse(tokens) {
+                return Ok(Self { vec, terminator });
             }
 
             vec.push(T::parse(tokens)?);
@@ -129,7 +129,7 @@ impl<T: Parse, S: Parse> Parser for LazyVec<T, S> {
 impl<T: Parse, S: Parse> ToTokens for LazyVec<T, S> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.vec.iter().for_each(|value| value.to_tokens(tokens));
-        self.then.to_tokens(tokens);
+        self.terminator.to_tokens(tokens);
     }
 }
 
@@ -142,7 +142,7 @@ impl<T: Parse + std::fmt::Debug, S: Parse + std::fmt::Debug> std::fmt::Debug for
             std::any::type_name::<S>()
         ))
         .field("vec", &self.vec)
-        .field("then", &self.then)
+        .field("terminator", &self.terminator)
         .finish()
     }
 }
@@ -155,7 +155,7 @@ impl<T: Parse + std::fmt::Display, S: Parse + std::fmt::Display> std::fmt::Displ
         for value in &self.vec {
             write!(f, "{value} ",)?;
         }
-        write!(f, "{}", self.then)
+        write!(f, "{}", self.terminator)
     }
 }
 
