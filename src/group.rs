@@ -5,8 +5,10 @@
 
 #![allow(clippy::module_name_repetitions)]
 
+pub use proc_macro2::Delimiter;
+
 use crate::{
-    private, Delimiter, EndOfStream, Error, Group, Parse, Parser, Result, ToTokens, TokenIter,
+    private, EndOfStream, Error, Group, Parse, Parser, Result, ToTokens, TokenIter,
     TokenStream, TokenTree,
 };
 

@@ -9,9 +9,12 @@
 //! are left. The `HiddenState` type is used to hold additional information that is not part
 //! of the parsed syntax.
 
+pub use proc_macro2::{
+    Group, Ident, Literal, Punct, TokenStream, TokenTree
+};
+
 use crate::{
-    Error, Group, Ident, Literal, Parse, Parser, Punct, Result, ToTokens, TokenIter, TokenStream,
-    TokenTree,
+    Error,  Parse, Parser,  Result, ToTokens, TokenIter, 
 };
 
 use std::marker::PhantomData;
