@@ -1,7 +1,7 @@
 //! Groups are a way to group tokens together. They are used to represent the contents between
 //! `()`, `{}`, `[]` or no delimiters at all.  This module provides parser implementations for
-//! group types with defined delimiters and the `GroupContaining` type is a generic type that
-//! parses the surrounding delimiters and content of any group type.
+//! group types with defined delimiters and the `GroupContaining` types that parses the
+//! surrounding delimiters and content of a group type.
 
 #![allow(clippy::module_name_repetitions)]
 
@@ -9,7 +9,7 @@ pub use proc_macro2::Delimiter;
 
 use crate::{
     private, EndOfStream, Error, Group, Parse, Parser, Result, ToTokens, TokenIter,
-    TokenStream, TokenTree,
+    TokenStream, TokenTree, Cons
 };
 
 /// A group of tokens within `( )`
@@ -247,31 +247,30 @@ macro_rules! make_group_containing {
     ($($name:ident: $delimiter:ident);* $(;)?) => {
         $(
             /// Parseable content within `$delimiter`
-            pub struct $name<C: Parse>(GroupContaining<C>);
+            pub struct $name<C: Parse>(C);
 
             impl<C: Parse> $name<C> {
                 /// Create a new `$name` instance.
                 pub fn new(content: C) -> Self {
-                    Self ( GroupContaining::new(Delimiter::$delimiter, content ))
+                    Self(content)
                 }
             }
 
             impl<C: Parse> Parser for $name<C> {
                 fn parser(tokens: &mut TokenIter) -> Result<Self> {
-                    Ok(Self(GroupContaining::<C>::parse_with(
-                        &mut tokens.clone(),
-                        |group| if group.delimiter == Delimiter::$delimiter {
-                            Ok(group)
-                        } else {
-                            Error::unexpected_token(tokens.next().unwrap())
-                        },
-                    )?))
+                    match tokens.next() {
+                        Some(TokenTree::Group(group)) if group.delimiter() == Delimiter::$delimiter => {
+                            Ok(Self(Cons::<C, EndOfStream>::parser(&mut group.stream().into_iter())?.0))
+                        }
+                        Some(other) => Error::unexpected_token(other),
+                        None => Error::unexpected_end(),
+                    }
                 }
             }
 
             impl<C: Parse> ToTokens for $name<C> {
                 fn to_tokens(&self, tokens: &mut TokenStream) {
-                    self.0.to_tokens(tokens);
+                    Group::new(Delimiter::$delimiter, self.0.to_token_stream()).to_tokens(tokens);
                 }
             }
 
@@ -292,7 +291,7 @@ macro_rules! make_group_containing {
             #[cfg(feature = "impl_display")]
             impl<C: Parse> std::fmt::Display for $name<C> {
                 fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                    write!(f, "{}", self.0.to_token_stream())
+                    write!(f, "{}", self.to_token_stream())
                 }
             }
 
@@ -300,13 +299,13 @@ macro_rules! make_group_containing {
 
             impl<C: Parse> GroupDelimiter for $name<C> {
                 fn delimiter(&self) -> Delimiter {
-                    self.0.delimiter()
+                    Delimiter::$delimiter
                 }
             }
 
             impl<C: Parse> GroupContent<C> for $name<C> {
                 fn content(&self) -> &C {
-                    self.0.content()
+                    &self.0
                 }
             }
         )*

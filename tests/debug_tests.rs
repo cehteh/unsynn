@@ -77,10 +77,7 @@ fn test_group_containing() {
     assert_eq!(
         format!("{example:?}").strip_whitespace(),
         "BraceGroupContaining<proc_macro2::Ident>(
-             GroupContaining<proc_macro2::Ident>{
-                 delimiter:Brace,
-                 content:Ident{sym:foo}
-             }
+                 Ident{sym:foo}
          )"
         .strip_whitespace()
     );
