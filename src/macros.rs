@@ -49,18 +49,29 @@ use crate::*;
 ///
 /// let my_tuple_struct =  MyTupleStruct::parser(&mut token_iter).unwrap();
 /// ```
+// experiment: macro rustdoc looks ugly, define a simpler version for doc purposes only 
+#[cfg(doc)]
 #[macro_export]
 macro_rules! unsynn{
-    ($(#[$attribute:meta])* $pub:vis enum $name:ident { $($variant:ident($parse:ty)),* $(,)? } $($cont:tt)*) => {
+    (enum $name:ident { $( $variant:ident($parser:ty) ),* }) => {};
+    (struct $name:ident { $( $member:ident: $parser:ty ),* }) => {};
+    (struct $name:ident ( $( $parser:ty ),*);) => {};
+}
+
+#[doc(hidden)]
+#[cfg(not(doc))]
+#[macro_export]
+macro_rules! unsynn{
+    ($(#[$attribute:meta])* $pub:vis enum $name:ident { $($variant:ident($parser:ty)),* $(,)? } $($cont:tt)*) => {
         #[cfg_attr(feature = "impl_debug", derive(Debug))]
         $(#[$attribute])* $pub enum $name {
-            $($variant($parse)),*
+            $($variant($parser)),*
         }
 
         impl Parser for $name {
             fn parser(tokens: &mut TokenIter) -> Result<Self> {
                 $(
-                    if let Ok(parsed) = <$parse>::parse(tokens) {
+                    if let Ok(parsed) = <$parser>::parse(tokens) {
                         return Ok($name::$variant(parsed));
                     }
                 )*
@@ -93,15 +104,15 @@ macro_rules! unsynn{
         }
         $crate::unsynn!{$($cont)*}
     };
-    ($(#[$attribute:meta])* $pub:vis struct $name:ident { $($mpub:vis $member:ident: $parse:ty),* $(,)? } $($cont:tt)*) => {
+    ($(#[$attribute:meta])* $pub:vis struct $name:ident { $($mpub:vis $member:ident: $parser:ty),* $(,)? } $($cont:tt)*) => {
         #[cfg_attr(feature = "impl_debug", derive(Debug))]
         $(#[$attribute])* $pub struct $name {
-            $($mpub $member : $parse),*
+            $($mpub $member : $parser),*
         }
 
         impl Parser for $name {
             fn parser(tokens: &mut TokenIter) -> Result<Self> {
-                Ok(Self{$($member: <$parse>::parser(tokens)?),*})
+                Ok(Self{$($member: <$parser>::parser(tokens)?),*})
             }
         }
 
@@ -120,28 +131,28 @@ macro_rules! unsynn{
         }
         $crate::unsynn!{$($cont)*}
     };
-    ($(#[$attribute:meta])* $pub:vis struct $name:ident ($($mpub:vis $parse:ty),* $(,)?); $($cont:tt)*) => {
+    ($(#[$attribute:meta])* $pub:vis struct $name:ident ($($mpub:vis $parser:ty),* $(,)?); $($cont:tt)*) => {
         #[cfg_attr(feature = "impl_debug", derive(Debug))]
         $(#[$attribute])* $pub struct $name (
-            $($mpub $parse),*
+            $($mpub $parser),*
         );
 
         impl Parser for $name {
             fn parser(tokens: &mut TokenIter) -> Result<Self> {
-                Ok(Self($(<$parse>::parser(tokens)?),*))
+                Ok(Self($(<$parser>::parser(tokens)?),*))
             }
         }
 
         impl ToTokens for $name {
             fn to_tokens(&self, tokens: &mut TokenStream) {
-                $crate::unsynn!{@tuple_to_tokens $name(self, tokens) $($parse),*}
+                $crate::unsynn!{@tuple_to_tokens $name(self, tokens) $($parser),*}
             }
         }
 
         #[cfg(feature = "impl_display")]
         impl std::fmt::Display for $name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                $crate::unsynn!{@tuple_write $name(self, f) $($parse),*}
+                $crate::unsynn!{@tuple_write $name(self, f) $($parser),*}
                 Ok(())
             }
         }
