@@ -1,12 +1,12 @@
 #[cfg(doc)]
 use crate::*;
 
-/// Construct types with a [`Parser`] and [`ToTokens`] implementation that will try to
-/// parse/generate each entity in order. Will also implement `Debug` and `Display` if the
-/// `impl_debug` and `impl_display` features are enabled. This macro supports enums, tuple
-/// structs and normal structs. Generics/Lifetimes are not supported (yet). Note: eventually a
-/// derive macro for `Parser` and `ToTokens` will become supported by a 'unsynn-derive' crate
-/// to give finer control over the expansion.
+/// This macro supports the definition of enums, tuple structs and normal structs and
+/// generates [`Parser`] and [`ToTokens`] implementations for them. It will also implement
+/// `Debug` and `Display` if the `impl_debug` and `impl_display` features are
+/// enabled. Generics/Lifetimes are not supported (yet). Note: eventually a derive macro for
+/// `Parser` and `ToTokens` will become supported by a 'unsynn-derive' crate to give finer
+/// control over the expansion.
 ///
 /// Common for all three variants is that entries are tried in order. Disjunctive for enums
 /// and conjunctive in structures.
@@ -15,9 +15,8 @@ use crate::*;
 ///
 /// ```
 /// # use unsynn::*;
-/// // Define all required types
+/// // Define some types
 /// unsynn!{
-///     // Enum
 ///     enum MyEnum {
 ///         Ident(Ident),
 ///         Braced(BraceGroup),
@@ -25,27 +24,29 @@ use crate::*;
 ///         Number(LiteralInteger),
 ///     }
 ///
-///     // Struct
 ///     struct MyStruct {
 ///         text: LiteralString,
 ///         number: LiteralInteger,
 ///     }
 ///
-///     // Tuple Struct
 ///     struct MyTupleStruct(Ident, LiteralString);
 /// }
 ///
+/// // Create an iterator over the things we want to parse
+/// let mut token_iter = quote::quote! {
+///     ident { within brace } "literal string" 1234
+///     "literal string" 1234
+///     ident "literal string"
+/// }.into_iter();
+///
 /// // Use the defined types
-/// let mut token_iter = quote::quote! { ident { within brace } "literal string" 1234}.into_iter();
 /// let MyEnum::Ident(_) = MyEnum::parse(&mut token_iter).unwrap() else { panic!()};
 /// let MyEnum::Braced(_) = MyEnum::parse(&mut token_iter).unwrap() else { panic!()};
 /// let MyEnum::Text(_) = MyEnum::parse(&mut token_iter).unwrap() else { panic!()};
 /// let MyEnum::Number(_) = MyEnum::parse(&mut token_iter).unwrap() else { panic!()};
 ///
-/// let mut token_iter = quote::quote! { "literal string" 1234 }.into_iter();
 /// let my_struct =  MyStruct::parser(&mut token_iter).unwrap();
 ///
-/// let mut token_iter = quote::quote! { ident "literal string"}.into_iter();
 /// let my_tuple_struct =  MyTupleStruct::parser(&mut token_iter).unwrap();
 /// ```
 #[macro_export]
