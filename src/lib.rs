@@ -81,7 +81,7 @@ where
         let mut ptokens = tokens.clone();
         let result = Cons::<Self, EndOfStream>::parser(&mut ptokens)?;
         *tokens = ptokens;
-        Ok(result.0)
+        Ok(result.first)
     }
 
     /// Parse a value in a transaction, pass it to a closure which may modify it or return an Error.

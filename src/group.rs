@@ -168,7 +168,7 @@ macro_rules! make_group_containing {
                     match tokens.next() {
                         Some(TokenTree::Group(group)) if group.delimiter() == Delimiter::$delimiter => {
                             Ok(Self{
-                                content: Cons::<C, EndOfStream>::parser(&mut group.stream().into_iter())?.0}
+                                content: Cons::<C, EndOfStream>::parser(&mut group.stream().into_iter())?.first}
                             )
                         }
                         Some(other) => Error::unexpected_token(other),

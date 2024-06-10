@@ -7,31 +7,36 @@
 use crate::{Parse, Parser, Result, ToTokens, TokenIter, TokenStream};
 
 /// Conjunctive `A` followed by `B`
-pub struct Cons<A: Parse, B: Parse>(pub A, pub B);
+pub struct Cons<A: Parse, B: Parse>{
+    /// The first value
+    pub first: A,
+    /// The second value
+    pub second: B
+}
 
 impl<A: Parse, B: Parse> Parser for Cons<A, B> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        Ok(Self(A::parser(tokens)?, B::parser(tokens)?))
+        Ok(Self{first: A::parser(tokens)?, second: B::parser(tokens)?})
     }
 }
 
 impl<A: Parse, B: Parse> ToTokens for Cons<A, B> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.0.to_tokens(tokens);
-        self.1.to_tokens(tokens);
+        self.first.to_tokens(tokens);
+        self.second.to_tokens(tokens);
     }
 }
 
 #[cfg(feature = "impl_debug")]
 impl<A: Parse + std::fmt::Debug, B: Parse + std::fmt::Debug> std::fmt::Debug for Cons<A, B> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        f.debug_tuple(&format!(
+        f.debug_struct(&format!(
             "Cons<{}, {}>",
             std::any::type_name::<A>(),
             std::any::type_name::<B>()
         ))
-        .field(&self.0)
-        .field(&self.1)
+        .field("first", &self.first)
+        .field("second", &self.second)
         .finish()
     }
 }
@@ -39,7 +44,7 @@ impl<A: Parse + std::fmt::Debug, B: Parse + std::fmt::Debug> std::fmt::Debug for
 #[cfg(feature = "impl_display")]
 impl<A: Parse + std::fmt::Display, B: Parse + std::fmt::Display> std::fmt::Display for Cons<A, B> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}{}", self.0, self.1)
+        write!(f, "{} {}", self.first, self.second)
     }
 }
 
