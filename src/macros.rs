@@ -49,10 +49,10 @@ use crate::*;
 ///
 /// let my_tuple_struct =  MyTupleStruct::parser(&mut token_iter).unwrap();
 /// ```
-// experiment: macro rustdoc looks ugly, define a simpler version for doc purposes only 
+// experiment: macro rustdoc looks ugly, define a simpler version for doc purposes only
 #[cfg(doc)]
 #[macro_export]
-macro_rules! unsynn{
+macro_rules! unsynn {
     (enum $name:ident { $( $variant:ident($parser:ty) ),* }) => {};
     (struct $name:ident { $( $member:ident: $parser:ty ),* }) => {};
     (struct $name:ident ( $( $parser:ty ),*);) => {};
@@ -62,10 +62,12 @@ macro_rules! unsynn{
 #[cfg(not(doc))]
 #[macro_export]
 macro_rules! unsynn{
-    ($(#[$attribute:meta])* $pub:vis enum $name:ident { $($variant:ident($parser:ty)),* $(,)? } $($cont:tt)*) => {
+    ($(#[$attribute:meta])* $pub:vis enum $name:ident {
+        $($(#[$vattr:meta])* $variant:ident($parser:ty)),* $(,)?
+    } $($cont:tt)*) => {
         #[cfg_attr(feature = "impl_debug", derive(Debug))]
         $(#[$attribute])* $pub enum $name {
-            $($variant($parser)),*
+            $($(#[$vattr])* $variant($parser)),*
         }
 
         impl Parser for $name {
@@ -104,10 +106,12 @@ macro_rules! unsynn{
         }
         $crate::unsynn!{$($cont)*}
     };
-    ($(#[$attribute:meta])* $pub:vis struct $name:ident { $($mpub:vis $member:ident: $parser:ty),* $(,)? } $($cont:tt)*) => {
+    ($(#[$attribute:meta])* $pub:vis struct $name:ident {
+        $($(#[$mattr:meta])* $mpub:vis $member:ident: $parser:ty),* $(,)?
+    } $($cont:tt)*) => {
         #[cfg_attr(feature = "impl_debug", derive(Debug))]
         $(#[$attribute])* $pub struct $name {
-            $($mpub $member : $parser),*
+            $($(#[$mattr])* $mpub $member : $parser),*
         }
 
         impl Parser for $name {
@@ -131,10 +135,12 @@ macro_rules! unsynn{
         }
         $crate::unsynn!{$($cont)*}
     };
-    ($(#[$attribute:meta])* $pub:vis struct $name:ident ($($mpub:vis $parser:ty),* $(,)?); $($cont:tt)*) => {
+    ($(#[$attribute:meta])* $pub:vis struct $name:ident (
+        $($(#[$mattr:meta])* $mpub:vis $parser:ty),* $(,)?
+    ); $($cont:tt)*) => {
         #[cfg_attr(feature = "impl_debug", derive(Debug))]
         $(#[$attribute])* $pub struct $name (
-            $($mpub $parser),*
+            $($(#[$mattr])* $mpub $parser),*
         );
 
         impl Parser for $name {
