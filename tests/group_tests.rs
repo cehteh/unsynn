@@ -7,7 +7,7 @@ fn test_group_contains() {
     let group_containing = ParenthesisGroupContaining::<Ident>::parse(&mut token_iter).unwrap();
 
     assert_eq!(group_containing.delimiter(), Delimiter::Parenthesis);
-    assert_eq!(group_containing.content().to_string(), "ident");
+    assert_eq!(group_containing.content.to_string(), "ident");
 }
 
 #[test]

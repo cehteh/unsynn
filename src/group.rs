@@ -74,12 +74,6 @@ pub trait GroupDelimiter: private::Sealed {
     fn delimiter(&self) -> Delimiter;
 }
 
-/// Access to the content of a `GroupContaining` and its variants.
-pub trait GroupContent<C: Parse>: private::Sealed {
-    /// The content of the group.
-    fn content(&self) -> &C;
-}
-
 /// Any kind of Group `G` with parseable content `C`.  The content `C` must parse exhaustive,
 /// a `EndOfStream` is automatically implied.
 pub struct GroupContaining<C: Parse> {
@@ -153,22 +147,19 @@ impl<C: Parse> GroupDelimiter for GroupContaining<C> {
     }
 }
 
-impl<C: Parse> GroupContent<C> for GroupContaining<C> {
-    fn content(&self) -> &C {
-        &self.content
-    }
-}
-
 macro_rules! make_group_containing {
     ($($name:ident: $delimiter:ident);* $(;)?) => {
         $(
             /// Parseable content within `$delimiter`
-            pub struct $name<C: Parse>(C);
+            pub struct $name<C: Parse>{
+                /// The inner content of the group.
+                pub content: C
+            }
 
             impl<C: Parse> $name<C> {
                 /// Create a new `$name` instance.
                 pub fn new(content: C) -> Self {
-                    Self(content)
+                    Self{content}
                 }
             }
 
@@ -176,7 +167,9 @@ macro_rules! make_group_containing {
                 fn parser(tokens: &mut TokenIter) -> Result<Self> {
                     match tokens.next() {
                         Some(TokenTree::Group(group)) if group.delimiter() == Delimiter::$delimiter => {
-                            Ok(Self(Cons::<C, EndOfStream>::parser(&mut group.stream().into_iter())?.0))
+                            Ok(Self{
+                                content: Cons::<C, EndOfStream>::parser(&mut group.stream().into_iter())?.0}
+                            )
                         }
                         Some(other) => Error::unexpected_token(other),
                         None => Error::unexpected_end(),
@@ -186,7 +179,7 @@ macro_rules! make_group_containing {
 
             impl<C: Parse> ToTokens for $name<C> {
                 fn to_tokens(&self, tokens: &mut TokenStream) {
-                    Group::new(Delimiter::$delimiter, self.0.to_token_stream()).to_tokens(tokens);
+                    Group::new(Delimiter::$delimiter, self.content.to_token_stream()).to_tokens(tokens);
                 }
             }
 
@@ -199,7 +192,7 @@ macro_rules! make_group_containing {
                         stringify!($name<{}>),
                         std::any::type_name::<C>()
                     ))
-                     .field(&self.0)
+                     .field(&self.content)
                      .finish()
                 }
             }
@@ -216,12 +209,6 @@ macro_rules! make_group_containing {
             impl<C: Parse> GroupDelimiter for $name<C> {
                 fn delimiter(&self) -> Delimiter {
                     Delimiter::$delimiter
-                }
-            }
-
-            impl<C: Parse> GroupContent<C> for $name<C> {
-                fn content(&self) -> &C {
-                    &self.0
                 }
             }
         )*
