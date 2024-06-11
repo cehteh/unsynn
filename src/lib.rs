@@ -114,6 +114,55 @@ pub trait ToTokens {
     }
 }
 
+/// Extension trait for `TokenIter` that calls `Parse::parse()`. Rationale is that in many
+/// cases where the compiler can infer types no turbofish notations are required.
+///
+/// # Example
+///
+/// ```rust
+/// use unsynn::*;
+///
+/// struct MyStruct {
+///     number: LiteralInteger,
+///     name:   Ident,
+/// }
+///
+/// fn example() -> Result<MyStruct> {
+///     let mut input = quote::quote! { 1234 name }.into_iter();
+///     Ok(
+///         MyStruct {
+///             // types are inferred here
+///             number: input.parse()?,
+///             name: input.parse()?
+///         }
+///     )
+/// }
+/// ```
+#[allow(clippy::missing_errors_doc)]
+pub trait IParse: private::Sealed {
+    /// Parse a value from the iterator. This is a convenience method that calls
+    /// `Parse::parse()`.
+    fn parse<T: Parse>(self) -> Result<T>;
+
+    /// Parse a value from the iterator. This is a convenience method that calls
+    /// `Parse::parse_all()`.
+    fn parse_all<T: Parse>(self) -> Result<T>;
+}
+
+impl private::Sealed for &mut TokenIter {}
+
+impl IParse for &mut TokenIter {
+    #[inline]
+    fn parse<T: Parse>(self) -> Result<T> {
+        T::parse(self)
+    }
+
+    #[inline]
+    fn parse_all<T: Parse>(self) -> Result<T> {
+        T::parse_all(self)
+    }
+}
+
 // Result and error type
 mod error;
 pub use error::*;
