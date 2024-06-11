@@ -56,6 +56,17 @@ pub enum Either<A: Parse, B: Parse> {
     Second(B),
 }
 
+impl<A: Parse, B: Parse> Either<A, B> {
+    /// Deconstructs an `Either` and produces a common result type, independent of which
+    /// alternative was present.
+    pub fn fold<R, FF: FnOnce(A) -> R, SF: FnOnce(B) -> R>(self, first_fn: FF, second_fn: SF) -> R {
+        match self {
+            Either::First(a) => first_fn(a),
+            Either::Second(b) => second_fn(b),
+        }
+    }
+}
+
 impl<A: Parse, B: Parse> Parser for Either<A, B> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         if let Ok(first) = A::parse(tokens) {
