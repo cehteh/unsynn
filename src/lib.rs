@@ -90,14 +90,17 @@ where
         Ok(result.first)
     }
 
-    /// Parse a value in a transaction, pass it to a closure which may modify it or return an Error.
-    /// When the closure returns an `Ok(Self)` value it is returned.
+    /// Parse a value in a transaction, pass it to a `FnOnce(Self) -> Result<T>` closure which
+    /// creates a new result or return an Error.
+    ///
+    /// This method is a very powerful tool as it allows anything from simple validations to
+    /// complete transformations into a new type.
     ///
     /// # Errors
     ///
     /// When the parser or the closure returns an error, the transaction is rolled back and
     /// the errors is returned.
-    fn parse_with(tokens: &mut TokenIter, f: impl FnOnce(Self) -> Result<Self>) -> Result<Self> {
+    fn parse_with<T>(tokens: &mut TokenIter, f: impl FnOnce(Self) -> Result<T>) -> Result<T> {
         let mut ptokens = tokens.clone();
         let result = f(Self::parser(&mut ptokens)?)?;
         *tokens = ptokens;
