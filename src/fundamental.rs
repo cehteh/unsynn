@@ -310,7 +310,7 @@ impl<T: Parse> Parser for Expect<T> {
         let mut ptokens = tokens.clone();
         match T::parser(&mut ptokens) {
             Ok(_) => Ok(Self(PhantomData)),
-            Err(_) => Error::unexpected_token(tokens.clone().next().unwrap()),
+            Err(e) => Err(e),
         }
     }
 }
