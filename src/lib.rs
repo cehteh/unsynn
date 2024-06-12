@@ -53,7 +53,9 @@ where
 /// becomes committed, otherwise it is rolled back.
 ///
 /// This trait cannot be implemented by user code. It has a constraint to `ToTokens` as well
-/// to ensure that everything that can be parsed can be generated as well.
+/// to ensure that everything that can be parsed can be generated as well. For the rare cases
+/// where one only wants to implement `Parse` and not `ToTokens` one can provide a dummy
+/// implementation of `ToTokens` that panics with the `unimplemented!()` macro.
 ///
 #[doc = include_str!("../COOKBOOK.md")]
 pub trait Parse
@@ -105,7 +107,8 @@ where
 
 impl<T: Parser + ToTokens> Parse for T {}
 
-/// We need our own `ToTokens` to be able to implement it for std container types
+/// unsynn defines its own `ToTokens` trait to be able to implement it for std container types.
+/// This is pretty much similar to the `ToTokens` from the quote crate.
 pub trait ToTokens {
     /// Write `self` to the given `TokenStream`.
     fn to_tokens(&self, tokens: &mut TokenStream);

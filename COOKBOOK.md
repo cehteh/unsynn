@@ -5,9 +5,8 @@
 For moderately complex types we use composition with [`Cons`], [`Either`] and other container
 types instead defining enums or structures in detail.
 
-Such composed types are frequently aliased to give them handy names.
-
-This can be employed in user code as well to crate grammars on the fly without any boilerplate code.
+Such composed types are frequently aliased to give them handy names. This can be used in user
+code as well creating grammars on the fly without any boilerplate code.
 
 ## The [`unsynn!{}`] Macro
 
