@@ -292,6 +292,51 @@ impl<T: Parse> std::fmt::Display for Except<T> {
     }
 }
 
+/// Succeeds when the next token would match `T`. Will not consume any tokens.
+/// This is similar to peeking.
+///
+/// # Example
+///
+/// ```
+/// # use unsynn::*;
+/// let mut token_iter = quote::quote! {ident}.into_iter();
+///
+/// let _ = Expect::<Ident>::parser(&mut token_iter).unwrap();
+/// ```
+pub struct Expect<T: Parse>(PhantomData<T>);
+
+impl<T: Parse> Parser for Expect<T> {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        let mut ptokens = tokens.clone();
+        match T::parser(&mut ptokens) {
+            Ok(_) => Ok(Self(PhantomData)),
+            Err(_) => Error::unexpected_token(tokens.clone().next().unwrap()),
+        }
+    }
+}
+
+impl<T: Parse> ToTokens for Expect<T> {
+    #[inline]
+    fn to_tokens(&self, _tokens: &mut TokenStream) {
+        /*NOP*/
+    }
+}
+
+#[cfg(feature = "impl_debug")]
+impl<T: Parse + std::fmt::Debug> std::fmt::Debug for Expect<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct(&format!("Expect<{}>", std::any::type_name::<T>()))
+            .finish()
+    }
+}
+
+#[cfg(feature = "impl_display")]
+impl<T: Parse> std::fmt::Display for Expect<T> {
+    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Ok(())
+    }
+}
+
 /// Matches the end of the stream when no tokens are left. The [`Parse::parse()`] and
 ///
 /// # Example
