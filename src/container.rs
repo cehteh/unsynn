@@ -44,6 +44,80 @@ impl<T: Parse> ToTokens for Vec<T> {
     }
 }
 
+/// A trait for parsing a vector of `T` with a minimum and maximum number of elements.
+/// Sometimes the number of elements to be parsed is determined at runtime eg. a number of
+/// header items needs a matching number of values. This trait is implemented for `Vec<T:
+/// Parse>` and can be implemented by the user.
+///
+/// # Example
+///
+/// Parse at table with a number of headers followed by values.
+///
+/// ```
+/// # use unsynn::*;
+/// let mut token_iter = quote::quote! {
+///     foo:       bar:
+///     foo_value  bar_value
+/// }.into_iter();
+///
+/// let headers = Vec::<Cons<Ident,Colon>>::parse(&mut token_iter).unwrap();
+/// let values = Vec::<Ident>::parse_exactly(&mut token_iter, headers.len()).unwrap();
+/// ```
+#[allow(clippy::missing_errors_doc)]
+pub trait RangedRepeats: Sized {
+    /// Parse at least `min` and up to `max` (inclusive) elements.
+    fn parse_repeats(tokens: &mut TokenIter, min: usize, max: usize) -> Result<Self>;
+
+    /// Parse any number of elements.
+    fn parse_any(tokens: &mut TokenIter) -> Result<Self> {
+        Self::parse_repeats(tokens, 0, usize::MAX)
+    }
+
+    /// Parse at least one element.
+    fn parse_many(tokens: &mut TokenIter) -> Result<Self> {
+        Self::parse_repeats(tokens, 1, usize::MAX)
+    }
+
+    /// Parse zero or one element.
+    fn parse_optional(tokens: &mut TokenIter) -> Result<Self> {
+        Self::parse_repeats(tokens, 0, 1)
+    }
+
+    /// Parse exactly `n` elements.
+    fn parse_exactly(tokens: &mut TokenIter, n: usize) -> Result<Self> {
+        Self::parse_repeats(tokens, n, n)
+    }
+
+    /// Parse at most `n` elements.
+    fn parse_at_most(tokens: &mut TokenIter, n: usize) -> Result<Self> {
+        Self::parse_repeats(tokens, 0, n)
+    }
+
+    /// Parse at least `n` elements.
+    fn parse_at_least(tokens: &mut TokenIter, n: usize) -> Result<Self> {
+        Self::parse_repeats(tokens, n, usize::MAX)
+    }
+}
+
+impl<T: Parse> RangedRepeats for Vec<T> {
+    fn parse_repeats(tokens: &mut TokenIter, min: usize, max: usize) -> Result<Self> {
+        let mut output = Vec::with_capacity(min);
+        for _ in 0..max {
+            if let Ok(value) = T::parse(tokens) {
+                output.push(value);
+            } else {
+                break;
+            }
+        }
+
+        if output.len() >= min {
+            Ok(output)
+        } else {
+            Error::other(format!("less than {} elements, got {}", min, output.len()))
+        }
+    }
+}
+
 /// Box a parseable entity. In a enum it may happen that most variants are rather small while
 /// few variants are large. In this case it may be beneficial to box the large variants to
 /// keep the enum lean.
