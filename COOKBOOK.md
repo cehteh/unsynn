@@ -23,8 +23,4 @@ simplest case it can be used to validate the values of a parsed type. More compl
 fill in `HiddenState` and other not parsed members or construct completely new types from
 parsed entities.
 
-# Development
 
-unsynn is meant to evolve opportunistically. When you spot a problem or need a new feature
-feel free to open an [issue](https://git.pipapo.org/cehteh/unsynn/issues) or send a
-[PR](https://git.pipapo.org/cehteh/unsynn/pulls).

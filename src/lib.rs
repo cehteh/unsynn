@@ -4,6 +4,10 @@
 //!
 //! For a more detailed introduction about how to use unsynn see the
 //! [Cookbook](Parse#cookbook) section in the Parse trait.
+//!
+//! # Roadmap
+//!
+#![doc = include_str!("../ROADMAP.md")]
 
 /// Type alias for the iterator type we use for parsing. This Iterator is Clone and produces
 /// `&TokenTree`.
