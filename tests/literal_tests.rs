@@ -23,3 +23,30 @@ fn test_string() {
     let string = LiteralString::parse(&mut token_iter).unwrap();
     assert_eq!(string.value(), "\"this is a string literal\"");
 }
+
+#[test]
+fn test_string_new() {
+    let string = LiteralString::new("\"this is a string literal\"".to_string());
+    assert_eq!(string.value(), "\"this is a string literal\"");
+}
+
+#[test]
+#[should_panic = "assertion failed: value.starts_with('\"') && value.ends_with('\"')"]
+fn test_string_new_err() {
+    let string = LiteralString::new("this is a string literal".to_string());
+    assert_eq!(string.value(), "\"this is a string literal\"");
+}
+
+#[test]
+fn test_string_as_str() {
+    let mut token_iter = quote::quote! { "this is a string literal" }.into_iter();
+
+    let string = LiteralString::parse(&mut token_iter).unwrap();
+    assert_eq!(string.as_str(), "this is a string literal");
+}
+
+#[test]
+fn test_string_from_str() {
+    let string = LiteralString::from_str("this is a string literal");
+    assert_eq!(string.value(), "\"this is a string literal\"");
+}

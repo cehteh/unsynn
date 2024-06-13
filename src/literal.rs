@@ -159,17 +159,39 @@ pub struct LiteralString {
 }
 
 impl LiteralString {
-    /// Create a new `LiteralString` from a `String` value.
+    /// Create a new `LiteralString` from a `String` value. The supplied `String` must start
+    /// and end with a double quote.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the string does not start and end with a double quote.
     #[must_use]
     pub fn new(value: String) -> Self {
+        assert!(value.starts_with('"') && value.ends_with('"'));
         let literal = Literal::string(&value);
         Self { literal, value }
     }
 
-    /// Get the `&str`.
+    /// Create a new `LiteralString` from a `&str` slice. Adds double quotes around the
+    /// supplied string.
+    #[must_use]
+    #[allow(clippy::should_implement_trait)]
+    pub fn from_str(value: &str) -> Self {
+        let value = format!("\"{value}\"");
+        let literal = Literal::string(&value);
+        Self { literal, value }
+    }
+
+    /// Get the `&str` including the surrounding quotes.
     #[must_use]
     pub fn value(&self) -> &str {
         &self.value
+    }
+
+    /// Get the `&str` with the surrounding quotes removed.
+    #[must_use]
+    pub fn as_str(&self) -> &str {
+        &self.value[1..self.value.len() - 1]
     }
 
     /// Set the value to a new `String`.
