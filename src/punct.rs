@@ -13,9 +13,16 @@ use proc_macro2::Spacing;
 use crate::{Error, Parser, Punct, Result, ToTokens, TokenIter, TokenStream, TokenTree};
 
 /// A single character punctuation token lexed with `Spacing::Alone`.
+#[derive(Default)]
 pub struct OnePunct<const C: char>;
 
 impl<const C: char> OnePunct<C> {
+    /// Create a new `OnePunct` object.
+    #[must_use]
+    pub fn new() -> Self {
+        Self
+    }
+
     /// Get the `char` value this object represents.
     #[must_use]
     pub fn as_char(&self) -> char {
@@ -73,9 +80,16 @@ impl<const C: char> std::fmt::Debug for OnePunct<C> {
 /// let colon = OnePunct::<':'>::parse(&mut token_iter).unwrap();
 /// let colon = OnePunct::<':'>::parse(&mut token_iter).unwrap();
 /// ```
+#[derive(Default)]
 pub struct JointPunct<const C: char>;
 
 impl<const C: char> JointPunct<C> {
+    /// Create a new `JointPunct` object.
+    #[must_use]
+    pub fn new() -> Self {
+        Self
+    }
+
     /// Get the `char` value this object represents.
     #[must_use]
     pub fn as_char(&self) -> char {
@@ -118,7 +132,16 @@ impl<const C: char> std::fmt::Debug for JointPunct<C> {
 }
 
 /// Double character joint punctuation.
+#[derive(Default)]
 pub struct TwoPunct<const C1: char, const C2: char>;
+
+impl<const C1: char, const C2: char>  TwoPunct<C1, C2> {
+    /// Create a new `TwoPunct` object.
+    #[must_use]
+    pub fn new() -> Self {
+        Self
+    }
+}
 
 impl<const C1: char, const C2: char> Parser for TwoPunct<C1, C2> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
@@ -159,7 +182,16 @@ impl<const C1: char, const C2: char> std::fmt::Debug for TwoPunct<C1, C2> {
 }
 
 /// Triple character joint punctuation.
+#[derive(Default)]
 pub struct ThreePunct<const C1: char, const C2: char, const C3: char>;
+
+impl<const C1: char, const C2: char, const C3: char> ThreePunct<C1, C2, C3> {
+    /// Create a new `ThreePunct` object.
+    #[must_use]
+    pub fn new() -> Self {
+        Self
+    }
+}
 
 impl<const C1: char, const C2: char, const C3: char> Parser for ThreePunct<C1, C2, C3> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
