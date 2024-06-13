@@ -19,13 +19,13 @@ pub struct OnePunct<const C: char>;
 impl<const C: char> OnePunct<C> {
     /// Create a new `OnePunct` object.
     #[must_use]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self
     }
 
     /// Get the `char` value this object represents.
     #[must_use]
-    pub fn as_char(&self) -> char {
+    pub const fn as_char(&self) -> char {
         C
     }
 }
@@ -86,13 +86,13 @@ pub struct JointPunct<const C: char>;
 impl<const C: char> JointPunct<C> {
     /// Create a new `JointPunct` object.
     #[must_use]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self
     }
 
     /// Get the `char` value this object represents.
     #[must_use]
-    pub fn as_char(&self) -> char {
+    pub const fn as_char(&self) -> char {
         C
     }
 }
@@ -135,10 +135,10 @@ impl<const C: char> std::fmt::Debug for JointPunct<C> {
 #[derive(Default)]
 pub struct TwoPunct<const C1: char, const C2: char>;
 
-impl<const C1: char, const C2: char>  TwoPunct<C1, C2> {
+impl<const C1: char, const C2: char> TwoPunct<C1, C2> {
     /// Create a new `TwoPunct` object.
     #[must_use]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self
     }
 }
@@ -188,7 +188,7 @@ pub struct ThreePunct<const C1: char, const C2: char, const C3: char>;
 impl<const C1: char, const C2: char, const C3: char> ThreePunct<C1, C2, C3> {
     /// Create a new `ThreePunct` object.
     #[must_use]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self
     }
 }

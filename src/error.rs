@@ -48,7 +48,7 @@ impl Error {
 
     /// Create a `Result<T>::Err(Error::Other)` error.
     #[allow(clippy::missing_errors_doc)]
-    pub fn other<T>(reason: String) -> Result<T> {
+    pub const fn other<T>(reason: String) -> Result<T> {
         Err(Error::Other { reason })
     }
 

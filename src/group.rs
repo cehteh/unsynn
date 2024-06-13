@@ -98,7 +98,7 @@ impl<C: Parse> GroupContaining<C> {
     /// # #[cfg(feature = "impl_display")]
     /// # assert_eq!(group.to_string(), "(123)");
     /// ```
-    pub fn new(delimiter: Delimiter, content: C) -> Self {
+    pub const fn new(delimiter: Delimiter, content: C) -> Self {
         Self { delimiter, content }
     }
 }
@@ -158,7 +158,7 @@ macro_rules! make_group_containing {
 
             impl<C: Parse> $name<C> {
                 /// Create a new `$name` instance.
-                pub fn new(content: C) -> Self {
+                pub const fn new(content: C) -> Self {
                     Self{content}
                 }
             }

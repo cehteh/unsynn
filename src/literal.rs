@@ -29,7 +29,7 @@ impl LiteralInteger {
 
     /// Get the value.
     #[must_use]
-    pub fn value(&self) -> u128 {
+    pub const fn value(&self) -> u128 {
         self.value
     }
 
@@ -94,7 +94,7 @@ impl LiteralCharacter {
 
     /// Get the value.
     #[must_use]
-    pub fn value(&self) -> char {
+    pub const fn value(&self) -> char {
         self.value
     }
 
