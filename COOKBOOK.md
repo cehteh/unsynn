@@ -23,3 +23,92 @@ fill in `HiddenState` and other not parsed members or construct completely new t
 parsed entities.
 
 
+## How to Parse
+
+There are generally two approaches how one can implement parsers. Each has its own advantages
+and disadvantages. unsynn supports both, so one can freely mix whatever makes most sense in a
+particular case.
+
+### Exact AST Representation
+
+One approach is to define a structures that reflects the AST of the grammar exactly.  This is
+what the [`unsynn!{}`] macro and composition does. The program later works with the parsed
+structure directly. The advantage is that `Parser` and `ToToken` are simple and come for free
+and that the source structure of the AST stays available.
+
+```rust
+# use unsynn::*;
+
+unsynn!{
+    // define a list of Ident = "LiteralString",.. assignments
+    struct Assignment {
+        id: Ident,
+        _equal: Assign,
+        value: LiteralString,
+    }
+
+    struct AssignmentList {
+        list: DelimitedVec<Assignment, Comma>
+    }
+}
+```
+
+### High level representation
+
+Another approach is to represent the data more in the way further processing requires. This
+simplifies working with the data but one has to implement the `Parser` and `ToToken` traits
+manually. Sometimes the `Parse::parse_with()` method will become useful in such cases.
+
+```rust
+# use unsynn::*;
+# use std::collections::HashMap;
+
+// We could go with `unsynn!{struct Assignment{...}}` as above here. But lets use composition
+// as example here. This stays internal so its complexity isnt exposed.
+type Assignment = Cons<Ident, Cons<Assign, LiteralString>>;
+
+// Here we'll parse the list of assignments into a structure that represents the
+// data in a way thats easier to use from a rust program
+#[derive(Default)]
+struct AssignmentList {
+    // each 'Ident = LiteralString'
+    list: Vec<(Ident, String)>,
+    // We want to be able to have a fast lookup to the entries
+    lookup: HashMap<Ident, usize>,
+}
+
+impl Parser for AssignmentList {
+    fn parser(input: &mut TokenIter) -> Result<Self> {
+        let mut assignment_list = AssignmentList::default();
+
+        // We construct the `AssignmentList` by parsing the content, appending and processing it.
+        while let Ok(assignment) = Delimited::<Assignment, Comma>::parse(input) {
+            assignment_list.list.push((
+                assignment.0.first.clone(),
+                // Create a String without the enclosing double quotes
+                assignment.0.second.second.as_str().to_string()
+            ));
+            // add it to the lookup
+            assignment_list.lookup.insert(
+                assignment.0.first.clone(),
+                assignment_list.list.len()-1
+            );
+            // No Comma, no more assignments
+            if assignment.1.is_none() {
+                break;
+            }
+        }
+        Ok(assignment_list)
+    }
+}
+
+impl ToTokens for AssignmentList {
+    fn to_tokens(&self, output: &mut TokenStream) {
+        for a in &self.list {
+            a.0.to_tokens(output);
+            Assign::new().to_tokens(output);
+            LiteralString::from_str(&a.1).to_tokens(output);
+        }
+    }
+}
+```
