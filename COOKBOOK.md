@@ -29,6 +29,13 @@ There are generally two approaches how one can implement parsers. Each has its o
 and disadvantages. unsynn supports both, so one can freely mix whatever makes most sense in a
 particular case.
 
+Moreover there are two API's how `parse()` can be called. At the basic level every type that
+implements `Parser` gets `Parse` implemented as well thus making `T::parse(&mut TokenIter)`
+available. For convenience we also have a `IParse` trait implemented for `TokenIter` thus one
+can call `let parsed = some_tokeniter.parse::<T>()?;` this is especially useful when the type
+can be inferred as it won't need the turbofish notation. 
+
+
 ### Exact AST Representation
 
 One approach is to define a structures that reflects the AST of the grammar exactly.  This is
