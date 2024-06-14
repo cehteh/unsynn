@@ -40,12 +40,12 @@ fn test_vec_delimited() {
     let mut token_iter = quote::quote! { foo , bar baz }.into_iter();
 
     let vec = Vec::<CommaDelimited<Ident>>::parse(&mut token_iter).unwrap();
-    assert_eq!(vec[0].0.to_string(), "foo");
-    assert!(vec[0].1.is_some());
-    assert_eq!(vec[1].0.to_string(), "bar");
-    assert!(vec[1].1.is_none()); // <- attention!
-    assert_eq!(vec[2].0.to_string(), "baz");
-    assert!(vec[2].1.is_none());
+    assert_eq!(vec[0].value.to_string(), "foo");
+    assert!(vec[0].delimiter.is_some());
+    assert_eq!(vec[1].value.to_string(), "bar");
+    assert!(vec[1].delimiter.is_none()); // <- attention!
+    assert_eq!(vec[2].value.to_string(), "baz");
+    assert!(vec[2].delimiter.is_none());
 }
 
 #[test]
@@ -56,10 +56,10 @@ fn test_delimitedvec() {
     let vec = CommaDelimitedVec::<Ident>::parse(&mut token_iter)
         .unwrap()
         .0;
-    assert_eq!(vec[0].0.to_string(), "foo");
-    assert!(vec[0].1.is_some());
-    assert_eq!(vec[1].0.to_string(), "bar");
-    assert!(vec[1].1.is_none());
+    assert_eq!(vec[0].value.to_string(), "foo");
+    assert!(vec[0].delimiter.is_some());
+    assert_eq!(vec[1].value.to_string(), "bar");
+    assert!(vec[1].delimiter.is_none());
     assert_eq!(vec.len(), 2);
 }
 
@@ -70,12 +70,12 @@ fn test_nothingdelimitedvec() {
     let vec = DelimitedVec::<Ident, Nothing>::parse(&mut token_iter)
         .unwrap()
         .0;
-    assert_eq!(vec[0].0.to_string(), "foo");
-    assert!(vec[0].1.is_some());
-    assert_eq!(vec[1].0.to_string(), "bar");
-    assert!(vec[1].1.is_some());
-    assert_eq!(vec[2].0.to_string(), "baz");
-    assert!(vec[2].1.is_some());
+    assert_eq!(vec[0].value.to_string(), "foo");
+    assert!(vec[0].delimiter.is_some());
+    assert_eq!(vec[1].value.to_string(), "bar");
+    assert!(vec[1].delimiter.is_some());
+    assert_eq!(vec[2].value.to_string(), "baz");
+    assert!(vec[2].delimiter.is_some());
 }
 
 #[test]
@@ -84,6 +84,6 @@ fn test_repeats() {
 
     let vec = Exactly::<2, Ident>::parse(&mut token_iter).unwrap().0;
     assert_eq!(vec.len(), 2);
-    assert_eq!(vec[0].0.to_string(), "foo");
-    assert_eq!(vec[1].0.to_string(), "bar");
+    assert_eq!(vec[0].value.to_string(), "foo");
+    assert_eq!(vec[1].value.to_string(), "bar");
 }

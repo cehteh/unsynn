@@ -8,32 +8,40 @@
 #[allow(clippy::wildcard_imports)]
 use crate::*;
 
-/// A entity `T` followed by a optional delimiting entity `D`
-pub struct Delimited<T: Parse, D: Parse>(pub T, pub Option<D>);
+/// This is used when one wants to parse a list of entities separated by delimiters. The
+/// delimiter is optional and can be `None` eg. when the entity is the last in the
+/// list. Usually the delimiter will be some simple punctuation token, but it is not limited
+/// to that.
+pub struct Delimited<T: Parse, D: Parse>{
+    /// The parsed value
+    pub value: T,
+    /// The optional delimiter
+    pub delimiter: Option<D>
+}
 
 impl<T: Parse, D: Parse> Parser for Delimited<T, D> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        Ok(Self(T::parser(tokens)?, Option::<D>::parser(tokens)?))
+        Ok(Self{value: T::parser(tokens)?, delimiter: Option::<D>::parser(tokens)?})
     }
 }
 
 impl<T: Parse, D: Parse> ToTokens for Delimited<T, D> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.0.to_tokens(tokens);
-        self.1.to_tokens(tokens);
+        self.value.to_tokens(tokens);
+        self.delimiter.to_tokens(tokens);
     }
 }
 
 #[cfg(feature = "impl_debug")]
 impl<T: Parse + std::fmt::Debug, D: Parse + std::fmt::Debug> std::fmt::Debug for Delimited<T, D> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        f.debug_tuple(&format!(
+        f.debug_struct(&format!(
             "Delimited<{}, {}>",
             std::any::type_name::<T>(),
             std::any::type_name::<D>()
         ))
-        .field(&self.0)
-        .field(&self.1)
+        .field("value", &self.value)
+        .field("delimiter", &self.delimiter)
         .finish()
     }
 }
@@ -46,8 +54,8 @@ impl<T: Parse + std::fmt::Display, D: Parse + std::fmt::Display> std::fmt::Displ
         write!(
             f,
             "{}{}",
-            self.0,
-            self.1
+            self.value,
+            self.delimiter
                 .as_ref()
                 // use a space when there is no delimiter otherwise tokens it would be
                 // indistinguishable where one token ends and the next begins.

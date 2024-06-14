@@ -240,9 +240,9 @@ pub struct DelimitedVec<T: Parse, D: Parse>(pub Vec<Delimited<T, D>>);
 impl<T: Parse, D: Parse> Parser for DelimitedVec<T, D> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let mut output = Vec::new();
-        while let Ok(value) = Delimited::<T, D>::parse(tokens) {
-            let done = value.1.is_none();
-            output.push(value);
+        while let Ok(delimited) = Delimited::<T, D>::parse(tokens) {
+            let done = delimited.delimiter.is_none();
+            output.push(delimited);
             if done {
                 break;
             }
@@ -306,9 +306,9 @@ pub struct Repeats<const MIN: usize, const MAX: usize, T: Parse, D: Parse = Noth
 impl<const MIN: usize, const MAX: usize, T: Parse, D: Parse> Parser for Repeats<MIN, MAX, T, D> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let mut output = Vec::new();
-        while let Ok(value) = Delimited::<T, D>::parse(tokens) {
-            let done = value.1.is_none();
-            output.push(value);
+        while let Ok(delimited) = Delimited::<T, D>::parse(tokens) {
+            let done = delimited.delimiter.is_none();
+            output.push(delimited);
             #[allow(unused_comparisons)]
             if done || output.len() >= MAX {
                 break;

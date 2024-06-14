@@ -84,16 +84,16 @@ fn test_delimited() {
     let mut token_iter = quote::quote! { foo , bar , baz }.into_iter();
 
     let delim = Delimited::<Ident, Comma>::parse(&mut token_iter).unwrap();
-    assert_eq!(delim.0.to_string(), "foo");
-    assert!(delim.1.is_some());
+    assert_eq!(delim.value.to_string(), "foo");
+    assert!(delim.delimiter.is_some());
 
     let delim = Delimited::<Ident, Comma>::parse(&mut token_iter).unwrap();
-    assert_eq!(delim.0.to_string(), "bar");
-    assert!(delim.1.is_some());
+    assert_eq!(delim.value.to_string(), "bar");
+    assert!(delim.delimiter.is_some());
 
     let delim = Delimited::<Ident, Comma>::parse(&mut token_iter).unwrap();
-    assert_eq!(delim.0.to_string(), "baz");
-    assert!(delim.1.is_none());
+    assert_eq!(delim.value.to_string(), "baz");
+    assert!(delim.delimiter.is_none());
 }
 
 #[test]
@@ -101,12 +101,12 @@ fn test_delimited_undelimited() {
     let mut token_iter = quote::quote! { foo bar }.into_iter();
 
     let delim = Delimited::<Ident, Comma>::parse(&mut token_iter).unwrap();
-    assert_eq!(delim.0.to_string(), "foo");
-    assert!(delim.1.is_none());
+    assert_eq!(delim.value.to_string(), "foo");
+    assert!(delim.delimiter.is_none());
 
     let delim = Delimited::<Ident, Comma>::parse(&mut token_iter).unwrap();
-    assert_eq!(delim.0.to_string(), "bar");
-    assert!(delim.1.is_none());
+    assert_eq!(delim.value.to_string(), "bar");
+    assert!(delim.delimiter.is_none());
 }
 
 #[test]

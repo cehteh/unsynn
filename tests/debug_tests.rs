@@ -52,15 +52,18 @@ fn test_repeats() {
         format!("{example:?}").strip_whitespace(),
         "Repeats<3,3,proc_macro2::Ident,unsynn::punct::OnePunct<';'>>(
              [
-                 Delimited<proc_macro2::Ident, unsynn::punct::OnePunct<';'>>(
-                     Ident{sym:foo},Some(OnePunct<';'>)
-                 ),
-                 Delimited<proc_macro2::Ident,unsynn::punct::OnePunct<';'>>(
-                     Ident{sym:bar},Some(OnePunct<';'>)
-                 ),
-                 Delimited<proc_macro2::Ident,unsynn::punct::OnePunct<';'>>(
-                     Ident{sym:baz},None
-                 )
+                 Delimited<proc_macro2::Ident, unsynn::punct::OnePunct<';'>>{
+                     value: Ident{sym:foo},
+                     delimiter: Some(OnePunct<';'>)
+                 },
+                 Delimited<proc_macro2::Ident,unsynn::punct::OnePunct<';'>>{
+                     value: Ident{sym:bar},
+                     delimiter: Some(OnePunct<';'>)
+                 },
+                 Delimited<proc_macro2::Ident,unsynn::punct::OnePunct<';'>>{
+                     value: Ident{sym:baz},
+                     delimiter: None
+                 }
              ]
          )"
         .strip_whitespace()

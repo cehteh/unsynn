@@ -84,17 +84,17 @@ impl Parser for AssignmentList {
         // We construct the `AssignmentList` by parsing the content, appending and processing it.
         while let Ok(assignment) = Delimited::<Assignment, Comma>::parse(input) {
             assignment_list.list.push((
-                assignment.0.first.clone(),
+                assignment.value.first.clone(),
                 // Create a String without the enclosing double quotes
-                assignment.0.second.second.as_str().to_string()
+                assignment.value.second.second.as_str().to_string()
             ));
             // add it to the lookup
             assignment_list.lookup.insert(
-                assignment.0.first.clone(),
+                assignment.value.first.clone(),
                 assignment_list.list.len()-1
             );
             // No Comma, no more assignments
-            if assignment.1.is_none() {
+            if assignment.delimiter.is_none() {
                 break;
             }
         }
