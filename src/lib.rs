@@ -124,8 +124,22 @@ pub trait ToTokens {
     }
 }
 
-/// Extension trait for `TokenIter` that calls `Parse::parse()`. Rationale is that in many
-/// cases where the compiler can infer types no turbofish notations are required.
+/// Extension trait for `TokenIter` that calls `Parse::parse()`.
+#[allow(clippy::missing_errors_doc)]
+pub trait IParse: private::Sealed {
+    /// Parse a value from the iterator. This is a convenience method that calls
+    /// `Parse::parse()`.
+    fn parse<T: Parse>(self) -> Result<T>;
+
+    /// Parse a value from the iterator. This is a convenience method that calls
+    /// `Parse::parse_all()`.
+    fn parse_all<T: Parse>(self) -> Result<T>;
+}
+
+impl private::Sealed for &mut TokenIter {}
+
+/// Implement `IParse` for `&mut TokenIter`. This API is more convenient in cases where the
+/// compiler can infer types because no turbofish notations are required.
 ///
 /// # Example
 ///
@@ -148,19 +162,6 @@ pub trait ToTokens {
 ///     )
 /// }
 /// ```
-#[allow(clippy::missing_errors_doc)]
-pub trait IParse: private::Sealed {
-    /// Parse a value from the iterator. This is a convenience method that calls
-    /// `Parse::parse()`.
-    fn parse<T: Parse>(self) -> Result<T>;
-
-    /// Parse a value from the iterator. This is a convenience method that calls
-    /// `Parse::parse_all()`.
-    fn parse_all<T: Parse>(self) -> Result<T>;
-}
-
-impl private::Sealed for &mut TokenIter {}
-
 impl IParse for &mut TokenIter {
     #[inline]
     fn parse<T: Parse>(self) -> Result<T> {
