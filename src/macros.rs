@@ -9,7 +9,8 @@ use crate::*;
 /// control over the expansion.
 ///
 /// Common for all three variants is that entries are tried in order. Disjunctive for enums
-/// and conjunctive in structures.
+/// and conjunctive in structures. Note that the order is important esp. for enums, in case
+/// some entries are subsets of others.
 ///
 /// # Example
 ///

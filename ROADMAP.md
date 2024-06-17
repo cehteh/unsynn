@@ -5,6 +5,16 @@ release will be made with a more stable API. From there on the planned 'unsynn-r
 that a 'unsynn-derive' will be implemented. When the later two are working and no major
 deficiencies in 'unsynn' are found then it is time for a 1.0.0 release.
 
+
+## Planned
+
+* Some types are currently implemented as ZST's, this is nice and could be extended to
+  keywords too. Drawback is that this looses the relation to the source code they come
+  from. Eventually it should be reconsidered and maybe add a 'spans' feature that turns ZST's
+  to contain a `Span`.
+
+
+
 # Development
 
 unsynn is meant to evolve opportunistically. When you spot a problem or need a new feature

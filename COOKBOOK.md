@@ -30,18 +30,35 @@ and disadvantages. unsynn supports both, so one can freely mix whatever makes mo
 particular case.
 
 Moreover there are two API's how `parse()` can be called. At the basic level every type that
-implements `Parser` gets `Parse` implemented as well thus making `T::parse(&mut TokenIter)`
-available. For convenience we also have a `IParse` trait implemented for `TokenIter` thus one
-can call `let parsed = some_tokeniter.parse::<T>()?;` this is especially useful when the type
-can be inferred as it won't need the turbofish notation. 
+implements [`Parser`] gets [`Parse`] implemented as well thus making `T::parse(&mut
+TokenIter)` available. For convenience we also have a [`IParse`] trait implemented for
+[`TokenIter`] thus one can call `let parsed = some_tokeniter.parse::<T>()?;` this is
+especially useful when the type can be inferred as it won't need the turbofish notation.
+
+unsynn uses a rather simple approach when parsing. Still some parsers may be a subset or share
+a common prefix with other parsers. This needs some attention.
+
+In the case where parsers are subsets to other parsers and one puts them into a disjunction in
+a `unsynn! { enum ..}` or in a `Either` combinator the more specific case must come first,
+otherwise it will never match.
+
+```rust
+# use unsynn::*;
+// Ident must come first since TokenTree matches any token.
+type Example = Either<Ident, TokenTree>;
+```
+
+For the other case where parsers sharing longer prefixes (this should rarely happen in
+practice) it may benefit performance to break these into a type with the shared prefix that
+dispatches on the distinct parts.
 
 
 ### Exact AST Representation
 
 One approach is to define a structures that reflects the AST of the grammar exactly.  This is
 what the [`unsynn!{}`] macro and composition does. The program later works with the parsed
-structure directly. The advantage is that `Parser` and `ToToken` are simple and come for free
-and that the source structure of the AST stays available.
+structure directly. The advantage is that [`Parser`] and [`ToTokens`] are simple and come for
+free and that the source structure of the AST stays available.
 
 ```rust
 # use unsynn::*;
@@ -63,8 +80,9 @@ unsynn!{
 ### High level representation
 
 Another approach is to represent the data more in the way further processing requires. This
-simplifies working with the data but one has to implement the `Parser` and `ToToken` traits
-manually. Sometimes the `Parse::parse_with()` method will become useful in such cases.
+simplifies working with the data but one has to implement the [`Parser`] and [`ToTokens`]
+traits manually. Sometimes the [`Parse::parse_with()`] method will become useful in such
+cases.
 
 ```rust
 # use unsynn::*;

@@ -15,7 +15,7 @@ use crate::{
 macro_rules! make_group {
     ($($name:ident: $delimiter:ident);* $(;)?) => {
         $(
-            /// A opaque group of tokens within $delimiter
+            #[doc = stringify!(A opaque group of tokens within a $delimiter)]
             #[cfg_attr(feature = "impl_debug", derive(Debug))]
             pub struct $name(pub Group);
 
@@ -150,14 +150,14 @@ impl<C: Parse> GroupDelimiter for GroupContaining<C> {
 macro_rules! make_group_containing {
     ($($name:ident: $delimiter:ident);* $(;)?) => {
         $(
-            /// Parseable content within `$delimiter`
+            #[doc = stringify!(Parseable content within a $delimiter)]
             pub struct $name<C: Parse>{
                 /// The inner content of the group.
                 pub content: C
             }
 
             impl<C: Parse> $name<C> {
-                /// Create a new `$name` instance.
+                #[doc = stringify!(create a new $name instance)]
                 pub const fn new(content: C) -> Self {
                     Self{content}
                 }
