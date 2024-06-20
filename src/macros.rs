@@ -6,7 +6,8 @@ use crate::*;
 /// and `Display` if the `impl_debug` and `impl_display` features are
 /// enabled. Generics/Lifetimes are not supported (yet). Note: eventually a derive macro for
 /// `Parser` and `ToTokens` will become supported by a 'unsynn-derive' crate to give finer
-/// control over the expansion.
+/// control over the expansion. Attributes like `#[derive(Copy, Clone, Debug)]` have to be manually
+/// defined.
 ///
 /// Common for all three variants is that entries are tried in order. Disjunctive for enums
 /// and conjunctive in structures. Note that the order is important esp. for enums, in case
@@ -196,8 +197,10 @@ macro_rules! unsynn{
 /// * `Name` is the name for the (`struct Name(Cached<Ident>)`) to be generated
 /// * `"identifier"` is the case sensitive keyword
 ///
-/// `Name::parse()` will then only match the defined identifier.  Additionally `AsRef<str>` is
-/// implemented for each Keyword to access the identifier string from rust code.
+/// `Name::parse()` will then only match the defined identifier.  It will implement `Debug`
+/// and `Display` if the `impl_debug` and `impl_display` features are enabled. `Clone` is
+/// always implemented for keywords. Additionally `AsRef<str>` is implemented for each Keyword
+/// to access the identifier string from rust code.
 ///
 /// # Example
 ///
@@ -219,6 +222,8 @@ macro_rules! unsynn{
 macro_rules! keyword{
     ($($name:ident = $str:literal),*$(,)?) => {
         $(
+            #[cfg_attr(feature = "impl_debug", derive(Debug))]
+            #[derive(Clone)]
             pub struct $name($crate::CachedIdent);
 
             impl Parser for $name {
@@ -249,6 +254,13 @@ macro_rules! keyword{
             impl AsRef<str> for $name {
                 fn as_ref(&self) -> &str {
                     self.0.as_ref()
+                }
+            }
+
+            #[cfg(feature = "impl_display")]
+            impl std::fmt::Display for $name {
+                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                    write!(f, "{} ", $str)
                 }
             }
         )*

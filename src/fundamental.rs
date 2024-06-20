@@ -128,6 +128,7 @@ impl ToTokens for Literal {
 /// let cached_ident = Cached::<Ident>::parse(&mut token_iter).unwrap();
 /// assert!(cached_ident == "ident");
 /// ```
+#[derive(Clone)]
 pub struct Cached<T: Parse + ToString> {
     value: T,
     string: String,
@@ -225,6 +226,7 @@ pub type CachedLiteral = Cached<Literal>;
 /// in a [`Vec`], [`LazyVec`], [`DelimitedVec`] or [`Repeats`] will result in an infinite
 /// loop.
 #[cfg_attr(feature = "impl_debug", derive(Debug))]
+#[derive(Clone)]
 pub struct Nothing;
 
 impl Parser for Nothing {
@@ -258,6 +260,7 @@ impl std::fmt::Display for Nothing {
 ///
 /// let _ = Except::<Punct>::parser(&mut token_iter).unwrap();
 /// ```
+#[derive(Clone)]
 pub struct Except<T: Parse>(PhantomData<T>);
 
 impl<T: Parse> Parser for Except<T> {
@@ -303,6 +306,7 @@ impl<T: Parse> std::fmt::Display for Except<T> {
 ///
 /// let _ = Expect::<Ident>::parser(&mut token_iter).unwrap();
 /// ```
+#[derive(Clone)]
 pub struct Expect<T: Parse>(PhantomData<T>);
 
 impl<T: Parse> Parser for Expect<T> {
@@ -348,6 +352,7 @@ impl<T: Parse> std::fmt::Display for Expect<T> {
 /// let _end_ = EndOfStream::parser(&mut token_iter).unwrap();
 /// ```
 #[cfg_attr(feature = "impl_debug", derive(Debug))]
+#[derive(Clone)]
 pub struct EndOfStream;
 
 impl Parser for EndOfStream {
@@ -373,6 +378,7 @@ impl ToTokens for EndOfStream {
 /// `HiddenState` will not consume any tokens when parsing and will not emit any tokens when
 /// generating a `TokenStream`. On parsing it is initialized with a default value. It has
 /// `Deref` and `DerefMut` implemented to access the inner value.
+#[derive(Clone)]
 pub struct HiddenState<T: Default>(T);
 
 impl<T: Default> Deref for HiddenState<T> {

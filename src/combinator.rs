@@ -7,6 +7,7 @@
 use crate::{Parse, Parser, Result, ToTokens, TokenIter, TokenStream};
 
 /// Conjunctive `A` followed by `B`
+#[derive(Clone)]
 pub struct Cons<A: Parse, B: Parse> {
     /// The first value
     pub first: A,
@@ -52,6 +53,7 @@ impl<A: Parse + std::fmt::Display, B: Parse + std::fmt::Display> std::fmt::Displ
 }
 
 /// Disjunctive `A` or `B` tried in that order.
+#[derive(Clone)]
 pub enum Either<A: Parse, B: Parse> {
     /// The first alternative
     First(A),

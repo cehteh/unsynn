@@ -12,16 +12,20 @@ use crate::*;
 /// delimiter is optional and can be `None` eg. when the entity is the last in the
 /// list. Usually the delimiter will be some simple punctuation token, but it is not limited
 /// to that.
-pub struct Delimited<T: Parse, D: Parse>{
+#[derive(Clone)]
+pub struct Delimited<T: Parse, D: Parse> {
     /// The parsed value
     pub value: T,
     /// The optional delimiter
-    pub delimiter: Option<D>
+    pub delimiter: Option<D>,
 }
 
 impl<T: Parse, D: Parse> Parser for Delimited<T, D> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        Ok(Self{value: T::parser(tokens)?, delimiter: Option::<D>::parser(tokens)?})
+        Ok(Self {
+            value: T::parser(tokens)?,
+            delimiter: Option::<D>::parser(tokens)?,
+        })
     }
 }
 

@@ -13,7 +13,7 @@ use proc_macro2::Spacing;
 use crate::{Error, Parser, Punct, Result, ToTokens, TokenIter, TokenStream, TokenTree};
 
 /// A single character punctuation token lexed with `Spacing::Alone`.
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct OnePunct<const C: char>;
 
 impl<const C: char> OnePunct<C> {
@@ -80,7 +80,7 @@ impl<const C: char> std::fmt::Debug for OnePunct<C> {
 /// let colon = OnePunct::<':'>::parse(&mut token_iter).unwrap();
 /// let colon = OnePunct::<':'>::parse(&mut token_iter).unwrap();
 /// ```
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct JointPunct<const C: char>;
 
 impl<const C: char> JointPunct<C> {
@@ -132,7 +132,7 @@ impl<const C: char> std::fmt::Debug for JointPunct<C> {
 }
 
 /// Double character joint punctuation.
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct TwoPunct<const C1: char, const C2: char>;
 
 impl<const C1: char, const C2: char> TwoPunct<C1, C2> {
@@ -182,7 +182,7 @@ impl<const C1: char, const C2: char> std::fmt::Debug for TwoPunct<C1, C2> {
 }
 
 /// Triple character joint punctuation.
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct ThreePunct<const C1: char, const C2: char, const C3: char>;
 
 impl<const C1: char, const C2: char, const C3: char> ThreePunct<C1, C2, C3> {

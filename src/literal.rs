@@ -12,6 +12,7 @@ use crate::{Error, Literal, Parser, Result, ToTokens, TokenIter, TokenStream, To
 /// that only decimal integers without any other characters, signs or suffixes are supported,
 /// this is *not* full rust syntax.
 #[cfg_attr(feature = "impl_debug", derive(Debug))]
+#[derive(Clone)]
 pub struct LiteralInteger {
     /// Literal representing an integer
     literal: Literal,
@@ -77,6 +78,7 @@ impl std::fmt::Display for LiteralInteger {
 
 /// A single quoted character literal (`'x'`).
 #[cfg_attr(feature = "impl_debug", derive(Debug))]
+#[derive(Clone)]
 pub struct LiteralCharacter {
     /// Literal representing a single quoted character
     literal: Literal,
@@ -151,6 +153,7 @@ impl std::fmt::Display for LiteralCharacter {
 /// that this is a simplified string literal, and only double quoted strings are supported,
 /// this is *not* full rust syntax, eg. byte and C string literals are not supported.
 #[cfg_attr(feature = "impl_debug", derive(Debug))]
+#[derive(Clone)]
 pub struct LiteralString {
     /// Literal representing a double quoted string
     literal: Literal,

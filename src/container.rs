@@ -178,6 +178,7 @@ impl<T: ToTokens> ToTokens for RefCell<T> {
 /// let _example = Example::parse(&mut token_iter).unwrap();
 /// let _example = Example::parse(&mut token_iter).unwrap();
 /// ```
+#[derive(Clone)]
 pub struct LazyVec<T: Parse, S: Parse> {
     /// The vector of repeating `T`
     pub vec: Vec<T>,
@@ -235,6 +236,7 @@ impl<T: Parse + std::fmt::Display, S: Parse + std::fmt::Display> std::fmt::Displ
 /// Since the delimiter in [`Delimited<T,D>`] is optional a `Vec<Delimited<T,D>>` would parse
 /// consecutive values even without delimiters. `DelimimitedVec<T,D>` will stop parsing after
 /// the first value without a delimiter.
+#[derive(Clone)]
 pub struct DelimitedVec<T: Parse, D: Parse>(pub Vec<Delimited<T, D>>);
 
 impl<T: Parse, D: Parse> Parser for DelimitedVec<T, D> {
@@ -299,6 +301,7 @@ pub type ColonDelimitedVec<T> = DelimitedVec<T, Colon>;
 /// Parsing will succeed when at least the minimum number of elements is reached and stop at
 /// the maximum number.  The delimiter `D` defaults to [`Nothing`] to parse sequences which
 /// don't have delimiters.
+#[derive(Clone)]
 pub struct Repeats<const MIN: usize, const MAX: usize, T: Parse, D: Parse = Nothing>(
     pub Vec<Delimited<T, D>>,
 );

@@ -17,6 +17,7 @@ macro_rules! make_group {
         $(
             #[doc = stringify!(A opaque group of tokens within a $delimiter)]
             #[cfg_attr(feature = "impl_debug", derive(Debug))]
+            #[derive(Clone)]
             pub struct $name(pub Group);
 
             impl From<$name> for Group {
@@ -76,6 +77,7 @@ pub trait GroupDelimiter: private::Sealed {
 
 /// Any kind of Group `G` with parseable content `C`.  The content `C` must parse exhaustive,
 /// a `EndOfStream` is automatically implied.
+#[derive(Clone)]
 pub struct GroupContaining<C: Parse> {
     /// The delimiters around the group.
     pub delimiter: Delimiter,
@@ -151,6 +153,7 @@ macro_rules! make_group_containing {
     ($($name:ident: $delimiter:ident);* $(;)?) => {
         $(
             #[doc = stringify!(Parseable content within a $delimiter)]
+            #[derive(Clone)]
             pub struct $name<C: Parse>{
                 /// The inner content of the group.
                 pub content: C
