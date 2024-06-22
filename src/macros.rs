@@ -224,36 +224,36 @@ macro_rules! keyword{
         $(
             #[cfg_attr(feature = "impl_debug", derive(Debug))]
             #[derive(Clone)]
-            pub struct $name($crate::CachedIdent);
+            pub struct $name;
 
             impl Parser for $name {
                 fn parser(tokens: &mut TokenIter) -> Result<Self> {
-                    Ok(Self($crate::CachedIdent::parse_with(tokens, |keyword| {
-                        if keyword == $str {
-                            Ok(keyword)
+                    $crate::CachedIdent::parse_with(tokens, |ident| {
+                        if ident == $str {
+                            Ok($name)
                         } else {
-                            $crate::Error::other::<$crate::CachedIdent>(
+                            $crate::Error::other::<$name>(
                                 format!(
                                     "keyword {:?} expected, got {:?} at {:?}",
                                     $str,
-                                    keyword.string(),
-                                    keyword.span().start()
+                                    ident.string(),
+                                    ident.span().start()
                                 )
                             )
                         }
-                    })?))
+                    })
                 }
             }
 
             impl ToTokens for $name {
                 fn to_tokens(&self, tokens: &mut TokenStream) {
-                    self.to_tokens(tokens);
+                    Ident::new($str, Span::call_site()).to_tokens(tokens);
                 }
             }
 
             impl AsRef<str> for $name {
                 fn as_ref(&self) -> &str {
-                    self.0.as_ref()
+                    &$str
                 }
             }
 
