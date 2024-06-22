@@ -6,13 +6,12 @@ that a 'unsynn-derive' will be implemented. When the later two are working and n
 deficiencies in 'unsynn' are found then it is time for a 1.0.0 release.
 
 
-## Planned
+## Planned/Ideas
 
-* Some types are currently implemented as ZST's, this is nice and could be extended to
-  keywords too. Drawback is that this looses the relation to the source code they come
-  from. Eventually it should be reconsidered and maybe add a 'spans' feature that turns ZST's
-  to contain a `Span`.
-
+* Some types are currently implemented as ZST's. Drawback is that this looses the relation to
+  the source code they come from. Eventually it should be reconsidered and maybe add a 'spans'
+  feature that turns ZST's to contain a `Span`.
+* Eventually make enough tests to pass cargo-mutants (no priority yet).
 
 
 # Development
