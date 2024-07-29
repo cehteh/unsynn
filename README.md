@@ -32,18 +32,19 @@ let ast = IdentThenParenthesisedIdents::parse(&mut token_iter).unwrap();
 ```
 
 
-# Features
+# Feature Flags
 
 By defaut unsynn is very lean and does not include extra features. The only thing that are
 always present are the [`Parser`], [`Parse`] and [`ToTokens`] traits.  The following features
 enable extra traits:
 
 - **impl_debug**  
-  Adds [`Debug`] implementations to generic unsynn types.
+  Adds [`Debug`](std::fmt::Debug) implementations to generic unsynn types.
 
 - **impl_display**  
   Adds [`Display`](std::fmt::Display) implementations to generic unsynn types.
 
-Note that `Display` can't be implemented for some std types (eg. [`Option`]). Further
-`Display` may sometimes be surprising since we do not have rules how to pretty-print tokens
-(eg. spaces around Delimiters)
+Note that `Display` can't be implemented for all types (eg. [`Option`]). Further `Display` may
+sometimes be surprising since we do not have good rules how to pretty-print tokens (eg. spaces
+around Delimiters). Display then often inserts surplus spaces to ensure that tokens are
+properly delimited.

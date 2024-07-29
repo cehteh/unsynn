@@ -13,7 +13,6 @@ deficiencies in 'unsynn' are found then it is time for a 1.0.0 release.
   feature that turns ZST's to contain a `Span`.
 * Eventually make enough tests to pass cargo-mutants (no priority yet).
 
-
 # Development
 
 unsynn is meant to evolve opportunistically. When you spot a problem or need a new feature

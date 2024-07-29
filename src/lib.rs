@@ -99,7 +99,7 @@ where
     /// # Errors
     ///
     /// When the parser or the closure returns an error, the transaction is rolled back and
-    /// the errors is returned.
+    /// the error is returned.
     fn parse_with<T>(tokens: &mut TokenIter, f: impl FnOnce(Self) -> Result<T>) -> Result<T> {
         let mut ptokens = tokens.clone();
         let result = f(Self::parser(&mut ptokens)?)?;

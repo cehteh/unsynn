@@ -10,10 +10,10 @@ code as well creating grammars on the fly without any boilerplate code.
 
 ## The [`unsynn!{}`] Macro
 
-The [`unsynn!{}`] macro is for parsing grammar entities that can be straightforward written as
-tuple, structure or enum. It does all the necessary implementations for the user given entity
-but offers no flexibility in what is generated. It is possible to add [`HiddenState<T>`]
-members to add non syntactic entries to there custom structs.
+The [`unsynn!{}`] macro is for defining parsing grammar entities that can be straightforward
+written as tuple, structure or enum. It does all the necessary implementations for the user
+given entity but offers no flexibility in what is generated. It is possible to add
+[`HiddenState<T>`] members to add non syntactic entries to there custom structs.
 
 ## [`Parse::parse_with()`] transformations
 
@@ -98,7 +98,7 @@ type Assignment = Cons<Ident, Cons<Assign, LiteralString>>;
 struct AssignmentList {
     // each 'Ident = LiteralString'
     list: Vec<(Ident, String)>,
-    // We want to be able to have a fast lookup to the entries
+    // We want to have a fast lookup to the entries
     lookup: HashMap<Ident, usize>,
 }
 
@@ -133,7 +133,15 @@ impl ToTokens for AssignmentList {
             a.0.to_tokens(output);
             Assign::new().to_tokens(output);
             LiteralString::from_str(&a.1).to_tokens(output);
+            Comma::new().to_tokens(output);
         }
     }
 }
+
+# fn test_assignment_list() {
+#     let mut input = quote::quote!{ a = "b", c = "d" }.into_iter();
+#     let parsed = AssignmentList::parse(&mut input).unwrap();
+#     assert_eq!(parsed.list.len(), 2);
+#     assert_eq!(parsed.list[1].1, "d");
+# }
 ```

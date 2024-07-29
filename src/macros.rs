@@ -10,7 +10,7 @@ use crate::*;
 /// defined.
 ///
 /// Common for all three variants is that entries are tried in order. Disjunctive for enums
-/// and conjunctive in structures. Note that the order is important esp. for enums, in case
+/// and conjunctive in structures. This makes the order important, e.g. for enums, in case
 /// some entries are subsets of others.
 ///
 /// # Example
