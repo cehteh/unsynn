@@ -84,6 +84,7 @@ impl std::fmt::Debug for Error {
 }
 
 impl std::fmt::Display for Error {
+    #[cfg_attr(test, mutants::skip)]
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             Error::UnexpectedToken { expected, found } => {

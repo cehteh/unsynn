@@ -20,6 +20,7 @@ impl_debug = []
 impl_display = []
 
 [dependencies]
+mutants = "0.0.3"
 proc-macro2 = { version = "1.0.81", features = ["proc-macro", "span-locations"]}
 quote = "1.0.36"
 
