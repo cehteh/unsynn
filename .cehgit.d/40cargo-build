@@ -1,0 +1,5 @@
+# -*- mode: sh -*-
+is_rust_project || return 0
+
+## runs 'cargo build'
+run_test cargo build

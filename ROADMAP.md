@@ -18,3 +18,7 @@ deficiencies in 'unsynn' are found then it is time for a 1.0.0 release.
 unsynn is meant to evolve opportunistically. When you spot a problem or need a new feature
 feel free to open an [issue](https://git.pipapo.org/cehteh/unsynn/issues) or send a
 [PR](https://git.pipapo.org/cehteh/unsynn/pulls).
+
+Commits and other git operations are augmented and validated with
+[cehgit](https://git.pipapo.org/cehteh/cehgit). For contributors it is recommened to enable
+cehgit too by calling `./.cehgit install-hook --all` within a checked out unsynn repository.

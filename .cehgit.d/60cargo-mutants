@@ -1,0 +1,8 @@
+# -*- mode: sh -*-
+is_rust_project || return 0
+git_branch "release" || return 0
+git_hook "pre-commit" || return 0
+
+## runs 'cargo-mutants'
+run_test cargo mutants -j 4 --all-features --colors always
+

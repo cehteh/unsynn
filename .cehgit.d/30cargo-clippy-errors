@@ -1,0 +1,11 @@
+# -*- mode: sh -*-
+is_rust_project || return 0
+#git_branch "release" || return 0
+
+## checks 'cargo clippy' for errors only
+function clippy_errors
+{
+    cargo clippy 2>&1 | tee /dev/stderr | awk '/error:/{exit 1}'
+}
+
+run_test clippy_errors

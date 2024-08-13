@@ -1,0 +1,5 @@
+# -*- mode: sh -*-
+is_rust_project || return 0
+
+## run 'cargo check'
+run_test cargo check
