@@ -1,5 +1,7 @@
 # -*- mode: sh -*-
-is_rust_project || return
+is_rust_project || return 0
+git_hook "pre-commit" "pre-merge-commit" || return 0
+git_branch "master" "main" || return 0
 
 ## checks 'cargo clippy' for warnings and errors
 function clippy_strict
