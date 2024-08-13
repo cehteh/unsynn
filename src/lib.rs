@@ -39,9 +39,9 @@ where
     /// # Errors
     ///
     /// The `parser()` implementation must return an error when it cannot parse the
-    /// input. This error must be a [`Error`]. User code will parse a grammar by
-    /// calling [`Parse::parse_all()`], [`Parse::parse()`] or [`Parse::parse_with()`] which
-    /// will call `Parser::parse()` within a transaction and roll back on error.
+    /// input. This error must be a [`Error`]. User code will parse a grammar by calling
+    /// [`Parse::parse_all()`], [`Parse::parse()`] or [`Parse::parse_with()`] which will call
+    /// this method within a transaction and roll back on error.
     fn parser(tokens: &mut TokenIter) -> Result<Self>;
 }
 
@@ -91,7 +91,7 @@ where
     }
 
     /// Parse a value in a transaction, pass it to a `FnOnce(Self) -> Result<T>` closure which
-    /// creates a new result or return an Error.
+    /// creates a new result or returns an Error.
     ///
     /// This method is a very powerful tool as it allows anything from simple validations to
     /// complete transformations into a new type.
@@ -138,7 +138,7 @@ pub trait IParse: private::Sealed {
 
 impl private::Sealed for &mut TokenIter {}
 
-/// Implement `IParse` for `&mut TokenIter`. This API is more convenient in cases where the
+/// Implements `IParse` for `&mut TokenIter`. This API is more convenient in cases where the
 /// compiler can infer types because no turbofish notations are required.
 ///
 /// # Example
