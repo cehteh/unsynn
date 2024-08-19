@@ -1,6 +1,6 @@
 # -*- mode: sh -*-
-is_rust_project || return 0
+## run 'cargo check' before committing
+is_cargo_project || return 0
 git_hook "pre-commit" "pre-merge-commit" || return 0
 
-## run 'cargo check'
 run_test cargo check

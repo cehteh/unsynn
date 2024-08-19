@@ -1,7 +1,8 @@
 # -*- mode: sh -*-
-is_rust_project || return 0
-git_hook "pre-commit" "pre-merge-commit" || return 0
+## runs 'cargo build --tests', backgrounds
 git_branch "master" "main" "devel" || return 0
+is_cargo_project || return 0
+git_hook "pre-commit" "pre-merge-commit" && background_schedule && return 0
+git_hook "commit-msg" && background_wait && return $(background_result)
 
-## runs 'cargo build --tests'
 run_test cargo build --tests

@@ -1,7 +1,7 @@
 # -*- mode: sh -*-
-is_rust_project || return 0
+## checks with 'cargo fmt' if the source is well formatted
+is_cargo_project || return 0
 git_hook "pre-commit" "pre-merge-commit" || return 0
 
-## checks with 'cargo fmt' if the source is well formatted
 run_test cargo fmt --all -- --check
 

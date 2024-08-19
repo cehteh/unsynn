@@ -1,9 +1,0 @@
-# -*- mode: sh -*-
-## rust/cargo support
-
-CEHGIT_STATE=ignore
-
-function is_rust_project
-{
-    [[ -f "$WORKTREE_DIR/Cargo.toml" ]] || CEHGIT_STATE=skip
-}
