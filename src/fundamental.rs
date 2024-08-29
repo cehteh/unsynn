@@ -16,6 +16,9 @@ use crate::*;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 
+/// Parses a [`TokenStream`] from the input tokens. This is the primary entity to parse when
+/// dealing with opaque entities where internal details are left out.
+/// Note that this matches a empty stream (see [`EndOfStream`]) as well.
 impl Parser for TokenStream {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let mut output = TokenStream::new();
@@ -28,6 +31,48 @@ impl ToTokens for TokenStream {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         tokens.extend(self.clone());
     }
+}
+
+/// Since parsing a [`TokenStream`] succeeds even when no tokens are left, this type is used to
+/// parse a [`TokenStream`] that is not empty.
+pub struct NonEmptyTokenStream(pub TokenStream);
+
+impl TryFrom<TokenStream> for NonEmptyTokenStream {
+    type Error = Error;
+
+    fn try_from(value: TokenStream) -> Result<Self> {
+        if value.is_empty() {
+            Error::unexpected_end()
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+
+impl Parser for NonEmptyTokenStream {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        tokens.parse::<Expect<TokenTree>>()?;
+        // A TokenStream will always match, so we can safely unwrap here.
+        Ok(Self(TokenStream::parser(tokens).unwrap()))
+    }
+}
+
+impl ToTokens for NonEmptyTokenStream {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        tokens.extend(self.0.clone());
+    }
+}
+
+#[test]
+fn test_non_empty_token_stream() {
+    let mut token_iter = quote::quote! {ident}.into_iter();
+    let _ = NonEmptyTokenStream::parser(&mut token_iter).unwrap();
+}
+
+#[test]
+fn test_empty_token_stream() {
+    let mut token_iter = quote::quote! {}.into_iter();
+    assert!(NonEmptyTokenStream::parser(&mut token_iter).is_err());
 }
 
 impl Parser for TokenTree {
