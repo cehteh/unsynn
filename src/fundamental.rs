@@ -423,7 +423,7 @@ impl<T: Parse> std::fmt::Display for Expect<T> {
     }
 }
 
-/// Matches the end of the stream when no tokens are left. The [`Parse::parse()`] and
+/// Matches the end of the stream when no tokens are left.
 ///
 /// # Example
 ///
