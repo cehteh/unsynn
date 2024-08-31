@@ -295,6 +295,43 @@ impl std::fmt::Display for Nothing {
     }
 }
 
+/// A unit that always fails to match. This is useful as default for generics.
+///
+/// # Example
+///
+/// ```
+/// # use unsynn::*;
+/// let mut token_iter = quote::quote! {ident}.into_iter();
+///
+/// type MaybeEither<A, B=Invalid> = Either<A,B>;
+///
+/// // can be used with only one generic type
+/// assert!(MaybeEither::<Ident>::parse(&mut token_iter).is_ok());
+/// ```
+#[cfg_attr(feature = "impl_debug", derive(Debug))]
+#[derive(Clone)]
+pub struct Invalid;
+
+impl Parser for Invalid {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        Error::unexpected_token(tokens.clone().next().unwrap())
+    }
+}
+
+impl ToTokens for Invalid {
+    #[inline]
+    fn to_tokens(&self, _tokens: &mut TokenStream) {
+        /*NOP*/
+    }
+}
+
+#[cfg(feature = "impl_display")]
+impl std::fmt::Display for Invalid {
+    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Ok(())
+    }
+}
+
 /// Succeeds when the next token does not match `T`. Will not consume any tokens.
 ///
 /// # Example
