@@ -2,6 +2,8 @@
 ## runs 'cargo build', backgrounds
 git_branch "master" "main" || return 0
 is_cargo_project || return 0
+
+git_hook "pre-commit" "pre-merge-commit" "commit-msg" || return 0
 git_hook "pre-commit" "pre-merge-commit" && background_schedule && return 0
 git_hook "commit-msg" && background_wait && return $(background_result)
 

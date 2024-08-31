@@ -78,6 +78,7 @@ function cehgit_loadconfig
     declare -gx TEST_PREFIX=".test-"                     #G Prefix for test directories, extended by a timestamp and hookname
     declare -gx TEST_LOG="test.log"                      #G The name of the file where all test output will be collected
     declare -gx VERBOSITY_LEVEL="${VERBOSITY_LEVEL:-2}"  #G Default verbosity level
+    declare -gx BACKGROUNDING="true"                     #G Enable the background jobs machinery, when not set to 'true' background jobs will be done in foreground
     declare -gx CEHGIT_HOOKS=(pre-commit pre-merge-commit prepare-commit-msg commit-msg) #G List of hooks to be installed by 'cehgit install-hook --all'
 
     # load config files
@@ -513,7 +514,7 @@ function run_test #afunc [program] [args..] - runs a test in a resource limited 
 
 function background_schedule #afunc schedules the current action to run in the background when not already scheduled
 {
-    if [[ -n "${CEHGIT_BACKGROUND:-}" ]]; then
+    if [[ "$BACKGROUNDING" != "true" ]] || [[ -n "${CEHGIT_BACKGROUND:-}" ]]; then
         # called from background job, execute it
         trace "execute $ACTION"
         return 1
@@ -529,6 +530,11 @@ function background_schedule #afunc schedules the current action to run in the b
 
 function background_wait #afunc waits for the background actions to finish and merges the log
 {
+    if [[ "$BACKGROUNDING" != "true" ]]; then
+        trace "backgrounding disabled"
+        return 1
+    fi
+
     if [[ -n "${CEHGIT_BACKGROUND:-}" ]]; then
         trace "running in background $ACTION"
         return 1
@@ -862,7 +868,7 @@ INITIAL INSTALLATION
 SECURITY
 
   cehgit is completely inert in a initialized or freshly checked out repository. One always
-  has to 'cehgit install-hook' to enable it. Then as any other build script cehgit actions
+  has to './.cehgit install-hook' to enable it. Then as any other build script cehgit actions
   run in the context of the calling user. Unlike in a CI there is no isolation. Thus before
   hooks are enabled the user is responsible to check or trust the shipped actions.
 
