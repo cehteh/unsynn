@@ -10,7 +10,7 @@ repository = "https://git.pipapo.org/cehteh/unsynn.git"
 keywords = ["parser", "macros", "proc_macro"]
 categories = ["development-tools::procedural-macro-helpers", "parser-implementations"]
 readme = "README.md"
-rust-version = "1.59.0"
+rust-version = "1.61.0"
 
 [features]
 default = []
