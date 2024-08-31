@@ -4,7 +4,7 @@
 //! conjunction of two other parsers, while the [`Either`] type is used to define a parser
 //! that is a disjunction of two other parsers.
 
-use crate::{Parse, Parser, Result, ToTokens, TokenIter, TokenStream};
+use crate::{Parse, Parser, Result, ToTokens, TokenIter, TokenStream, TokenTree};
 
 /// Conjunctive `A` followed by `B`
 #[derive(Clone)]
@@ -118,4 +118,23 @@ impl<A: Parse + std::fmt::Display, B: Parse + std::fmt::Display> std::fmt::Displ
             Either::Second(b) => write!(f, "{b}"),
         }
     }
+}
+
+impl<A: Parse + Into<TokenTree>, B: Parse + Into<TokenTree>> From<Either<A, B>> for TokenTree {
+    fn from(either: Either<A, B>) -> Self {
+        match either {
+            Either::First(a) => a.into(),
+            Either::Second(b) => b.into(),
+        }
+    }
+}
+
+#[test]
+fn test_either_into_tt() {
+    use crate::LiteralInteger;
+    let either = Either::<LiteralInteger, TokenTree>::First(LiteralInteger::new(42));
+    let _tt: TokenTree = either.into();
+
+    let either = Either::<TokenTree, LiteralInteger>::Second(LiteralInteger::new(43));
+    let _tt: TokenTree = either.into();
 }

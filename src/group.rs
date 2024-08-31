@@ -58,6 +58,12 @@ macro_rules! make_group {
                     write!(f, "{}", self.0)
                 }
             }
+
+            impl From<$name> for TokenTree {
+                fn from(group: $name) -> Self {
+                    group.0.into()
+                }
+            }
         )*
     };
 }
@@ -67,6 +73,13 @@ make_group! {
     BraceGroup: Brace;
     BracketGroup: Bracket;
     NoneGroup: None;
+}
+
+#[test]
+fn test_bracegroup_into_tt() {
+    let mut token_iter = quote::quote! {{a b c}}.into_iter();
+    let group = BraceGroup::parse(&mut token_iter).unwrap();
+    let _: TokenTree = group.into();
 }
 
 /// Access to the surrounding `Delimiter` of a `GroupContaining` and its variants.
@@ -149,6 +162,19 @@ impl<C: Parse> GroupDelimiter for GroupContaining<C> {
     }
 }
 
+impl<C: Parse> From<GroupContaining<C>> for TokenTree {
+    fn from(group: GroupContaining<C>) -> Self {
+        Group::new(group.delimiter(), group.content.to_token_stream()).into()
+    }
+}
+
+#[test]
+fn test_groupcontaining_into_tt() {
+    let mut token_iter = quote::quote! {{a b c}}.into_iter();
+    let group = GroupContaining::<TokenStream>::parse(&mut token_iter).unwrap();
+    let _: TokenTree = group.into();
+}
+
 macro_rules! make_group_containing {
     ($($name:ident: $delimiter:ident);* $(;)?) => {
         $(
@@ -214,6 +240,12 @@ macro_rules! make_group_containing {
                     Delimiter::$delimiter
                 }
             }
+
+            impl<C: Parse> From<$name<C>> for TokenTree {
+                fn from(group: $name<C>) -> Self {
+                    Group::new(Delimiter::$delimiter, group.content.to_token_stream()).into()
+                }
+            }
         )*
     };
 }
@@ -223,4 +255,11 @@ make_group_containing! {
     BraceGroupContaining: Brace;
     BracketGroupContaining: Bracket;
     NoneGroupContaining: None;
+}
+
+#[test]
+fn test_bracegroupcontaining_into_tt() {
+    let mut token_iter = quote::quote! {{a b c}}.into_iter();
+    let group = BraceGroupContaining::<TokenStream>::parse(&mut token_iter).unwrap();
+    let _: TokenTree = group.into();
 }

@@ -255,6 +255,20 @@ impl<T: Parse + std::fmt::Display> std::fmt::Display for Cached<T> {
     }
 }
 
+/// Convert a `Cached<T: Into<TokenTree>>` object into a `TokenTree`.
+impl<T: Parse + std::fmt::Display + Into<TokenTree>> From<Cached<T>> for TokenTree {
+    fn from(cached: Cached<T>) -> Self {
+        cached.value.into()
+    }
+}
+
+#[test]
+fn test_cached_into_tt() {
+    let mut token_iter = quote::quote! {ident}.into_iter();
+    let ident = Cached::<Ident>::parser(&mut token_iter).unwrap();
+    let _: TokenTree = ident.into();
+}
+
 /// `TokenTree` with cached string representation.
 pub type CachedTokenTree = Cached<TokenTree>;
 /// `Group` with cached string representation.

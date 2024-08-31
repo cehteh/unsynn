@@ -76,6 +76,18 @@ impl std::fmt::Display for LiteralInteger {
     }
 }
 
+impl From<LiteralInteger> for TokenTree {
+    fn from(lit: LiteralInteger) -> Self {
+        TokenTree::Literal(lit.into_inner())
+    }
+}
+
+#[test]
+fn test_literalinteger_into_tt() {
+    let lit = LiteralInteger::new(42);
+    let _: TokenTree = lit.into();
+}
+
 /// A single quoted character literal (`'x'`).
 #[cfg_attr(feature = "impl_debug", derive(Debug))]
 #[derive(Clone)]
@@ -147,6 +159,18 @@ impl std::fmt::Display for LiteralCharacter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.value)
     }
+}
+
+impl From<LiteralCharacter> for TokenTree {
+    fn from(lit: LiteralCharacter) -> Self {
+        TokenTree::Literal(lit.into_inner())
+    }
+}
+
+#[test]
+fn test_literalcharacter_into_tt() {
+    let lit = LiteralCharacter::new('c');
+    let _: TokenTree = lit.into();
 }
 
 /// A double quoted string literal (`"hello"`). The quotes are included in the value.  Note
@@ -245,6 +269,18 @@ impl std::fmt::Display for LiteralString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.value)
     }
+}
+
+impl From<LiteralString> for TokenTree {
+    fn from(lit: LiteralString) -> Self {
+        TokenTree::Literal(lit.into_inner())
+    }
+}
+
+#[test]
+fn test_literalstring_into_tt() {
+    let lit = LiteralString::from_str("foobar");
+    let _: TokenTree = lit.into();
 }
 
 // PLANNED: literal!( Type = lit, ...)

@@ -50,6 +50,21 @@ impl<const C: char> ToTokens for OnePunct<C> {
     }
 }
 
+/// Convert a `OnePunct` object into a `TokenTree`.
+impl<const C: char> From<OnePunct<C>> for TokenTree {
+    fn from(_: OnePunct<C>) -> Self {
+        TokenTree::Punct(Punct::new(C, Spacing::Alone))
+    }
+}
+
+#[test]
+fn test_one_punct_into_tt() {
+    let mut token_iter = quote::quote! {+}.into_iter();
+    let plus = Plus::parser(&mut token_iter).unwrap();
+    assert_eq!(plus.as_char(), '+');
+    let _: TokenTree = plus.into();
+}
+
 #[cfg(feature = "impl_display")]
 impl<const C: char> std::fmt::Display for OnePunct<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -129,6 +144,21 @@ impl<const C: char> std::fmt::Debug for JointPunct<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "JointPunct<{C:?}>")
     }
+}
+
+/// Convert a `JointPunct` object into a `TokenTree`.
+impl<const C: char> From<JointPunct<C>> for TokenTree {
+    fn from(_: JointPunct<C>) -> Self {
+        TokenTree::Punct(Punct::new(C, Spacing::Joint))
+    }
+}
+
+#[test]
+fn test_joint_punct_into_tt() {
+    let mut token_iter = quote::quote! {+=}.into_iter();
+    let plus = JointPunct::<'+'>::parser(&mut token_iter).unwrap();
+    assert_eq!(plus.as_char(), '+');
+    let _: TokenTree = plus.into();
 }
 
 /// Double character joint punctuation.
