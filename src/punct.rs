@@ -365,5 +365,5 @@ pub type Dollar = OnePunct<'$'>;
 pub type Question = OnePunct<'?'>;
 /// `~`
 pub type Tilde = OnePunct<'~'>;
-/// `\\`
+/// `\`
 pub type Backslash = OnePunct<'\\'>;

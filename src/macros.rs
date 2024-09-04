@@ -51,7 +51,6 @@ use crate::*;
 ///
 /// let my_tuple_struct =  MyTupleStruct::parser(&mut token_iter).unwrap();
 /// ```
-// experiment: macro rustdoc looks ugly, define a simpler version for doc purposes only
 #[cfg(doc)]
 #[macro_export]
 macro_rules! unsynn {
@@ -108,6 +107,7 @@ macro_rules! unsynn{
         }
         $crate::unsynn!{$($cont)*}
     };
+
     ($(#[$attribute:meta])* $pub:vis struct $name:ident {
         $($(#[$mattr:meta])* $mpub:vis $member:ident: $parser:ty),* $(,)?
     } $($cont:tt)*) => {
@@ -137,6 +137,7 @@ macro_rules! unsynn{
         }
         $crate::unsynn!{$($cont)*}
     };
+
     ($(#[$attribute:meta])* $pub:vis struct $name:ident (
         $($(#[$mattr:meta])* $mpub:vis $parser:ty),* $(,)?
     ); $($cont:tt)*) => {
