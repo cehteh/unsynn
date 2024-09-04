@@ -738,8 +738,9 @@ WRITING ACTIONS
     very begin.
   - 10 configuration and prepopulation
     When some adjustments are to be done to make the test dir compileable this is the place.
-  - 20 validate test dir
+  - 20 validate test dir, toolchain versions
     Check for presence and validty of files in the test dir.
+    Check for toolchains/tools, required versions
   - 30 linters/formatting check
     Testing begins here with resonable cheap checks, running linters and similar things.
   - 40 building

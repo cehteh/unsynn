@@ -12,4 +12,4 @@ git_hook "pre-commit" "pre-merge-commit" "commit-msg" || return 0
 git_hook "pre-commit" "pre-merge-commit" && background_schedule && return 0
 git_hook "commit-msg" && background_wait && return $(background_result)
 
-run_test cargo +miri test
+run_test cargo +nightly miri test
