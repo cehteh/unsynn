@@ -22,9 +22,22 @@ function cehgit
             shift
             cehgit_init "$@"
             ;;
+        update)
+            shift
+            cehgit_init --update
+            ;;
         install-action)
             shift
             cehgit_install_action "$@"
+            ;;
+        update-actions)
+            shift
+            cehgit_install_action --update
+            ;;
+        update-all)
+            shift
+            cehgit_init --update
+            cehgit_install_action --update
             ;;
         list-actions)
             shift
@@ -101,7 +114,7 @@ function cehgit_init
     [[ -d ".git" ]] || die "not a git repository"
 
     case "${1:-}" in
-    "-f"|"--force"|"--upgrade") # force installation over existing file
+    "-f"|"--force"|"--update") # force installation over existing file
         FORCE=true
         shift
         ;;
@@ -141,7 +154,11 @@ function cehgit_install_action
             cp -v ${FORCE:--n} "$actions_origin/"[0-9]* "$actions_origin/init_"* "$ACTIONS_DIR/"
             return 0
             ;;
-        # PLANNED: --upgrade actions that are already present
+        "--update") # install all actions
+            debug "updating all actions"
+            cp -v -u "$actions_origin/"[0-9]* "$actions_origin/init_"* "$ACTIONS_DIR/"
+            return 0
+            ;;
         *)
             break
             ;;
@@ -600,11 +617,20 @@ USAGE
   cehgit [-h|--help|help]
          show this help
 
-  cehgit init [-f|--force|--upgrade]
-         initialize or upgrade cehgit
+  cehgit init [-f|--force|--update]
+         initialize or update cehgit
+
+  cehgit update
+         update the local .cehgit
 
   cehgit install-action [-f|--force] [--all|actionglob..]
          install actions that are shipped with cehgit
+
+  cehgit update-actions
+         update all actions
+
+  cehgit update-all
+         update and update-actions
 
   cehgit available-actions
          list actions that are shipped with cehgit
