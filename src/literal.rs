@@ -88,6 +88,106 @@ fn test_literalinteger_into_tt() {
     let _: TokenTree = lit.into();
 }
 
+// Parser and ToTokens for unsigned integer types
+macro_rules! impl_unsigned_integer {
+    ($($ty:ty),*) => {
+        $(
+            #[doc = stringify!(Parse $ty may have a positive sign but no suffix)]
+            impl Parser for $ty {
+                fn parser(tokens: &mut TokenIter) -> Result<Self> {
+                    let lit = crate::Cons::<Option<crate::Plus>, LiteralInteger>::parser(tokens)?;
+                    <$ty>::try_from(lit.second.value()).map_err(Error::boxed)
+                }
+            }
+
+            #[doc = stringify!(Emit a literal $ty without sign and suffix)]
+            impl ToTokens for $ty {
+                fn to_tokens(&self, tokens: &mut TokenStream) {
+                    LiteralInteger::new(*self as u128).to_tokens(tokens);
+                }
+            }
+        )*
+    };
+}
+
+impl_unsigned_integer! {u8, u16, u32, u64, u128, usize}
+
+#[test]
+fn test_u8_parse() {
+    use crate::*;
+    let mut tokens = quote::quote! {+42}.into_iter();
+    let value = u8::parse(&mut tokens).unwrap();
+    assert_eq!(value, 42);
+}
+
+#[test]
+#[should_panic = "out of range"]
+fn test_u8_parse_err() {
+    use crate::*;
+    let mut tokens = quote::quote! {256}.into_iter();
+    let _value = u8::parse(&mut tokens).unwrap();
+}
+
+#[test]
+#[allow(clippy::unreadable_literal)]
+fn test_usize_parse() {
+    use crate::*;
+    let mut tokens = quote::quote! {123456789}.into_iter();
+    let value = usize::parse(&mut tokens).unwrap();
+    assert_eq!(value, 123456789);
+}
+
+// Parser and ToTokens for signed integer types
+macro_rules! impl_signed_integer {
+    ($($ty:ty),*) => {
+        $(
+            #[doc = stringify!(Parse $ty may have a positive or negative sign but no suffix)]
+            impl Parser for $ty {
+                fn parser(tokens: &mut TokenIter) -> Result<Self> {
+                    let lit = crate::Cons::<Option<crate::Either<crate::Plus, crate::Minus>>, LiteralInteger>::parser(tokens)?;
+                    <$ty>::try_from(lit.second.value())
+                    .map_err(Error::boxed)
+                    .and_then(|value| {
+                        match lit.first {
+                            Some(crate::Either::Second(_)) => Ok(-value),
+                            _ => Ok(value),
+                        }
+                    })
+                }
+            }
+
+            #[doc = stringify!(Emit a literal $ty with negative sign and without suffix)]
+            impl ToTokens for $ty {
+                fn to_tokens(&self, tokens: &mut TokenStream) {
+                    if *self < 0 {
+                        crate::Minus::new().to_tokens(tokens);
+                    }
+                    LiteralInteger::new(self.abs().try_into().unwrap()).to_tokens(tokens);
+                }
+            }
+        )*
+    };
+}
+
+impl_signed_integer! {i8, i16, i32, i64, i128, isize}
+
+#[test]
+fn test_i8_parse() {
+    use crate::*;
+    let mut tokens = quote::quote! {-42}.into_iter();
+    let value = i8::parse(&mut tokens).unwrap();
+    assert_eq!(value, -42);
+}
+
+#[test]
+#[allow(clippy::unreadable_literal)]
+fn test_isize_parse() {
+    use crate::*;
+    let mut tokens = quote::quote! {-123456789}.into_iter();
+    let value = isize::parse(&mut tokens).unwrap();
+    assert_eq!(value, -123456789);
+}
+
 /// A single quoted character literal (`'x'`).
 #[cfg_attr(feature = "impl_debug", derive(Debug))]
 #[derive(Clone)]
