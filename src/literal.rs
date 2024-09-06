@@ -273,6 +273,28 @@ fn test_literalcharacter_into_tt() {
     let _: TokenTree = lit.into();
 }
 
+// Parser and ToTokens for char type
+impl Parser for char {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        let lit = LiteralCharacter::parser(tokens)?;
+        Ok(lit.value())
+    }
+}
+
+impl ToTokens for char {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        LiteralCharacter::new(*self).to_tokens(tokens);
+    }
+}
+
+#[test]
+fn test_parse_char() {
+    use crate::*;
+    let mut tokens = quote::quote! {'x'}.into_iter();
+    let value = char::parse(&mut tokens).unwrap();
+    assert_eq!(value, 'x');
+}
+
 /// A double quoted string literal (`"hello"`). The quotes are included in the value.  Note
 /// that this is a simplified string literal, and only double quoted strings are supported,
 /// this is *not* full rust syntax, eg. byte and C string literals are not supported.
