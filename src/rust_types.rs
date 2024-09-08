@@ -2,7 +2,7 @@
 
 use crate::{
     Error, Ident, LiteralCharacter, LiteralInteger, Parse, Parser, Result, Span, ToTokens,
-    TokenIter, TokenStream,
+    TokenIter, TokenStream, TokenTree,
 };
 
 // Parser and ToTokens for unsigned integer types
@@ -97,5 +97,23 @@ impl Parser for bool {
 impl ToTokens for bool {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         Ident::new(if *self { "true" } else { "false" }, Span::call_site()).to_tokens(tokens);
+    }
+}
+
+/// Parse a `String` from the input stream.  Parsing into a string is special as it parses any
+/// kind of `TokenTree` and converts it `.to_string()`. Thus it looses its relationship to the
+/// type of the underlying token/syntactic entity. This is only useful when one wants to parse
+/// string like parameters in a macro that are not emitted later. This limits the use of this
+/// parser significantly.
+impl Parser for String {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        TokenTree::parse_with(tokens, |token| Ok(token.to_string()))
+    }
+}
+
+/// Strings can not be emitted. Trying so will always panic!
+impl ToTokens for String {
+    fn to_tokens(&self, _tokens: &mut TokenStream) {
+        unimplemented!("parsed Strings have no syntactic type and can not be emitted")
     }
 }

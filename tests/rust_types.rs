@@ -50,3 +50,13 @@ fn test_parse_bool() {
     assert!(bool::parse(&mut tokens).unwrap());
     assert!(!bool::parse(&mut tokens).unwrap());
 }
+
+#[test]
+fn test_parse_string() {
+    let mut tokens = quote::quote! { ident "literal" 12345 { +group } }.into_iter();
+
+    assert_eq!(String::parse(&mut tokens).unwrap(), "ident");
+    assert_eq!(String::parse(&mut tokens).unwrap(), "\"literal\"");
+    assert_eq!(String::parse(&mut tokens).unwrap(), "12345");
+    assert_eq!(String::parse(&mut tokens).unwrap(), "{ + group }");
+}
