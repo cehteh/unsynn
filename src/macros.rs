@@ -197,6 +197,7 @@ macro_rules! unsynn{
 ///
 /// * `Name` is the name for the (`struct Name(Cached<Ident>)`) to be generated
 /// * `"identifier"` is the case sensitive keyword
+/// * keywords are always defined as `pub`
 ///
 /// `Name::parse()` will then only match the defined identifier.  It will implement `Debug`
 /// and `Display` if the `impl_debug` and `impl_display` features are enabled. `Clone` is
@@ -208,6 +209,7 @@ macro_rules! unsynn{
 /// ```
 /// # use unsynn::*;
 /// keyword!{
+///     /// Optional documentation for `If`
 ///     If = "if",
 ///     Else = "else",
 /// }
@@ -221,14 +223,16 @@ macro_rules! unsynn{
 /// ```
 #[macro_export]
 macro_rules! keyword{
-    ($($name:ident = $str:literal),*$(,)?) => {
+    ($($(#[$attribute:meta])* $name:ident = $str:literal),*$(,)?) => {
         $(
+            $(#[$attribute])*
             #[cfg_attr(feature = "impl_debug", derive(Debug))]
             #[derive(Clone)]
             pub struct $name;
 
             impl Parser for $name {
                 fn parser(tokens: &mut TokenIter) -> Result<Self> {
+                    use $crate::Parse;
                     $crate::CachedIdent::parse_with(tokens, |ident| {
                         if ident == $str {
                             Ok($name)
@@ -248,7 +252,7 @@ macro_rules! keyword{
 
             impl ToTokens for $name {
                 fn to_tokens(&self, tokens: &mut TokenStream) {
-                    Ident::new($str, Span::call_site()).to_tokens(tokens);
+                    $crate::Ident::new($str, $crate::Span::call_site()).to_tokens(tokens);
                 }
             }
 
