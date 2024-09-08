@@ -201,6 +201,13 @@ pub mod literal;
 #[doc(inline)]
 pub use literal::*;
 
+// Parse into certain rust types
+pub mod rust_types;
+#[doc(inline)]
+/* is this a bug in the linter when the module only implements traits? */
+#[expect(unused_imports)]
+pub use rust_types::*;
+
 // Delimited sequences
 pub mod delimited;
 #[doc(inline)]
