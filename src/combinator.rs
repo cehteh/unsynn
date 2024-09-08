@@ -31,6 +31,12 @@ impl<A: Parse + ToTokens, B: Parse + ToTokens> ToTokens for Cons<A, B> {
     }
 }
 
+impl<A: Parse, B: Parse> From<Cons<A, B>> for (A, B) {
+    fn from(cons: Cons<A, B>) -> Self {
+        (cons.first, cons.second)
+    }
+}
+
 #[cfg(feature = "impl_debug")]
 impl<A: Parse + std::fmt::Debug, B: Parse + std::fmt::Debug> std::fmt::Debug for Cons<A, B> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
