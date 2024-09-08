@@ -220,7 +220,7 @@ impl<T: Parse, S: Parse> RangedRepeats for LazyVec<T, S> {
             }
             vec.push(T::parse(tokens)?);
         }
-        Error::other(format!("more than {} elements", max))
+        Error::other(format!("more than {max} elements"))
     }
 }
 
