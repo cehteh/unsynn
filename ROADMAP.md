@@ -9,9 +9,13 @@ deficiencies in 'unsynn' are found then it is time for a 1.0.0 release.
 ## Planned/Ideas
 
 * Some types are currently implemented as ZST's. Drawback is that this looses the relation to
-  the source code they come from. Eventually it should be reconsidered and maybe add a 'spans'
-  feature that turns ZST's to contain a `Span`.
+  the source code they come from. Eventually add a `HasSpan` trait and
+  implement that for all Types that keep a `Span`. This will get a derive macro as well. When
+  spans are desired one can constrain on using that.
 * Eventually make enough tests to pass cargo-mutants (no priority yet).
+* add rust types
+  * f32: 32-bit floating point number
+  * f64: 64-bit floating point number (default)
 
 # Development
 

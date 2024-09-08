@@ -7,28 +7,57 @@ It is primarily intended use is when one wants to create proc macros for rust th
 own grammar or need only sparse rust parsers.
 
 
-# Example
+# Examples
+
+## Custom Types
+
+The `unsynn!{}` macro will generate the `Parser` and `ToToken` impls (and more).  This is
+optional, the impls could be written by hand when necessary.
+
+Notice that unsynn can implements `Parser` and `ToTokens` for many standard rust types. Like
+we `u32` in this example.
 
 ```rust
 # use unsynn::*;
-let mut token_iter = quote::quote!{ foo ( bar, baz, barf ) }.into_iter();
+let mut token_iter = quote::quote!{
+    foo ( 1, 2, 3 )
+}.into_iter();
 
-// Composition
-let ast =
-    Cons::<Ident, ParenthesisGroupContaining::<CommaDelimitedVec<Ident>>>
-        ::parse(&mut token_iter).unwrap();
-
-// The same defining a custom type, the macro will generate the `Parser` and `ToToken` impls.
 unsynn!{
     struct IdentThenParenthesisedIdents {
         ident: Ident,
-        pidents: ParenthesisGroupContaining::<CommaDelimitedVec<Ident>>,
+        pidents: ParenthesisGroupContaining::<CommaDelimitedVec<u32>>,
     }
 }
 
-let mut token_iter = quote::quote!{ foo ( bar, baz, barf ) }.into_iter();
-
 let ast = IdentThenParenthesisedIdents::parse(&mut token_iter).unwrap();
+
+assert_eq!(
+    ast.to_token_stream().to_string(),
+    quote::quote!{foo ( 1, 2, 3 )}.to_string()
+)
+```
+
+## Using Composition
+
+Composition can be used without defining new datatypes. This is useful for simple parsers or
+when one wants to parse things on the fly which are desconstructed immediately.
+
+```rust
+# use unsynn::*;
+let mut token_iter = quote::quote!{
+    // We parse this below
+    foo ( 1, 2, 3 )
+}.into_iter();
+
+let ast =
+    Cons::<Ident, ParenthesisGroupContaining::<CommaDelimitedVec<u32>>>
+        ::parse(&mut token_iter).unwrap();
+
+assert_eq!(
+    ast.to_token_stream().to_string(),
+    quote::quote!{foo ( 1, 2, 3 )}.to_string()
+)
 ```
 
 
