@@ -131,7 +131,7 @@ impl<C: Parse> Parser for GroupContaining<C> {
     }
 }
 
-impl<C: Parse> ToTokens for GroupContaining<C> {
+impl<C: Parse + ToTokens> ToTokens for GroupContaining<C> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         Group::new(self.delimiter, self.content.to_token_stream()).to_tokens(tokens);
     }
@@ -162,7 +162,7 @@ impl<C: Parse> GroupDelimiter for GroupContaining<C> {
     }
 }
 
-impl<C: Parse> From<GroupContaining<C>> for TokenTree {
+impl<C: Parse + ToTokens> From<GroupContaining<C>> for TokenTree {
     fn from(group: GroupContaining<C>) -> Self {
         Group::new(group.delimiter(), group.content.to_token_stream()).into()
     }
@@ -206,7 +206,7 @@ macro_rules! make_group_containing {
                 }
             }
 
-            impl<C: Parse> ToTokens for $name<C> {
+            impl<C: Parse + ToTokens> ToTokens for $name<C> {
                 fn to_tokens(&self, tokens: &mut TokenStream) {
                     Group::new(Delimiter::$delimiter, self.content.to_token_stream()).to_tokens(tokens);
                 }
@@ -241,7 +241,7 @@ macro_rules! make_group_containing {
                 }
             }
 
-            impl<C: Parse> From<$name<C>> for TokenTree {
+            impl<C: Parse + ToTokens> From<$name<C>> for TokenTree {
                 fn from(group: $name<C>) -> Self {
                     Group::new(Delimiter::$delimiter, group.content.to_token_stream()).into()
                 }

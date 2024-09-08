@@ -29,7 +29,7 @@ impl<T: Parse, D: Parse> Parser for Delimited<T, D> {
     }
 }
 
-impl<T: Parse, D: Parse> ToTokens for Delimited<T, D> {
+impl<T: Parse + ToTokens, D: Parse + ToTokens> ToTokens for Delimited<T, D> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.value.to_tokens(tokens);
         self.delimiter.to_tokens(tokens);

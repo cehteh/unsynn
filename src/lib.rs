@@ -52,15 +52,11 @@ where
 /// this iterator to make access transactional, when parsing succeeds then the transaction
 /// becomes committed, otherwise it is rolled back.
 ///
-/// This trait cannot be implemented by user code. It has a constraint to `ToTokens` as well
-/// to ensure that everything that can be parsed can be generated as well. For the rare cases
-/// where one only wants to implement `Parse` and not `ToTokens` one can provide a dummy
-/// implementation of `ToTokens` that panics with the `unimplemented!()` macro.
-///
+/// This trait cannot be implemented by user code.
 #[doc = include_str!("../COOKBOOK.md")]
 pub trait Parse
 where
-    Self: Parser + ToTokens,
+    Self: Parser,
 {
     /// This is the user facing API to parse grammatical entities. Calls a `parser()` within a
     /// transaction. Commits changes on success and returns the parsed value.
@@ -108,7 +104,8 @@ where
     }
 }
 
-impl<T: Parser + ToTokens> Parse for T {}
+/// Parse is implemented for anything that implements `Parser`.
+impl<T: Parser> Parse for T {}
 
 /// unsynn defines its own `ToTokens` trait to be able to implement it for std container types.
 /// This is pretty much similar to the `ToTokens` from the quote crate.

@@ -187,7 +187,7 @@ impl<T: Parse + ToString> Parser for Cached<T> {
     }
 }
 
-impl<T: Parse + ToString> ToTokens for Cached<T> {
+impl<T: Parse + ToTokens + ToString> ToTokens for Cached<T> {
     #[inline]
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.value.to_tokens(tokens);

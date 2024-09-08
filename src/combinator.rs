@@ -24,7 +24,7 @@ impl<A: Parse, B: Parse> Parser for Cons<A, B> {
     }
 }
 
-impl<A: Parse, B: Parse> ToTokens for Cons<A, B> {
+impl<A: Parse + ToTokens, B: Parse + ToTokens> ToTokens for Cons<A, B> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.first.to_tokens(tokens);
         self.second.to_tokens(tokens);
@@ -82,7 +82,7 @@ impl<A: Parse, B: Parse> Parser for Either<A, B> {
     }
 }
 
-impl<A: Parse, B: Parse> ToTokens for Either<A, B> {
+impl<A: Parse + ToTokens, B: Parse + ToTokens> ToTokens for Either<A, B> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         match self {
             Either::First(a) => a.to_tokens(tokens),

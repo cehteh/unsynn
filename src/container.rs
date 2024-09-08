@@ -19,7 +19,7 @@ impl<T: Parse> Parser for Option<T> {
     }
 }
 
-impl<T: Parse> ToTokens for Option<T> {
+impl<T: Parse + ToTokens> ToTokens for Option<T> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         if self.is_some() {
             self.as_ref().unwrap().to_tokens(tokens);
@@ -38,7 +38,7 @@ impl<T: Parse> Parser for Vec<T> {
     }
 }
 
-impl<T: Parse> ToTokens for Vec<T> {
+impl<T: Parse + ToTokens> ToTokens for Vec<T> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.iter().for_each(|value| value.to_tokens(tokens));
     }
@@ -127,7 +127,7 @@ impl<T: Parse> Parser for Box<T> {
     }
 }
 
-impl<T: Parse> ToTokens for Box<T> {
+impl<T: Parse + ToTokens> ToTokens for Box<T> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.as_ref().to_tokens(tokens);
     }
@@ -141,7 +141,7 @@ impl<T: Parse> Parser for Rc<T> {
     }
 }
 
-impl<T: Parse> ToTokens for Rc<T> {
+impl<T: Parse + ToTokens> ToTokens for Rc<T> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.as_ref().to_tokens(tokens);
     }
@@ -200,7 +200,7 @@ impl<T: Parse, S: Parse> Parser for LazyVec<T, S> {
     }
 }
 
-impl<T: Parse, S: Parse> ToTokens for LazyVec<T, S> {
+impl<T: Parse + ToTokens, S: Parse + ToTokens> ToTokens for LazyVec<T, S> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.vec.iter().for_each(|value| value.to_tokens(tokens));
         self.terminator.to_tokens(tokens);
@@ -282,7 +282,7 @@ impl<T: Parse, D: Parse> From<DelimitedVec<T, D>> for Vec<T> {
     }
 }
 
-impl<T: Parse, D: Parse> ToTokens for DelimitedVec<T, D> {
+impl<T: Parse + ToTokens, D: Parse + ToTokens> ToTokens for DelimitedVec<T, D> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.0.iter().for_each(|value| value.to_tokens(tokens));
     }
@@ -384,7 +384,9 @@ impl<const MIN: usize, const MAX: usize, T: Parse, D: Parse> Parser for Repeats<
     }
 }
 
-impl<const MIN: usize, const MAX: usize, T: Parse, D: Parse> ToTokens for Repeats<MIN, MAX, T, D> {
+impl<const MIN: usize, const MAX: usize, T: Parse + ToTokens, D: Parse + ToTokens> ToTokens
+    for Repeats<MIN, MAX, T, D>
+{
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.0.iter().for_each(|value| value.to_tokens(tokens));
     }

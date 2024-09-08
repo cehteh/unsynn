@@ -110,10 +110,3 @@ impl Parser for String {
         TokenTree::parse_with(tokens, |token| Ok(token.to_string()))
     }
 }
-
-/// Strings can not be emitted. Trying so will always panic!
-impl ToTokens for String {
-    fn to_tokens(&self, _tokens: &mut TokenStream) {
-        unimplemented!("parsed Strings have no syntactic type and can not be emitted")
-    }
-}
