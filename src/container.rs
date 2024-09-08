@@ -207,6 +207,23 @@ impl<T: Parse, S: Parse> ToTokens for LazyVec<T, S> {
     }
 }
 
+impl<T: Parse, S: Parse> RangedRepeats for LazyVec<T, S> {
+    fn parse_repeats(tokens: &mut TokenIter, min: usize, max: usize) -> Result<Self> {
+        let mut vec = Vec::with_capacity(min);
+        for _ in 0..max {
+            if let Ok(terminator) = S::parse(tokens) {
+                return if vec.len() >= min {
+                    Ok(Self { vec, terminator })
+                } else {
+                    Error::other(format!("less than {} elements, got {}", min, vec.len()))
+                };
+            }
+            vec.push(T::parse(tokens)?);
+        }
+        Error::other(format!("more than {} elements", max))
+    }
+}
+
 #[cfg(feature = "impl_debug")]
 impl<T: Parse + std::fmt::Debug, S: Parse + std::fmt::Debug> std::fmt::Debug for LazyVec<T, S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -256,6 +273,29 @@ impl<T: Parse, D: Parse> Parser for DelimitedVec<T, D> {
 impl<T: Parse, D: Parse> ToTokens for DelimitedVec<T, D> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.0.iter().for_each(|value| value.to_tokens(tokens));
+    }
+}
+
+impl<T: Parse, D: Parse> RangedRepeats for DelimitedVec<T, D> {
+    fn parse_repeats(tokens: &mut TokenIter, min: usize, max: usize) -> Result<Self> {
+        let mut output = Vec::with_capacity(min);
+        for _ in 0..max {
+            if let Ok(delimited) = Delimited::<T, D>::parse(tokens) {
+                let done = delimited.delimiter.is_none();
+                output.push(delimited);
+                if done {
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+
+        if output.len() >= min {
+            Ok(Self(output))
+        } else {
+            Error::other(format!("less than {} elements, got {}", min, output.len()))
+        }
     }
 }
 
