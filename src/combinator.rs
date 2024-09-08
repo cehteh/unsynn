@@ -4,7 +4,7 @@
 //! conjunction of two other parsers, while the [`Either`] type is used to define a parser
 //! that is a disjunction of two other parsers.
 
-use crate::{Parse, Parser, Result, ToTokens, TokenIter, TokenStream, TokenTree};
+use crate::{Parse, Parser, Result, ToTokens, TokenIter, TokenStream};
 
 /// Conjunctive `A` followed by `B`
 #[derive(Clone)]
@@ -76,6 +76,19 @@ impl<A: Parse, B: Parse> Either<A, B> {
             Either::Second(b) => second_fn(b),
         }
     }
+
+    /// Deconstructs an `Either` and produces a common result type for types that implement
+    /// `Into<T>`.
+    pub fn into<T>(self) -> T
+    where
+        A: Into<T>,
+        B: Into<T>,
+    {
+        match self {
+            Either::First(a) => a.into(),
+            Either::Second(b) => b.into(),
+        }
+    }
 }
 
 impl<A: Parse, B: Parse> Parser for Either<A, B> {
@@ -126,18 +139,9 @@ impl<A: Parse + std::fmt::Display, B: Parse + std::fmt::Display> std::fmt::Displ
     }
 }
 
-impl<A: Parse + Into<TokenTree>, B: Parse + Into<TokenTree>> From<Either<A, B>> for TokenTree {
-    fn from(either: Either<A, B>) -> Self {
-        match either {
-            Either::First(a) => a.into(),
-            Either::Second(b) => b.into(),
-        }
-    }
-}
-
 #[test]
 fn test_either_into_tt() {
-    use crate::LiteralInteger;
+    use crate::{LiteralInteger, TokenTree};
     let either = Either::<LiteralInteger, TokenTree>::First(LiteralInteger::new(42));
     let _tt: TokenTree = either.into();
 
