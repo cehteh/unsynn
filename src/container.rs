@@ -270,6 +270,18 @@ impl<T: Parse, D: Parse> Parser for DelimitedVec<T, D> {
     }
 }
 
+/// Converts a `DelimitedVec<T, D>` into a `Vec<T>`.
+/// This loses all delimiters, which may have been stateful (`Either` or other enums).
+impl<T: Parse, D: Parse> From<DelimitedVec<T, D>> for Vec<T> {
+    fn from(delimited_vec: DelimitedVec<T, D>) -> Self {
+        delimited_vec
+            .0
+            .into_iter()
+            .map(|delimited| delimited.value)
+            .collect()
+    }
+}
+
 impl<T: Parse, D: Parse> ToTokens for DelimitedVec<T, D> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.0.iter().for_each(|value| value.to_tokens(tokens));
@@ -375,6 +387,20 @@ impl<const MIN: usize, const MAX: usize, T: Parse, D: Parse> Parser for Repeats<
 impl<const MIN: usize, const MAX: usize, T: Parse, D: Parse> ToTokens for Repeats<MIN, MAX, T, D> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.0.iter().for_each(|value| value.to_tokens(tokens));
+    }
+}
+
+/// Converts a `Repeats<MIN, MAX, T, D>` into a `Vec<T>`.
+/// As with `DelimitedVec` this loses the maybe stateful delimiters.
+impl<const MIN: usize, const MAX: usize, T: Parse, D: Parse> From<Repeats<MIN, MAX, T, D>>
+    for Vec<T>
+{
+    fn from(repeats: Repeats<MIN, MAX, T, D>) -> Self {
+        repeats
+            .0
+            .into_iter()
+            .map(|delimited| delimited.value)
+            .collect()
     }
 }
 
