@@ -13,7 +13,7 @@ use crate::*;
 /// list. Usually the delimiter will be some simple punctuation token, but it is not limited
 /// to that.
 #[derive(Clone)]
-pub struct Delimited<T: Parse, D: Parse> {
+pub struct Delimited<T, D> {
     /// The parsed value
     pub value: T,
     /// The optional delimiter
@@ -29,7 +29,7 @@ impl<T: Parse, D: Parse> Parser for Delimited<T, D> {
     }
 }
 
-impl<T: Parse + ToTokens, D: Parse + ToTokens> ToTokens for Delimited<T, D> {
+impl<T: ToTokens, D: ToTokens> ToTokens for Delimited<T, D> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.value.to_tokens(tokens);
         self.delimiter.to_tokens(tokens);
@@ -37,7 +37,7 @@ impl<T: Parse + ToTokens, D: Parse + ToTokens> ToTokens for Delimited<T, D> {
 }
 
 #[cfg(feature = "impl_debug")]
-impl<T: Parse + std::fmt::Debug, D: Parse + std::fmt::Debug> std::fmt::Debug for Delimited<T, D> {
+impl<T: std::fmt::Debug, D: std::fmt::Debug> std::fmt::Debug for Delimited<T, D> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         f.debug_struct(&format!(
             "Delimited<{}, {}>",
@@ -51,9 +51,7 @@ impl<T: Parse + std::fmt::Debug, D: Parse + std::fmt::Debug> std::fmt::Debug for
 }
 
 #[cfg(feature = "impl_display")]
-impl<T: Parse + std::fmt::Display, D: Parse + std::fmt::Display> std::fmt::Display
-    for Delimited<T, D>
-{
+impl<T: std::fmt::Display, D: std::fmt::Display> std::fmt::Display for Delimited<T, D> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(
             f,

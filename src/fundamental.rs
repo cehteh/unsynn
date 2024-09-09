@@ -174,7 +174,7 @@ impl ToTokens for Literal {
 /// assert!(cached_ident == "ident");
 /// ```
 #[derive(Clone)]
-pub struct Cached<T: Parse + ToString> {
+pub struct Cached<T> {
     value: T,
     string: String,
 }
@@ -187,14 +187,14 @@ impl<T: Parse + ToString> Parser for Cached<T> {
     }
 }
 
-impl<T: Parse + ToTokens + ToString> ToTokens for Cached<T> {
+impl<T: ToTokens> ToTokens for Cached<T> {
     #[inline]
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.value.to_tokens(tokens);
     }
 }
 
-impl<T: Parse + ToString> Cached<T> {
+impl<T: ToString> Cached<T> {
     /// Sets the value and updates the string representation.
     pub fn set(&mut self, value: T) {
         self.value = value;
@@ -212,7 +212,7 @@ impl<T: Parse + ToString> Cached<T> {
     }
 }
 
-impl<T: Parse + ToString> Deref for Cached<T> {
+impl<T> Deref for Cached<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -220,26 +220,26 @@ impl<T: Parse + ToString> Deref for Cached<T> {
     }
 }
 
-impl<T: Parse + ToString> PartialEq<&str> for Cached<T> {
+impl<T> PartialEq<&str> for Cached<T> {
     fn eq(&self, other: &&str) -> bool {
         &self.string == other
     }
 }
 
-impl<T: Parse + ToString> AsRef<T> for Cached<T> {
+impl<T> AsRef<T> for Cached<T> {
     fn as_ref(&self) -> &T {
         &self.value
     }
 }
 
-impl<T: Parse + ToString> AsRef<str> for Cached<T> {
+impl<T> AsRef<str> for Cached<T> {
     fn as_ref(&self) -> &str {
         &self.string
     }
 }
 
 #[cfg(feature = "impl_debug")]
-impl<T: Parse + ToString + std::fmt::Debug> std::fmt::Debug for Cached<T> {
+impl<T: std::fmt::Debug> std::fmt::Debug for Cached<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct(&format!("Cached<{}>", std::any::type_name::<T>()))
             .field("value", &self.value)
@@ -249,14 +249,14 @@ impl<T: Parse + ToString + std::fmt::Debug> std::fmt::Debug for Cached<T> {
 }
 
 #[cfg(feature = "impl_display")]
-impl<T: Parse + std::fmt::Display> std::fmt::Display for Cached<T> {
+impl<T: std::fmt::Display> std::fmt::Display for Cached<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.string)
     }
 }
 
 /// Convert a `Cached<T: Into<TokenTree>>` object into a `TokenTree`.
-impl<T: Parse + std::fmt::Display + Into<TokenTree>> From<Cached<T>> for TokenTree {
+impl<T: std::fmt::Display + Into<TokenTree>> From<Cached<T>> for TokenTree {
     fn from(cached: Cached<T>) -> Self {
         cached.value.into()
     }
@@ -357,7 +357,7 @@ impl std::fmt::Display for Invalid {
 /// let _ = Except::<Punct>::parser(&mut token_iter).unwrap();
 /// ```
 #[derive(Clone)]
-pub struct Except<T: Parse>(PhantomData<T>);
+pub struct Except<T>(PhantomData<T>);
 
 impl<T: Parse> Parser for Except<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
@@ -369,7 +369,7 @@ impl<T: Parse> Parser for Except<T> {
     }
 }
 
-impl<T: Parse> ToTokens for Except<T> {
+impl<T> ToTokens for Except<T> {
     #[inline]
     fn to_tokens(&self, _tokens: &mut TokenStream) {
         /*NOP*/
@@ -377,7 +377,7 @@ impl<T: Parse> ToTokens for Except<T> {
 }
 
 #[cfg(feature = "impl_debug")]
-impl<T: Parse + std::fmt::Debug> std::fmt::Debug for Except<T> {
+impl<T: std::fmt::Debug> std::fmt::Debug for Except<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct(&format!("Except<{}>", std::any::type_name::<T>()))
             .finish()
@@ -385,7 +385,7 @@ impl<T: Parse + std::fmt::Debug> std::fmt::Debug for Except<T> {
 }
 
 #[cfg(feature = "impl_display")]
-impl<T: Parse> std::fmt::Display for Except<T> {
+impl<T> std::fmt::Display for Except<T> {
     fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         Ok(())
     }
@@ -403,7 +403,7 @@ impl<T: Parse> std::fmt::Display for Except<T> {
 /// let _ = Expect::<Ident>::parser(&mut token_iter).unwrap();
 /// ```
 #[derive(Clone)]
-pub struct Expect<T: Parse>(PhantomData<T>);
+pub struct Expect<T>(PhantomData<T>);
 
 impl<T: Parse> Parser for Expect<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
@@ -415,7 +415,7 @@ impl<T: Parse> Parser for Expect<T> {
     }
 }
 
-impl<T: Parse> ToTokens for Expect<T> {
+impl<T> ToTokens for Expect<T> {
     #[inline]
     fn to_tokens(&self, _tokens: &mut TokenStream) {
         /*NOP*/
@@ -423,7 +423,7 @@ impl<T: Parse> ToTokens for Expect<T> {
 }
 
 #[cfg(feature = "impl_debug")]
-impl<T: Parse + std::fmt::Debug> std::fmt::Debug for Expect<T> {
+impl<T: std::fmt::Debug> std::fmt::Debug for Expect<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct(&format!("Expect<{}>", std::any::type_name::<T>()))
             .finish()
@@ -431,7 +431,7 @@ impl<T: Parse + std::fmt::Debug> std::fmt::Debug for Expect<T> {
 }
 
 #[cfg(feature = "impl_display")]
-impl<T: Parse> std::fmt::Display for Expect<T> {
+impl<T> std::fmt::Display for Expect<T> {
     fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         Ok(())
     }

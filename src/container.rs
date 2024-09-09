@@ -19,7 +19,7 @@ impl<T: Parse> Parser for Option<T> {
     }
 }
 
-impl<T: Parse + ToTokens> ToTokens for Option<T> {
+impl<T: ToTokens> ToTokens for Option<T> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         if self.is_some() {
             self.as_ref().unwrap().to_tokens(tokens);
@@ -38,7 +38,7 @@ impl<T: Parse> Parser for Vec<T> {
     }
 }
 
-impl<T: Parse + ToTokens> ToTokens for Vec<T> {
+impl<T: ToTokens> ToTokens for Vec<T> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.iter().for_each(|value| value.to_tokens(tokens));
     }
@@ -127,7 +127,7 @@ impl<T: Parse> Parser for Box<T> {
     }
 }
 
-impl<T: Parse + ToTokens> ToTokens for Box<T> {
+impl<T: ToTokens> ToTokens for Box<T> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.as_ref().to_tokens(tokens);
     }
@@ -141,7 +141,7 @@ impl<T: Parse> Parser for Rc<T> {
     }
 }
 
-impl<T: Parse + ToTokens> ToTokens for Rc<T> {
+impl<T: ToTokens> ToTokens for Rc<T> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.as_ref().to_tokens(tokens);
     }
@@ -179,7 +179,7 @@ impl<T: ToTokens> ToTokens for RefCell<T> {
 /// let _example = Example::parse(&mut token_iter).unwrap();
 /// ```
 #[derive(Clone)]
-pub struct LazyVec<T: Parse, S: Parse> {
+pub struct LazyVec<T, S> {
     /// The vector of repeating `T`
     pub vec: Vec<T>,
     /// The terminating `S`
@@ -200,7 +200,7 @@ impl<T: Parse, S: Parse> Parser for LazyVec<T, S> {
     }
 }
 
-impl<T: Parse + ToTokens, S: Parse + ToTokens> ToTokens for LazyVec<T, S> {
+impl<T: ToTokens, S: ToTokens> ToTokens for LazyVec<T, S> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.vec.iter().for_each(|value| value.to_tokens(tokens));
         self.terminator.to_tokens(tokens);
@@ -225,7 +225,7 @@ impl<T: Parse, S: Parse> RangedRepeats for LazyVec<T, S> {
 }
 
 #[cfg(feature = "impl_debug")]
-impl<T: Parse + std::fmt::Debug, S: Parse + std::fmt::Debug> std::fmt::Debug for LazyVec<T, S> {
+impl<T: std::fmt::Debug, S: std::fmt::Debug> std::fmt::Debug for LazyVec<T, S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct(&format!(
             "LazyVec<{}, {}>",
@@ -239,9 +239,7 @@ impl<T: Parse + std::fmt::Debug, S: Parse + std::fmt::Debug> std::fmt::Debug for
 }
 
 #[cfg(feature = "impl_display")]
-impl<T: Parse + std::fmt::Display, S: Parse + std::fmt::Display> std::fmt::Display
-    for LazyVec<T, S>
-{
+impl<T: std::fmt::Display, S: std::fmt::Display> std::fmt::Display for LazyVec<T, S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for value in &self.vec {
             write!(f, "{value} ",)?;
@@ -254,7 +252,7 @@ impl<T: Parse + std::fmt::Display, S: Parse + std::fmt::Display> std::fmt::Displ
 /// consecutive values even without delimiters. `DelimimitedVec<T,D>` will stop parsing after
 /// the first value without a delimiter.
 #[derive(Clone)]
-pub struct DelimitedVec<T: Parse, D: Parse>(pub Vec<Delimited<T, D>>);
+pub struct DelimitedVec<T, D>(pub Vec<Delimited<T, D>>);
 
 impl<T: Parse, D: Parse> Parser for DelimitedVec<T, D> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
@@ -272,7 +270,7 @@ impl<T: Parse, D: Parse> Parser for DelimitedVec<T, D> {
 
 /// Converts a `DelimitedVec<T, D>` into a `Vec<T>`.
 /// This loses all delimiters, which may have been stateful (`Either` or other enums).
-impl<T: Parse, D: Parse> From<DelimitedVec<T, D>> for Vec<T> {
+impl<T, D> From<DelimitedVec<T, D>> for Vec<T> {
     fn from(delimited_vec: DelimitedVec<T, D>) -> Self {
         delimited_vec
             .0
@@ -282,7 +280,7 @@ impl<T: Parse, D: Parse> From<DelimitedVec<T, D>> for Vec<T> {
     }
 }
 
-impl<T: Parse + ToTokens, D: Parse + ToTokens> ToTokens for DelimitedVec<T, D> {
+impl<T: ToTokens, D: ToTokens> ToTokens for DelimitedVec<T, D> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.0.iter().for_each(|value| value.to_tokens(tokens));
     }
@@ -312,9 +310,7 @@ impl<T: Parse, D: Parse> RangedRepeats for DelimitedVec<T, D> {
 }
 
 #[cfg(feature = "impl_debug")]
-impl<T: Parse + std::fmt::Debug, D: Parse + std::fmt::Debug> std::fmt::Debug
-    for DelimitedVec<T, D>
-{
+impl<T: std::fmt::Debug, D: std::fmt::Debug> std::fmt::Debug for DelimitedVec<T, D> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_tuple(&format!(
             "DelimitedVec<{}, {}>",
@@ -327,9 +323,7 @@ impl<T: Parse + std::fmt::Debug, D: Parse + std::fmt::Debug> std::fmt::Debug
 }
 
 #[cfg(feature = "impl_display")]
-impl<T: Parse + std::fmt::Display, D: Parse + std::fmt::Display> std::fmt::Display
-    for DelimitedVec<T, D>
-{
+impl<T: std::fmt::Display, D: std::fmt::Display> std::fmt::Display for DelimitedVec<T, D> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for value in &self.0 {
             write!(f, "{}", &value)?;
@@ -354,9 +348,7 @@ pub type ColonDelimitedVec<T> = DelimitedVec<T, Colon>;
 /// the maximum number.  The delimiter `D` defaults to [`Nothing`] to parse sequences which
 /// don't have delimiters.
 #[derive(Clone)]
-pub struct Repeats<const MIN: usize, const MAX: usize, T: Parse, D: Parse = Nothing>(
-    pub Vec<Delimited<T, D>>,
-);
+pub struct Repeats<const MIN: usize, const MAX: usize, T, D = Nothing>(pub Vec<Delimited<T, D>>);
 
 impl<const MIN: usize, const MAX: usize, T: Parse, D: Parse> Parser for Repeats<MIN, MAX, T, D> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
@@ -384,7 +376,7 @@ impl<const MIN: usize, const MAX: usize, T: Parse, D: Parse> Parser for Repeats<
     }
 }
 
-impl<const MIN: usize, const MAX: usize, T: Parse + ToTokens, D: Parse + ToTokens> ToTokens
+impl<const MIN: usize, const MAX: usize, T: ToTokens, D: ToTokens> ToTokens
     for Repeats<MIN, MAX, T, D>
 {
     fn to_tokens(&self, tokens: &mut TokenStream) {
@@ -394,9 +386,7 @@ impl<const MIN: usize, const MAX: usize, T: Parse + ToTokens, D: Parse + ToToken
 
 /// Converts a `Repeats<MIN, MAX, T, D>` into a `Vec<T>`.
 /// As with `DelimitedVec` this loses the maybe stateful delimiters.
-impl<const MIN: usize, const MAX: usize, T: Parse, D: Parse> From<Repeats<MIN, MAX, T, D>>
-    for Vec<T>
-{
+impl<const MIN: usize, const MAX: usize, T, D> From<Repeats<MIN, MAX, T, D>> for Vec<T> {
     fn from(repeats: Repeats<MIN, MAX, T, D>) -> Self {
         repeats
             .0
@@ -407,12 +397,8 @@ impl<const MIN: usize, const MAX: usize, T: Parse, D: Parse> From<Repeats<MIN, M
 }
 
 #[cfg(feature = "impl_debug")]
-impl<
-        const MIN: usize,
-        const MAX: usize,
-        T: Parse + std::fmt::Debug,
-        D: Parse + std::fmt::Debug,
-    > std::fmt::Debug for Repeats<MIN, MAX, T, D>
+impl<const MIN: usize, const MAX: usize, T: std::fmt::Debug, D: std::fmt::Debug> std::fmt::Debug
+    for Repeats<MIN, MAX, T, D>
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_tuple(&format!(
@@ -426,12 +412,8 @@ impl<
 }
 
 #[cfg(feature = "impl_display")]
-impl<
-        const MIN: usize,
-        const MAX: usize,
-        T: Parse + std::fmt::Display,
-        D: Parse + std::fmt::Display,
-    > std::fmt::Display for Repeats<MIN, MAX, T, D>
+impl<const MIN: usize, const MAX: usize, T: std::fmt::Display, D: std::fmt::Display>
+    std::fmt::Display for Repeats<MIN, MAX, T, D>
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for value in &self.0 {

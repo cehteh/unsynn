@@ -91,14 +91,14 @@ pub trait GroupDelimiter: private::Sealed {
 /// Any kind of Group `G` with parseable content `C`.  The content `C` must parse exhaustive,
 /// a `EndOfStream` is automatically implied.
 #[derive(Clone)]
-pub struct GroupContaining<C: Parse> {
+pub struct GroupContaining<C> {
     /// The delimiters around the group.
     pub delimiter: Delimiter,
     /// The content of the group. That can be anything that implements `Parse`.
     pub content: C,
 }
 
-impl<C: Parse> GroupContaining<C> {
+impl<C> GroupContaining<C> {
     /// Create a new `GroupContaining` instance.
     ///
     /// # Example
@@ -131,14 +131,14 @@ impl<C: Parse> Parser for GroupContaining<C> {
     }
 }
 
-impl<C: Parse + ToTokens> ToTokens for GroupContaining<C> {
+impl<C: ToTokens> ToTokens for GroupContaining<C> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         Group::new(self.delimiter, self.content.to_token_stream()).to_tokens(tokens);
     }
 }
 
 #[cfg(feature = "impl_debug")]
-impl<C: Parse + std::fmt::Debug> std::fmt::Debug for GroupContaining<C> {
+impl<C: std::fmt::Debug> std::fmt::Debug for GroupContaining<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         f.debug_struct(&format!("GroupContaining<{}>", std::any::type_name::<C>()))
             .field("delimiter", &self.delimiter)
@@ -148,21 +148,21 @@ impl<C: Parse + std::fmt::Debug> std::fmt::Debug for GroupContaining<C> {
 }
 
 #[cfg(feature = "impl_display")]
-impl<C: Parse + ToTokens> std::fmt::Display for GroupContaining<C> {
+impl<C: ToTokens> std::fmt::Display for GroupContaining<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{}", self.to_token_stream())
     }
 }
 
-impl<C: Parse> private::Sealed for GroupContaining<C> {}
+impl<C> private::Sealed for GroupContaining<C> {}
 
-impl<C: Parse> GroupDelimiter for GroupContaining<C> {
+impl<C> GroupDelimiter for GroupContaining<C> {
     fn delimiter(&self) -> Delimiter {
         self.delimiter
     }
 }
 
-impl<C: Parse + ToTokens> From<GroupContaining<C>> for TokenTree {
+impl<C: ToTokens> From<GroupContaining<C>> for TokenTree {
     fn from(group: GroupContaining<C>) -> Self {
         Group::new(group.delimiter(), group.content.to_token_stream()).into()
     }
@@ -180,12 +180,12 @@ macro_rules! make_group_containing {
         $(
             #[doc = stringify!(Parseable content within a $delimiter)]
             #[derive(Clone)]
-            pub struct $name<C: Parse>{
+            pub struct $name<C>{
                 /// The inner content of the group.
                 pub content: C
             }
 
-            impl<C: Parse> $name<C> {
+            impl<C> $name<C> {
                 #[doc = stringify!(create a new $name instance)]
                 pub const fn new(content: C) -> Self {
                     Self{content}
@@ -206,14 +206,14 @@ macro_rules! make_group_containing {
                 }
             }
 
-            impl<C: Parse + ToTokens> ToTokens for $name<C> {
+            impl<C: ToTokens> ToTokens for $name<C> {
                 fn to_tokens(&self, tokens: &mut TokenStream) {
                     Group::new(Delimiter::$delimiter, self.content.to_token_stream()).to_tokens(tokens);
                 }
             }
 
             #[cfg(feature = "impl_debug")]
-            impl<C: Parse + std::fmt::Debug> std::fmt::Debug
+            impl<C: std::fmt::Debug> std::fmt::Debug
                 for $name<C>
             {
                 fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -227,21 +227,21 @@ macro_rules! make_group_containing {
             }
 
             #[cfg(feature = "impl_display")]
-            impl<C: Parse + ToTokens> std::fmt::Display for $name<C> {
+            impl<C: ToTokens> std::fmt::Display for $name<C> {
                 fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
                     write!(f, "{}", self.to_token_stream())
                 }
             }
 
-            impl<C: Parse> private::Sealed for $name<C> {}
+            impl<C> private::Sealed for $name<C> {}
 
-            impl<C: Parse> GroupDelimiter for $name<C> {
+            impl<C> GroupDelimiter for $name<C> {
                 fn delimiter(&self) -> Delimiter {
                     Delimiter::$delimiter
                 }
             }
 
-            impl<C: Parse + ToTokens> From<$name<C>> for TokenTree {
+            impl<C: ToTokens> From<$name<C>> for TokenTree {
                 fn from(group: $name<C>) -> Self {
                     Group::new(Delimiter::$delimiter, group.content.to_token_stream()).into()
                 }

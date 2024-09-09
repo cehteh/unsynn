@@ -8,7 +8,7 @@ use crate::{Parse, Parser, Result, ToTokens, TokenIter, TokenStream};
 
 /// Conjunctive `A` followed by `B`
 #[derive(Clone)]
-pub struct Cons<A: Parse, B: Parse> {
+pub struct Cons<A, B> {
     /// The first value
     pub first: A,
     /// The second value
@@ -24,21 +24,21 @@ impl<A: Parse, B: Parse> Parser for Cons<A, B> {
     }
 }
 
-impl<A: Parse + ToTokens, B: Parse + ToTokens> ToTokens for Cons<A, B> {
+impl<A: ToTokens, B: ToTokens> ToTokens for Cons<A, B> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.first.to_tokens(tokens);
         self.second.to_tokens(tokens);
     }
 }
 
-impl<A: Parse, B: Parse> From<Cons<A, B>> for (A, B) {
+impl<A, B> From<Cons<A, B>> for (A, B) {
     fn from(cons: Cons<A, B>) -> Self {
         (cons.first, cons.second)
     }
 }
 
 #[cfg(feature = "impl_debug")]
-impl<A: Parse + std::fmt::Debug, B: Parse + std::fmt::Debug> std::fmt::Debug for Cons<A, B> {
+impl<A: std::fmt::Debug, B: std::fmt::Debug> std::fmt::Debug for Cons<A, B> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         f.debug_struct(&format!(
             "Cons<{}, {}>",
@@ -52,7 +52,7 @@ impl<A: Parse + std::fmt::Debug, B: Parse + std::fmt::Debug> std::fmt::Debug for
 }
 
 #[cfg(feature = "impl_display")]
-impl<A: Parse + std::fmt::Display, B: Parse + std::fmt::Display> std::fmt::Display for Cons<A, B> {
+impl<A: std::fmt::Display, B: std::fmt::Display> std::fmt::Display for Cons<A, B> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{} {}", self.first, self.second)
     }
@@ -60,14 +60,14 @@ impl<A: Parse + std::fmt::Display, B: Parse + std::fmt::Display> std::fmt::Displ
 
 /// Disjunctive `A` or `B` tried in that order.
 #[derive(Clone)]
-pub enum Either<A: Parse, B: Parse> {
+pub enum Either<A, B> {
     /// The first alternative
     First(A),
     /// The second alternative
     Second(B),
 }
 
-impl<A: Parse, B: Parse> Either<A, B> {
+impl<A, B> Either<A, B> {
     /// Deconstructs an `Either` and produces a common result type, independent of which
     /// alternative was present.
     pub fn fold<R, FF: FnOnce(A) -> R, SF: FnOnce(B) -> R>(self, first_fn: FF, second_fn: SF) -> R {
@@ -101,7 +101,7 @@ impl<A: Parse, B: Parse> Parser for Either<A, B> {
     }
 }
 
-impl<A: Parse + ToTokens, B: Parse + ToTokens> ToTokens for Either<A, B> {
+impl<A: ToTokens, B: ToTokens> ToTokens for Either<A, B> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         match self {
             Either::First(a) => a.to_tokens(tokens),
@@ -111,7 +111,7 @@ impl<A: Parse + ToTokens, B: Parse + ToTokens> ToTokens for Either<A, B> {
 }
 
 #[cfg(feature = "impl_debug")]
-impl<A: Parse + std::fmt::Debug, B: Parse + std::fmt::Debug> std::fmt::Debug for Either<A, B> {
+impl<A: std::fmt::Debug, B: std::fmt::Debug> std::fmt::Debug for Either<A, B> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             Either::First(a) => f
@@ -128,9 +128,7 @@ impl<A: Parse + std::fmt::Debug, B: Parse + std::fmt::Debug> std::fmt::Debug for
 }
 
 #[cfg(feature = "impl_display")]
-impl<A: Parse + std::fmt::Display, B: Parse + std::fmt::Display> std::fmt::Display
-    for Either<A, B>
-{
+impl<A: std::fmt::Display, B: std::fmt::Display> std::fmt::Display for Either<A, B> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             Either::First(a) => write!(f, "{a}"),
