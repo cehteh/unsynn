@@ -128,6 +128,6 @@ impl ToTokens for &str {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         use std::str::FromStr;
         let ts = TokenStream::from_str(self).expect("Failed to tokenize input string.");
-        tokens.extend(ts.into_iter());
+        tokens.extend(ts);
     }
 }
