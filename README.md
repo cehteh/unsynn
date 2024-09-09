@@ -70,6 +70,7 @@ enable extra traits:
 
 - **impl_display**  
   Adds [`Display`](std::fmt::Display) implementations to generic unsynn types.
+  `ToTokens::tokens_to_string() -> String` may be preferable in many cases.
 
 Note that `Display` can't be implemented for all types (eg. [`Option`]). Further `Display` may
 sometimes be surprising since we do not have good rules how to pretty-print tokens (eg. spaces
