@@ -110,3 +110,24 @@ impl Parser for String {
         TokenTree::parse_with(tokens, |token| Ok(token.to_string()))
     }
 }
+
+/// Tokenizes a `&str`. Panics if the input string does not tokenize.
+///
+/// # Example
+///
+/// ```
+/// # use unsynn::*;
+/// let mut tokens = "foo -> {1,2,3}".to_token_stream();
+///
+/// assert_eq!(
+///     tokens.to_string(),
+///     quote::quote!{foo -> {1,2,3}}.to_string()
+/// );
+/// ```
+impl ToTokens for &str {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        use std::str::FromStr;
+        let ts = TokenStream::from_str(self).expect("Failed to tokenize input string.");
+        tokens.extend(ts.into_iter());
+    }
+}
