@@ -24,13 +24,14 @@ let mut token_iter = quote::quote!{
 }.into_iter();
 
 unsynn!{
-    struct IdentThenParenthesisedIdents {
+    struct IdentThenParenthesisedNumbers {
         ident: Ident,
-        pidents: ParenthesisGroupContaining::<CommaDelimitedVec<u32>>,
+        numbers: ParenthesisGroupContaining::<CommaDelimitedVec<u32>>,
     }
 }
 
-let ast = IdentThenParenthesisedIdents::parse(&mut token_iter).unwrap();
+// iter.parse() is from the IParse trait
+let ast: IdentThenParenthesisedNumbers = token_iter.parse().unwrap();
 
 assert_eq!(
     ast.to_token_stream().to_string(),
@@ -50,6 +51,7 @@ let mut token_iter = quote::quote!{
     foo ( 1, 2, 3 )
 }.into_iter();
 
+// Type::parse() is from the Parse trait
 let ast =
     Cons::<Ident, ParenthesisGroupContaining::<CommaDelimitedVec<u32>>>
         ::parse(&mut token_iter).unwrap();
