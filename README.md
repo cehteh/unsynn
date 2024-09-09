@@ -15,7 +15,7 @@ The `unsynn!{}` macro will generate the `Parser` and `ToToken` impls (and more).
 optional, the impls could be written by hand when necessary.
 
 Notice that unsynn can implements `Parser` and `ToTokens` for many standard rust types. Like
-we `u32` in this example.
+we use `u32` in this example.
 
 ```rust
 # use unsynn::*;
@@ -63,7 +63,7 @@ assert_eq!(
 
 # Feature Flags
 
-By defaut unsynn is very lean and does not include extra features. The only thing that are
+By default unsynn is very lean and does not include extra features. The only thing that are
 always present are the [`Parser`], [`Parse`] and [`ToTokens`] traits.  The following features
 enable extra traits:
 
