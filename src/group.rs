@@ -148,7 +148,7 @@ impl<C: Parse + std::fmt::Debug> std::fmt::Debug for GroupContaining<C> {
 }
 
 #[cfg(feature = "impl_display")]
-impl<C: Parse> std::fmt::Display for GroupContaining<C> {
+impl<C: Parse + ToTokens> std::fmt::Display for GroupContaining<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{}", self.to_token_stream())
     }
@@ -227,7 +227,7 @@ macro_rules! make_group_containing {
             }
 
             #[cfg(feature = "impl_display")]
-            impl<C: Parse> std::fmt::Display for $name<C> {
+            impl<C: Parse + ToTokens> std::fmt::Display for $name<C> {
                 fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
                     write!(f, "{}", self.to_token_stream())
                 }
