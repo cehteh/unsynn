@@ -2,7 +2,7 @@ use unsynn::*;
 
 #[test]
 fn test_integer() {
-    let mut token_iter = quote::quote! {1234}.into_iter();
+    let mut token_iter = "1234".to_token_iter();
 
     let integer = LiteralInteger::parse(&mut token_iter).unwrap();
     assert_eq!(integer.value(), 1234);
@@ -10,7 +10,7 @@ fn test_integer() {
 
 #[test]
 fn test_character() {
-    let mut token_iter = quote::quote! { 'x' }.into_iter();
+    let mut token_iter = "'x'".to_token_iter();
 
     let character = LiteralCharacter::parse(&mut token_iter).unwrap();
     assert_eq!(character.value(), 'x');
@@ -18,7 +18,7 @@ fn test_character() {
 
 #[test]
 fn test_string() {
-    let mut token_iter = quote::quote! { "this is a string literal" }.into_iter();
+    let mut token_iter = r#" "this is a string literal" "#.to_token_iter();
 
     let string = LiteralString::parse(&mut token_iter).unwrap();
     assert_eq!(string.value(), "\"this is a string literal\"");
@@ -39,7 +39,7 @@ fn test_string_new_err() {
 
 #[test]
 fn test_string_as_str() {
-    let mut token_iter = quote::quote! { "this is a string literal" }.into_iter();
+    let mut token_iter = r#" "this is a string literal" "#.to_token_iter();
 
     let string = LiteralString::parse(&mut token_iter).unwrap();
     assert_eq!(string.as_str(), "this is a string literal");

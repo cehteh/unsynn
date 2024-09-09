@@ -23,7 +23,7 @@ impl StripWhitespace for &str {
 
 #[test]
 fn test_lazy_vec() {
-    let mut token_iter = quote::quote! {foo bar ; baz ;}.into_iter();
+    let mut token_iter = "foo bar ; baz ;".to_token_iter();
 
     type Example = LazyVec<TokenTree, Semicolon>;
 
@@ -32,8 +32,8 @@ fn test_lazy_vec() {
         format!("{example:?}").strip_whitespace(),
         "LazyVec<proc_macro2::TokenTree,unsynn::punct::OnePunct<';'>>{
              vec:[
-                 Ident{sym: foo},
-                 Ident{sym: bar}
+                 Ident{sym: foo, span:bytes(1..4)},
+                 Ident{sym: bar, span:bytes(5..8)}
              ],
          terminator: OnePunct<';'>
          }"
@@ -43,7 +43,7 @@ fn test_lazy_vec() {
 
 #[test]
 fn test_repeats() {
-    let mut token_iter = quote::quote! {foo ; bar ; baz }.into_iter();
+    let mut token_iter = "foo ; bar ; baz ".to_token_iter();
 
     type Example = Exactly<3, Ident, Semicolon>;
 
@@ -53,15 +53,15 @@ fn test_repeats() {
         "Repeats<3,3,proc_macro2::Ident,unsynn::punct::OnePunct<';'>>(
              [
                  Delimited<proc_macro2::Ident, unsynn::punct::OnePunct<';'>>{
-                     value: Ident{sym:foo},
+                     value: Ident{sym:foo, span:bytes(1..4)},
                      delimiter: Some(OnePunct<';'>)
                  },
                  Delimited<proc_macro2::Ident,unsynn::punct::OnePunct<';'>>{
-                     value: Ident{sym:bar},
+                     value: Ident{sym:bar, span:bytes(7..10)},
                      delimiter: Some(OnePunct<';'>)
                  },
                  Delimited<proc_macro2::Ident,unsynn::punct::OnePunct<';'>>{
-                     value: Ident{sym:baz},
+                     value: Ident{sym:baz, span:bytes(13..16)},
                      delimiter: None
                  }
              ]
@@ -72,7 +72,7 @@ fn test_repeats() {
 
 #[test]
 fn test_group_containing() {
-    let mut token_iter = quote::quote! { { foo } }.into_iter();
+    let mut token_iter = " { foo } ".to_token_iter();
 
     type Example = BraceGroupContaining<Ident>;
 
@@ -80,7 +80,7 @@ fn test_group_containing() {
     assert_eq!(
         format!("{example:?}").strip_whitespace(),
         "BraceGroupContaining<proc_macro2::Ident>(
-                 Ident{sym:foo}
+                 Ident{sym:foo, span:bytes(4..7)}
          )"
         .strip_whitespace()
     );

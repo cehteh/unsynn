@@ -155,7 +155,7 @@ impl ToTokens for AssignmentList {
     }
 }
 # fn test_assignment_list() {
-#     let mut input = quote::quote!{ a = "b", c = "d" }.into_iter();
+#     let mut input = r#"a = "b", c = "d""#.to_token_iter();
 #     let parsed = AssignmentList::parse(&mut input).unwrap();
 #     assert_eq!(parsed.list.len(), 2);
 #     assert_eq!(parsed.list[1].1, "d");

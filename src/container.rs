@@ -55,10 +55,10 @@ impl<T: Parse + ToTokens> ToTokens for Vec<T> {
 ///
 /// ```
 /// # use unsynn::*;
-/// let mut token_iter = quote::quote! {
+/// let mut token_iter = "
 ///     foo:       bar:
 ///     foo_value  bar_value
-/// }.into_iter();
+/// ".to_token_iter();
 ///
 /// let headers = Vec::<Cons<Ident,Colon>>::parse(&mut token_iter).unwrap();
 /// let values = Vec::<Ident>::parse_exactly(&mut token_iter, headers.len()).unwrap();
@@ -171,7 +171,7 @@ impl<T: ToTokens> ToTokens for RefCell<T> {
 ///
 /// ```
 /// # use unsynn::*;
-/// let mut token_iter = quote::quote! {foo bar ; baz ;}.into_iter();
+/// let mut token_iter = "foo bar ; baz ;".to_token_iter();
 ///
 /// type Example = LazyVec<TokenTree, Semicolon>;
 ///

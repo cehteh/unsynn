@@ -59,7 +59,7 @@ impl<const C: char> From<OnePunct<C>> for TokenTree {
 
 #[test]
 fn test_one_punct_into_tt() {
-    let mut token_iter = quote::quote! {+}.into_iter();
+    let mut token_iter = "+".to_token_iter();
     let plus = Plus::parser(&mut token_iter).unwrap();
     assert_eq!(plus.as_char(), '+');
     let _: TokenTree = plus.into();
@@ -80,19 +80,32 @@ impl<const C: char> std::fmt::Debug for OnePunct<C> {
 }
 
 /// A single character punctuation token where the lexer joined it with the next `Punct` or a
-/// single quote followed by a identifier (rust lifetime). Note that the rust lexer knows
-/// about rust operators, the rules when `Punct` are `Spacing::Alone` or `Spacing::Joint` are
-/// geared towards rust syntax.
+/// single quote followed by a identifier (rust lifetime). Note that how rust lexers compose
+/// rust operators when `Punct` are `Spacing::Alone` or `Spacing::Joint` are used are somewhat
+/// in flux. When in doubt separate operators by spaces.
 ///
 /// # Example
 ///
 /// ```
 /// # use unsynn::*;
+/// // The quote! won't join ':::' together it only knows about '::'
 /// let mut token_iter = quote::quote! {:::}.into_iter();
 ///
-/// // The lexer won't join ':::' together it only knows about '::'
 /// let colon = JointPunct::<':'>::parse(&mut token_iter).unwrap();
 /// let colon = OnePunct::<':'>::parse(&mut token_iter).unwrap();
+/// let colon = OnePunct::<':'>::parse(&mut token_iter).unwrap();
+///
+/// // The TokenStream::from_str() keeps the ':::'
+/// let mut token_iter = ":::".to_token_iter();
+///
+/// let colon = JointPunct::<':'>::parse(&mut token_iter).unwrap();
+/// let colon = JointPunct::<':'>::parse(&mut token_iter).unwrap();
+/// let colon = OnePunct::<':'>::parse(&mut token_iter).unwrap();
+///
+/// let mut token_iter = ": ::".to_token_iter();
+///
+/// let colon = OnePunct::<':'>::parse(&mut token_iter).unwrap();
+/// let colon = JointPunct::<':'>::parse(&mut token_iter).unwrap();
 /// let colon = OnePunct::<':'>::parse(&mut token_iter).unwrap();
 /// ```
 #[derive(Default, Clone)]
@@ -155,7 +168,7 @@ impl<const C: char> From<JointPunct<C>> for TokenTree {
 
 #[test]
 fn test_joint_punct_into_tt() {
-    let mut token_iter = quote::quote! {+=}.into_iter();
+    let mut token_iter = "+=".to_token_iter();
     let plus = JointPunct::<'+'>::parser(&mut token_iter).unwrap();
     assert_eq!(plus.as_char(), '+');
     let _: TokenTree = plus.into();

@@ -2,7 +2,7 @@ use unsynn::*;
 
 #[test]
 fn test_gen() {
-    let mut token_iter = quote::quote! { ident }.into_iter();
+    let mut token_iter = " ident ".to_token_iter();
 
     let ident = Ident::parse(&mut token_iter).unwrap();
 
@@ -13,7 +13,7 @@ fn test_gen() {
 
 #[test]
 fn test_vec_gen() {
-    let mut token_iter = quote::quote! { ident1 ident2 }.into_iter();
+    let mut token_iter = " ident1 ident2 ".to_token_iter();
 
     let idents = Vec::<Ident>::parse(&mut token_iter).unwrap();
 
@@ -24,7 +24,7 @@ fn test_vec_gen() {
 
 #[test]
 fn test_parenthesisgroup_gen() {
-    let mut token_iter = quote::quote! { ( ident1 ident2 ) }.into_iter();
+    let mut token_iter = " ( ident1 ident2 ) ".to_token_iter();
 
     let group = ParenthesisGroup::parse(&mut token_iter).unwrap();
 
@@ -35,7 +35,7 @@ fn test_parenthesisgroup_gen() {
 
 #[test]
 fn test_groupcontaining_gen() {
-    let mut token_iter = quote::quote! { { braced } }.into_iter();
+    let mut token_iter = " { braced } ".to_token_iter();
 
     let group = GroupContaining::<Ident>::parse(&mut token_iter).unwrap();
 
@@ -51,11 +51,11 @@ unsynn! {
 
 #[test]
 fn test_tuple_struct() {
-    let mut token_iter = quote::quote! { ident1 ident2 "literal" }.into_iter();
+    let mut token_iter = r#" ident1 ident2 "literal" "#.to_token_iter();
 
     let tuple_struct = TupleStruct::parse(&mut token_iter).unwrap();
 
     let mut out = TokenStream::new();
     tuple_struct.to_tokens(&mut out);
-    assert_eq!(out.to_string(), "ident1 ident2 \"literal\"");
+    assert_eq!(out.to_string(), r#"ident1 ident2 "literal""#);
 }

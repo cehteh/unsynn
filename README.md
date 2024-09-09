@@ -19,9 +19,7 @@ we use `u32` in this example.
 
 ```rust
 # use unsynn::*;
-let mut token_iter = quote::quote!{
-    foo ( 1, 2, 3 )
-}.into_iter();
+let mut token_iter = "foo ( 1, 2, 3 )".to_token_iter();
 
 unsynn!{
     struct IdentThenParenthesisedNumbers {
@@ -34,8 +32,8 @@ unsynn!{
 let ast: IdentThenParenthesisedNumbers = token_iter.parse().unwrap();
 
 assert_eq!(
-    ast.to_token_stream().to_string(),
-    quote::quote!{foo ( 1, 2, 3 )}.to_string()
+    ast.tokens_to_string(),
+    "foo(1,2,3)".tokens_to_string()
 )
 ```
 
@@ -46,10 +44,8 @@ when one wants to parse things on the fly which are desconstructed immediately.
 
 ```rust
 # use unsynn::*;
-let mut token_iter = quote::quote!{
-    // We parse this below
-    foo ( 1, 2, 3 )
-}.into_iter();
+// We parse this below
+let mut token_iter = "foo ( 1, 2, 3 )".to_token_iter();
 
 // Type::parse() is from the Parse trait
 let ast =
@@ -57,8 +53,8 @@ let ast =
         ::parse(&mut token_iter).unwrap();
 
 assert_eq!(
-    ast.to_token_stream().to_string(),
-    quote::quote!{foo ( 1, 2, 3 )}.to_string()
+    ast.tokens_to_string(),
+    "foo ( 1, 2, 3 )".tokens_to_string()
 )
 ```
 

@@ -2,7 +2,7 @@ use unsynn::*;
 
 #[test]
 fn test_group_contains() {
-    let mut token_iter = quote::quote! { ( ident ) }.into_iter();
+    let mut token_iter = " ( ident ) ".to_token_iter();
 
     let group_containing = ParenthesisGroupContaining::<Ident>::parse(&mut token_iter).unwrap();
 
@@ -12,7 +12,7 @@ fn test_group_contains() {
 
 #[test]
 fn test_group_contains_empty() {
-    let mut token_iter = quote::quote! { {} }.into_iter();
+    let mut token_iter = " {} ".to_token_iter();
 
     let group_containing = BraceGroupContaining::<Nothing>::parse(&mut token_iter).unwrap();
 
@@ -22,7 +22,7 @@ fn test_group_contains_empty() {
 #[test]
 #[should_panic = "Unexpected token: expected unsynn::fundamental::EndOfStream, found Ident"]
 fn test_group_contains_leftover_tokens() {
-    let mut token_iter = quote::quote! { { leftover } }.into_iter();
+    let mut token_iter = " { leftover } ".to_token_iter();
 
     let group_containing = BraceGroupContaining::<Nothing>::parse(&mut token_iter).unwrap();
 

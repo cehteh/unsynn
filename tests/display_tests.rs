@@ -4,7 +4,7 @@ use unsynn::*;
 
 #[test]
 fn test_lazy_vec() {
-    let mut token_iter = quote::quote! {foo bar ;}.into_iter();
+    let mut token_iter = "foo bar ;".to_token_iter();
 
     type Example = LazyVec<TokenTree, Semicolon>;
 
@@ -15,7 +15,7 @@ fn test_lazy_vec() {
 
 #[test]
 fn test_repeats() {
-    let mut token_iter = quote::quote! {foo ; bar ; baz }.into_iter();
+    let mut token_iter = "foo ; bar ; baz ".to_token_iter();
 
     type Example = Exactly<3, Ident, Semicolon>;
 
@@ -25,7 +25,7 @@ fn test_repeats() {
 
 #[test]
 fn test_group_containing() {
-    let mut token_iter = quote::quote! { { foo } }.into_iter();
+    let mut token_iter = " { foo } ".to_token_iter();
 
     type Example = BraceGroupContaining<Ident>;
 
@@ -39,7 +39,7 @@ fn test_unsynn_macro() {
         struct Tuple(Ident,Ident);
     }
 
-    let mut token_iter = quote::quote! { foo bar }.into_iter();
+    let mut token_iter = " foo bar ".to_token_iter();
 
     let example = Tuple::parse(&mut token_iter).unwrap();
     assert_eq!(format!("{example}"), "foo bar ");

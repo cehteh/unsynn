@@ -77,7 +77,7 @@ make_group! {
 
 #[test]
 fn test_bracegroup_into_tt() {
-    let mut token_iter = quote::quote! {{a b c}}.into_iter();
+    let mut token_iter = "{a b c}".to_token_iter();
     let group = BraceGroup::parse(&mut token_iter).unwrap();
     let _: TokenTree = group.into();
 }
@@ -170,7 +170,7 @@ impl<C: Parse + ToTokens> From<GroupContaining<C>> for TokenTree {
 
 #[test]
 fn test_groupcontaining_into_tt() {
-    let mut token_iter = quote::quote! {{a b c}}.into_iter();
+    let mut token_iter = "{a b c}".to_token_iter();
     let group = GroupContaining::<TokenStream>::parse(&mut token_iter).unwrap();
     let _: TokenTree = group.into();
 }
@@ -259,7 +259,7 @@ make_group_containing! {
 
 #[test]
 fn test_bracegroupcontaining_into_tt() {
-    let mut token_iter = quote::quote! {{a b c}}.into_iter();
+    let mut token_iter = "{a b c}".to_token_iter();
     let group = BraceGroupContaining::<TokenStream>::parse(&mut token_iter).unwrap();
     let _: TokenTree = group.into();
 }

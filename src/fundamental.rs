@@ -65,13 +65,13 @@ impl ToTokens for NonEmptyTokenStream {
 
 #[test]
 fn test_non_empty_token_stream() {
-    let mut token_iter = quote::quote! {ident}.into_iter();
+    let mut token_iter = "ident".to_token_iter();
     let _ = NonEmptyTokenStream::parser(&mut token_iter).unwrap();
 }
 
 #[test]
 fn test_empty_token_stream() {
-    let mut token_iter = quote::quote! {}.into_iter();
+    let mut token_iter = "".to_token_iter();
     assert!(NonEmptyTokenStream::parser(&mut token_iter).is_err());
 }
 
@@ -168,7 +168,7 @@ impl ToTokens for Literal {
 ///
 /// ```
 /// use unsynn::*;
-/// let mut token_iter = quote::quote! {ident 1234}.into_iter();
+/// let mut token_iter = "ident 1234".to_token_iter();
 ///
 /// let cached_ident = Cached::<Ident>::parse(&mut token_iter).unwrap();
 /// assert!(cached_ident == "ident");
@@ -264,7 +264,7 @@ impl<T: Parse + std::fmt::Display + Into<TokenTree>> From<Cached<T>> for TokenTr
 
 #[test]
 fn test_cached_into_tt() {
-    let mut token_iter = quote::quote! {ident}.into_iter();
+    let mut token_iter = "ident".to_token_iter();
     let ident = Cached::<Ident>::parser(&mut token_iter).unwrap();
     let _: TokenTree = ident.into();
 }
@@ -315,7 +315,7 @@ impl std::fmt::Display for Nothing {
 ///
 /// ```
 /// # use unsynn::*;
-/// let mut token_iter = quote::quote! {ident}.into_iter();
+/// let mut token_iter = "ident".to_token_iter();
 ///
 /// type MaybeEither<A, B=Invalid> = Either<A,B>;
 ///
@@ -352,7 +352,7 @@ impl std::fmt::Display for Invalid {
 ///
 /// ```
 /// # use unsynn::*;
-/// let mut token_iter = quote::quote! {ident}.into_iter();
+/// let mut token_iter = "ident".to_token_iter();
 ///
 /// let _ = Except::<Punct>::parser(&mut token_iter).unwrap();
 /// ```
@@ -398,7 +398,7 @@ impl<T: Parse> std::fmt::Display for Except<T> {
 ///
 /// ```
 /// # use unsynn::*;
-/// let mut token_iter = quote::quote! {ident}.into_iter();
+/// let mut token_iter = "ident".to_token_iter();
 ///
 /// let _ = Expect::<Ident>::parser(&mut token_iter).unwrap();
 /// ```
@@ -443,7 +443,7 @@ impl<T: Parse> std::fmt::Display for Expect<T> {
 ///
 /// ```
 /// # use unsynn::*;
-/// let mut token_iter = quote::quote!{ }.into_iter();
+/// let mut token_iter = "".to_token_iter();
 ///
 /// let _end_ = EndOfStream::parser(&mut token_iter).unwrap();
 /// ```

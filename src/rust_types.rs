@@ -121,7 +121,7 @@ impl Parser for String {
 ///
 /// assert_eq!(
 ///     tokens.to_string(),
-///     quote::quote!{foo -> {1,2,3}}.to_string()
+///     "foo -> { 1 , 2 , 3 }"
 /// );
 /// ```
 impl ToTokens for &str {

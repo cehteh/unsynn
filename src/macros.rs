@@ -35,11 +35,11 @@ use crate::*;
 /// }
 ///
 /// // Create an iterator over the things we want to parse
-/// let mut token_iter = quote::quote! {
+/// let mut token_iter = r#"
 ///     ident { within brace } "literal string" 1234
 ///     "literal string" 1234
 ///     ident "literal string"
-/// }.into_iter();
+/// "#.to_token_iter();
 ///
 /// // Use the defined types
 /// let MyEnum::Ident(_) = MyEnum::parse(&mut token_iter).unwrap() else { panic!()};
@@ -214,11 +214,10 @@ macro_rules! unsynn{
 ///     Else = "else",
 /// }
 ///
-/// let tokens = quote::quote!{ if else };
-/// let mut iter = tokens.into_iter();
-/// let if_kw = If::parse(&mut iter).unwrap();
+/// let mut tokens = "if else".to_token_iter();
+/// let if_kw = If::parse(&mut tokens).unwrap();
 /// assert_eq!(if_kw.as_ref(), "if");
-/// let else_kw = Else::parse(&mut iter).unwrap();
+/// let else_kw = Else::parse(&mut tokens).unwrap();
 /// assert_eq!(else_kw.as_ref(), "else");
 /// ```
 #[macro_export]
