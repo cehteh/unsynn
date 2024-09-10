@@ -107,7 +107,7 @@ cases.
 # use std::collections::HashMap;
 // We could go with `unsynn!{struct Assignment{...}}` as above here. But lets use composition
 // as example here. This stays internal so its complexity isnt exposed.
-type Assignment = Cons<Ident, Cons<Assign, LiteralString>>;
+type Assignment = Cons<Ident, Assign, LiteralString>;
 
 // Here we'll parse the list of assignments into a structure that represents the
 // data in a way thats easier to use from a rust program
@@ -128,7 +128,7 @@ impl Parser for AssignmentList {
             assignment_list.list.push((
                 assignment.value.first.clone(),
                 // Create a String without the enclosing double quotes
-                assignment.value.second.second.as_str().to_string()
+                assignment.value.third.as_str().to_string()
             ));
             // add it to the lookup
             assignment_list.lookup.insert(

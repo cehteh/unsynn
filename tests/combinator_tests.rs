@@ -8,6 +8,17 @@ fn test_cons() {
 }
 
 #[test]
+fn test_4cons() {
+    let mut token_iter = ": nopunct 'c' 123".to_token_iter();
+    let cons =
+        Cons::<Punct, Ident, LiteralCharacter, LiteralInteger>::parse(&mut token_iter).unwrap();
+    assert_eq!(
+        cons.tokens_to_string(),
+        ": nopunct 'c' 123".tokens_to_string()
+    );
+}
+
+#[test]
 fn test_except() {
     let mut token_iter = ": nopunct".to_token_iter();
     assert!(Except::<Ident>::parse(&mut token_iter).is_ok());

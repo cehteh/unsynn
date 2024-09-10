@@ -1,33 +1,70 @@
-//! A unique feature of unsynn is that one can define a parser as a composition of other
-//! parsers on the fly without the need to define custom structures. This is done by using the
-//! `Cons` and `Either` types. The [`Cons`] type is used to define a parser that is a
-//! conjunction of two other parsers, while the [`Either`] type is used to define a parser
-//! that is a disjunction of two other parsers.
+//! A unique feature of unsynn is that one can define a parser as a composition of other !
+//! parsers on the fly without the need to define custom structures. This is done by using the !
+//! `Cons` and `Either` types. The [`Cons`] type is used to define a parser that is a !
+//! conjunction of two to four other parsers, while the [`Either`] type is used to define a
+//! parser that is a disjunction of two to four other parsers.
 
-use crate::{Parse, Parser, Result, ToTokens, TokenIter, TokenStream};
+use crate::{Invalid, Nothing, Parse, Parser, Result, ToTokens, TokenIter, TokenStream};
 
-/// Conjunctive `A` followed by `B`
+/// Conjunctive `A` followed by `B` and optional `C` and `D`
+/// When `C` and `D` are not used, they are set to `Nothing`.
 #[derive(Clone)]
-pub struct Cons<A, B> {
+pub struct Cons<A, B, C = Nothing, D = Nothing> {
     /// The first value
     pub first: A,
     /// The second value
     pub second: B,
+    /// The third value
+    pub third: C,
+    /// The fourth value
+    pub fourth: D,
 }
 
-impl<A: Parse, B: Parse> Parser for Cons<A, B> {
+impl<A, B, C: 'static, D: 'static> Cons<A, B, C, D> {
+    /// Return the number of consecutive used items (not `Nothing`) in a `Cons`
+    ///
+    /// # Panics
+    ///
+    /// Asserts that the `Cons` is not sparse, if `C` is not `Nothing` then `D` must not be
+    /// `Nothing` either.
+    // only used in Debug/Display
+    #[allow(dead_code)]
+    fn used_conjunctions() -> usize {
+        let mut len = 2;
+        // PLANNED: static NOTHING: TypeId once stable
+        let nothing = std::any::TypeId::of::<Nothing>();
+        if std::any::TypeId::of::<C>() != nothing {
+            len += 1;
+        }
+        if std::any::TypeId::of::<D>() != nothing {
+            assert_ne!(
+                std::any::TypeId::of::<C>(),
+                nothing,
+                "If C is not Nothing then D must be Nothing"
+            );
+            len += 1;
+        }
+        len
+    }
+}
+
+impl<A: Parse, B: Parse, C: Parse, D: Parse> Parser for Cons<A, B, C, D> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         Ok(Self {
             first: A::parser(tokens)?,
             second: B::parser(tokens)?,
+            third: C::parser(tokens)?,
+            fourth: D::parser(tokens)?,
         })
     }
 }
 
-impl<A: ToTokens, B: ToTokens> ToTokens for Cons<A, B> {
+impl<A: ToTokens, B: ToTokens, C: ToTokens, D: ToTokens> ToTokens for Cons<A, B, C, D> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.first.to_tokens(tokens);
         self.second.to_tokens(tokens);
+        self.third.to_tokens(tokens);
+        self.fourth.to_tokens(tokens);
     }
 }
 
@@ -37,24 +74,83 @@ impl<A, B> From<Cons<A, B>> for (A, B) {
     }
 }
 
+impl<A, B, C> From<Cons<A, B, C>> for (A, B, C) {
+    fn from(cons: Cons<A, B, C>) -> Self {
+        (cons.first, cons.second, cons.third)
+    }
+}
+
+impl<A, B, C, D> From<Cons<A, B, C, D>> for (A, B, C, D) {
+    fn from(cons: Cons<A, B, C, D>) -> Self {
+        (cons.first, cons.second, cons.third, cons.fourth)
+    }
+}
+
 #[cfg(feature = "impl_debug")]
-impl<A: std::fmt::Debug, B: std::fmt::Debug> std::fmt::Debug for Cons<A, B> {
+impl<A, B, C, D> std::fmt::Debug for Cons<A, B, C, D>
+where
+    A: std::fmt::Debug,
+    B: std::fmt::Debug,
+    C: std::fmt::Debug + 'static,
+    D: std::fmt::Debug + 'static,
+{
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        f.debug_struct(&format!(
-            "Cons<{}, {}>",
-            std::any::type_name::<A>(),
-            std::any::type_name::<B>()
-        ))
-        .field("first", &self.first)
-        .field("second", &self.second)
-        .finish()
+        match Self::used_conjunctions() {
+            1 | 2 => f
+                .debug_struct(&format!(
+                    "Cons<{}, {}>",
+                    std::any::type_name::<A>(),
+                    std::any::type_name::<B>(),
+                ))
+                .field("first", &self.first)
+                .field("second", &self.second)
+                .finish(),
+            3 => f
+                .debug_struct(&format!(
+                    "Cons<{}, {}, {}>",
+                    std::any::type_name::<A>(),
+                    std::any::type_name::<B>(),
+                    std::any::type_name::<C>(),
+                ))
+                .field("first", &self.first)
+                .field("second", &self.second)
+                .field("third", &self.third)
+                .finish(),
+            _ => f
+                .debug_struct(&format!(
+                    "Cons<{}, {}, {}, {}>",
+                    std::any::type_name::<A>(),
+                    std::any::type_name::<B>(),
+                    std::any::type_name::<C>(),
+                    std::any::type_name::<D>(),
+                ))
+                .field("first", &self.first)
+                .field("second", &self.second)
+                .field("third", &self.third)
+                .field("fourth", &self.fourth)
+                .finish(),
+        }
     }
 }
 
 #[cfg(feature = "impl_display")]
-impl<A: std::fmt::Display, B: std::fmt::Display> std::fmt::Display for Cons<A, B> {
+impl<A, B, C, D> std::fmt::Display for Cons<A, B, C, D>
+where
+    A: std::fmt::Display,
+    B: std::fmt::Display,
+    C: std::fmt::Display + 'static,
+    D: std::fmt::Display + 'static,
+{
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{} {}", self.first, self.second)
+        match Self::used_conjunctions() {
+            1 | 2 => write!(f, "{} {}", self.first, self.second),
+            3 => write!(f, "{} {} {}", self.first, self.second, self.third),
+            _ => write!(
+                f,
+                "{} {} {} {}",
+                self.first, self.second, self.third, self.fourth
+            ),
+        }
     }
 }
 
