@@ -8,6 +8,7 @@
 //! # Roadmap
 //!
 #![doc = include_str!("../ROADMAP.md")]
+#![cfg_attr(test, allow(clippy::unwrap_used))]
 
 /// Type alias for the iterator type we use for parsing. This Iterator is Clone and produces
 /// `&TokenTree`.

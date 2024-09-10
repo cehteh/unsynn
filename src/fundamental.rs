@@ -53,6 +53,7 @@ impl Parser for NonEmptyTokenStream {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         tokens.parse::<Expect<TokenTree>>()?;
         // A TokenStream will always match, so we can safely unwrap here.
+        #[allow(clippy::unwrap_used)]
         Ok(Self(TokenStream::parser(tokens).unwrap()))
     }
 }

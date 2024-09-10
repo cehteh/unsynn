@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used)]
 #![allow(unused_variables)]
 use unsynn::*;
 

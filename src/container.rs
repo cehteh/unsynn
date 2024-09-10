@@ -21,8 +21,8 @@ impl<T: Parse> Parser for Option<T> {
 
 impl<T: ToTokens> ToTokens for Option<T> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        if self.is_some() {
-            self.as_ref().unwrap().to_tokens(tokens);
+        if let Some(t) = self.as_ref() {
+            t.to_tokens(tokens);
         }
     }
 }

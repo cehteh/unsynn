@@ -7,7 +7,6 @@
 //! chars are `Spacing::Joint`. The spacing of the final char in all these `Punct` types,
 //! except for `JointPunct` is ignored. Thus when parsing ambiguous operators, one has to try
 //! the longer ones first.
-
 #![allow(clippy::module_name_repetitions)]
 
 pub use proc_macro2::Spacing;
