@@ -317,7 +317,7 @@ pub struct Invalid;
 
 impl Parser for Invalid {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        Error::unexpected_token(tokens.clone().next().unwrap())
+        Error::unexpected_token_or_end(tokens.clone().next())
     }
 }
 
@@ -352,7 +352,7 @@ impl<T: Parse> Parser for Except<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let mut ptokens = tokens.clone();
         match T::parser(&mut ptokens) {
-            Ok(_) => Error::unexpected_token(tokens.clone().next().unwrap()),
+            Ok(_) => Error::unexpected_token_or_end(tokens.clone().next()),
             Err(_) => Ok(Self(PhantomData)),
         }
     }

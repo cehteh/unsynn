@@ -1,4 +1,4 @@
-pub use proc_macro2::{Span, TokenTree};
+use crate::TokenTree;
 
 /// Result type for parsing.
 pub type Result<T> = std::result::Result<T, Error>;
@@ -44,6 +44,15 @@ impl Error {
         Err(Error::UnexpectedEnd {
             expected: std::any::type_name::<T>(),
         })
+    }
+
+    /// Either `UnexpectedToken` or `UnexpectedEnd` depending if token is `Some`.
+    #[allow(clippy::missing_errors_doc)]
+    pub fn unexpected_token_or_end<T>(token: Option<TokenTree>) -> Result<T> {
+        match token {
+            Some(token) => Error::unexpected_token(token),
+            None => Error::unexpected_end(),
+        }
     }
 
     /// Create a `Result<T>::Err(Error::Other)` error.

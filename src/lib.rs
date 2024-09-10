@@ -235,6 +235,10 @@ pub mod combinator;
 #[doc(inline)]
 pub use combinator::*;
 
+pub use proc_macro2::{
+    Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree,
+};
+
 mod private {
     pub trait Sealed {}
 }
