@@ -179,10 +179,10 @@ pub struct Cached<T> {
     string: String,
 }
 
-impl<T: Parse + ToString> Parser for Cached<T> {
+impl<T: Parse + ToTokens> Parser for Cached<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let value = T::parser(tokens)?;
-        let string = value.to_string();
+        let string = value.tokens_to_string();
         Ok(Self { value, string })
     }
 }
@@ -194,11 +194,11 @@ impl<T: ToTokens> ToTokens for Cached<T> {
     }
 }
 
-impl<T: ToString> Cached<T> {
+impl<T: ToTokens> Cached<T> {
     /// Sets the value and updates the string representation.
     pub fn set(&mut self, value: T) {
         self.value = value;
-        self.string = self.value.to_string();
+        self.string = self.value.tokens_to_string();
     }
 
     /// Deconstructs self and returns the inner value.
