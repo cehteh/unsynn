@@ -310,18 +310,7 @@ impl std::fmt::Display for Nothing {
 }
 
 /// A unit that always fails to match. This is useful as default for generics.
-///
-/// # Example
-///
-/// ```
-/// # use unsynn::*;
-/// let mut token_iter = "ident".to_token_iter();
-///
-/// type MaybeEither<A, B=Invalid> = Either<A,B>;
-///
-/// // can be used with only one generic type
-/// assert!(MaybeEither::<Ident>::parse(&mut token_iter).is_ok());
-/// ```
+/// See how [`Either<A, B, C, D>`] uses this for unused alternatives.
 #[cfg_attr(feature = "impl_debug", derive(Debug))]
 #[derive(Clone)]
 pub struct Invalid;
