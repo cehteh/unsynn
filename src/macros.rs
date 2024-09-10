@@ -195,7 +195,7 @@ macro_rules! unsynn{
 ///
 /// `keyword!{ Name = "identifier", ...}`
 ///
-/// * `Name` is the name for the (`struct Name(Cached<Ident>)`) to be generated
+/// * `Name` is the name for the struct to be generated
 /// * `"identifier"` is the case sensitive keyword
 /// * keywords are always defined as `pub`
 ///
