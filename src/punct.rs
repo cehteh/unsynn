@@ -88,13 +88,6 @@ impl<const C: char> std::fmt::Debug for OnePunct<C> {
 ///
 /// ```
 /// # use unsynn::*;
-/// // The quote! won't join ':::' together it only knows about '::'
-/// let mut token_iter = quote::quote! {:::}.into_iter();
-///
-/// let colon = JointPunct::<':'>::parse(&mut token_iter).unwrap();
-/// let colon = OnePunct::<':'>::parse(&mut token_iter).unwrap();
-/// let colon = OnePunct::<':'>::parse(&mut token_iter).unwrap();
-///
 /// // The TokenStream::from_str() keeps the ':::'
 /// let mut token_iter = ":::".to_token_iter();
 ///
@@ -107,6 +100,13 @@ impl<const C: char> std::fmt::Debug for OnePunct<C> {
 /// let colon = OnePunct::<':'>::parse(&mut token_iter).unwrap();
 /// let colon = JointPunct::<':'>::parse(&mut token_iter).unwrap();
 /// let colon = OnePunct::<':'>::parse(&mut token_iter).unwrap();
+///
+/// // The quote! macro won't join ':::' together it only knows about '::'
+/// // let mut token_iter = quote::quote! {:::}.into_iter();
+/// //
+/// // let colon = JointPunct::<':'>::parse(&mut token_iter).unwrap();
+/// // let colon = OnePunct::<':'>::parse(&mut token_iter).unwrap();
+/// // let colon = OnePunct::<':'>::parse(&mut token_iter).unwrap();
 /// ```
 #[derive(Default, Clone)]
 pub struct JointPunct<const C: char>;

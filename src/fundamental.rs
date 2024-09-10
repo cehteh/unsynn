@@ -87,7 +87,7 @@ impl Parser for TokenTree {
 impl ToTokens for TokenTree {
     #[inline]
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        quote::ToTokens::to_tokens(self, tokens);
+        tokens.extend(std::iter::once(self.clone()));
     }
 }
 
@@ -104,7 +104,7 @@ impl Parser for Group {
 impl ToTokens for Group {
     #[inline]
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        quote::ToTokens::to_tokens(self, tokens);
+        tokens.extend(std::iter::once(TokenTree::Group(self.clone())));
     }
 }
 
@@ -121,7 +121,7 @@ impl Parser for Ident {
 impl ToTokens for Ident {
     #[inline]
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        quote::ToTokens::to_tokens(self, tokens);
+        tokens.extend(std::iter::once(TokenTree::Ident(self.clone())));
     }
 }
 
@@ -138,7 +138,7 @@ impl Parser for Punct {
 impl ToTokens for Punct {
     #[inline]
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        quote::ToTokens::to_tokens(self, tokens);
+        tokens.extend(std::iter::once(TokenTree::Punct(self.clone())));
     }
 }
 
@@ -155,7 +155,7 @@ impl Parser for Literal {
 impl ToTokens for Literal {
     #[inline]
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        quote::ToTokens::to_tokens(self, tokens);
+        tokens.extend(std::iter::once(TokenTree::Literal(self.clone())));
     }
 }
 

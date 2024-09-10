@@ -164,7 +164,7 @@ impl private::Sealed for &mut TokenIter {}
 /// }
 ///
 /// fn example() -> Result<MyStruct> {
-///     let mut input = quote::quote! { 1234 name }.into_iter();
+///     let mut input = " 1234 name ".to_token_iter();
 ///     Ok(
 ///         MyStruct {
 ///             // types are inferred here
