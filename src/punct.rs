@@ -2,17 +2,19 @@
 //! multi character punctuation tokens. The types are generic over the character they
 //! represent, for example `TwoPunct<'+', '='>` represents the `+=` token. There are type
 //! aliases named after the punctuation they represent, for example `PlusEq` for the `+=`
-//! token. Note that the rust lexer is already aware of the rust operators and augments single
-//! `Punct` tokens with `Spacing::Alone` or `Spacing::Joint` to implement multi character
-//! punctuation as rust defines.
+//! token. Punctuation characters that follow each other as well as lifetime ticks followed by
+//! an identifier are `Spacing::Joint`. `TwoPunct` and `ThreePunct` require that the leading
+//! chars are `Spacing::Joint`. The spacing of the final char in all these `Punct` types,
+//! except for `JointPunct` is ignored. Thus when parsing ambiguous operators, one has to try
+//! the longer ones first.
 
 #![allow(clippy::module_name_repetitions)]
 
-use proc_macro2::Spacing;
+pub use proc_macro2::Spacing;
 
 use crate::{Error, Parser, Punct, Result, ToTokens, TokenIter, TokenStream, TokenTree};
 
-/// A single character punctuation token lexed with `Spacing::Alone`.
+/// A single character punctuation token.
 #[derive(Default, Clone)]
 pub struct OnePunct<const C: char>;
 
@@ -33,11 +35,7 @@ impl<const C: char> OnePunct<C> {
 impl<const C: char> Parser for OnePunct<C> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
-            Some(TokenTree::Punct(punct))
-                if punct.spacing() == Spacing::Alone && punct.as_char() == C =>
-            {
-                Ok(Self)
-            }
+            Some(TokenTree::Punct(punct)) if punct.as_char() == C => Ok(Self),
             Some(other) => Error::unexpected_token(other),
             None => Error::unexpected_end(),
         }
@@ -80,9 +78,7 @@ impl<const C: char> std::fmt::Debug for OnePunct<C> {
 }
 
 /// A single character punctuation token where the lexer joined it with the next `Punct` or a
-/// single quote followed by a identifier (rust lifetime). Note that how rust lexers compose
-/// rust operators when `Punct` are `Spacing::Alone` or `Spacing::Joint` are used are somewhat
-/// in flux. When in doubt separate operators by spaces.
+/// single quote followed by a identifier (rust lifetime).
 ///
 /// # Example
 ///
@@ -95,13 +91,7 @@ impl<const C: char> std::fmt::Debug for OnePunct<C> {
 /// let colon = JointPunct::<':'>::parse(&mut token_iter).unwrap();
 /// let colon = OnePunct::<':'>::parse(&mut token_iter).unwrap();
 ///
-/// let mut token_iter = ": ::".to_token_iter();
-///
-/// let colon = OnePunct::<':'>::parse(&mut token_iter).unwrap();
-/// let colon = JointPunct::<':'>::parse(&mut token_iter).unwrap();
-/// let colon = OnePunct::<':'>::parse(&mut token_iter).unwrap();
-///
-/// // The quote! macro won't join ':::' together it only knows about '::'
+/// // Caveat: The quote! macro won't join ':::' together
 /// // let mut token_iter = quote::quote! {:::}.into_iter();
 /// //
 /// // let colon = JointPunct::<':'>::parse(&mut token_iter).unwrap();
@@ -174,6 +164,84 @@ fn test_joint_punct_into_tt() {
     let _: TokenTree = plus.into();
 }
 
+/// A single character punctuation token which is not followed by another punctuation
+/// character.
+///
+/// # Example
+///
+/// ```
+/// # use unsynn::*;
+/// let mut token_iter = ": :".to_token_iter();
+///
+/// let colon = AlonePunct::<':'>::parse(&mut token_iter).unwrap();
+/// let colon = AlonePunct::<':'>::parse(&mut token_iter).unwrap();
+/// ```
+#[derive(Default, Clone)]
+pub struct AlonePunct<const C: char>;
+
+impl<const C: char> AlonePunct<C> {
+    /// Create a new `AlonePunct` object.
+    #[must_use]
+    pub const fn new() -> Self {
+        Self
+    }
+
+    /// Get the `char` value this object represents.
+    #[must_use]
+    pub const fn as_char(&self) -> char {
+        C
+    }
+}
+
+impl<const C: char> Parser for AlonePunct<C> {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        match tokens.next() {
+            Some(TokenTree::Punct(punct))
+                if punct.spacing() == Spacing::Alone && punct.as_char() == C =>
+            {
+                Ok(Self)
+            }
+            Some(other) => Error::unexpected_token(other),
+            None => Error::unexpected_end(),
+        }
+    }
+}
+
+impl<const C: char> ToTokens for AlonePunct<C> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        Punct::new(C, Spacing::Alone).to_tokens(tokens);
+    }
+}
+
+#[cfg(feature = "impl_display")]
+impl<const C: char> std::fmt::Display for AlonePunct<C> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{C}")
+    }
+}
+
+#[cfg(feature = "impl_debug")]
+impl<const C: char> std::fmt::Debug for AlonePunct<C> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "AlonePunct<{C:?}>")
+    }
+}
+
+/// Convert a `AlonePunct` object into a `TokenTree`.
+impl<const C: char> From<AlonePunct<C>> for TokenTree {
+    fn from(_: AlonePunct<C>) -> Self {
+        TokenTree::Punct(Punct::new(C, Spacing::Alone))
+    }
+}
+
+#[test]
+fn test_alone_punct_into_tt() {
+    let mut token_iter = "+ +".to_token_iter();
+    let plus = AlonePunct::<'+'>::parser(&mut token_iter).unwrap();
+    assert_eq!(plus.as_char(), '+');
+    let _: TokenTree = plus.into();
+}
+
 /// Double character joint punctuation.
 #[derive(Default, Clone)]
 pub struct TwoPunct<const C1: char, const C2: char>;
@@ -190,10 +258,7 @@ impl<const C1: char, const C2: char> Parser for TwoPunct<C1, C2> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match (tokens.next(), tokens.next()) {
             (Some(TokenTree::Punct(c1)), Some(TokenTree::Punct(c2)))
-                if c1.spacing() == Spacing::Joint
-                    && c1.as_char() == C1
-                    && c2.spacing() == Spacing::Alone
-                    && c2.as_char() == C2 =>
+                if c1.spacing() == Spacing::Joint && c1.as_char() == C1 && c2.as_char() == C2 =>
             {
                 Ok(Self)
             }
@@ -247,7 +312,6 @@ impl<const C1: char, const C2: char, const C3: char> Parser for ThreePunct<C1, C
                 && c1.as_char() == C1
                 && c2.spacing() == Spacing::Joint
                 && c2.as_char() == C2
-                && c3.spacing() == Spacing::Alone
                 && c3.as_char() == C3 =>
             {
                 Ok(Self)
@@ -380,3 +444,5 @@ pub type Question = OnePunct<'?'>;
 pub type Tilde = OnePunct<'~'>;
 /// `\`
 pub type Backslash = OnePunct<'\\'>;
+/// `'` With `Spacing::Joint`
+pub type LifetimeTick = JointPunct<'\''>;
