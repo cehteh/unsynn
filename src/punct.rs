@@ -215,22 +215,28 @@ fn test_alone_punct_into_tt() {
     let _: TokenTree = plus.into();
 }
 
-/// Operators made from up to 4 punctuation characters. Unused characters must be spaces.
+/// Operators made from up to 4 ASCII punctuation characters. Unused characters must be `\0`.
 /// Custom operators can be defined with the `operator!` macro. All but the last character are
 /// `Spacing::Joint`. Attention must be payed when operators have the same prefix, the shorter
 /// ones need to be tried first.
 #[derive(Default, Clone)]
 pub struct Operator<
     const C1: char,
-    const C2: char = ' ',
-    const C3: char = ' ',
-    const C4: char = ' ',
+    const C2: char = '\0',
+    const C3: char = '\0',
+    const C4: char = '\0',
 >;
 
 impl<const C1: char, const C2: char, const C3: char, const C4: char> Operator<C1, C2, C3, C4> {
     /// Create a new `Operator` object.
     #[must_use]
     pub const fn new() -> Self {
+        const {
+            assert!(C1.is_ascii_punctuation());
+            assert!(C2 == '\0' || C2.is_ascii_punctuation());
+            assert!(C3 == '\0' || C3.is_ascii_punctuation());
+            assert!(C4 == '\0' || C4.is_ascii_punctuation());
+        }
         Self
     }
 }
@@ -239,17 +245,17 @@ impl<const C1: char, const C2: char, const C3: char, const C4: char> Parser
     for Operator<C1, C2, C3, C4>
 {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        if C2 == ' ' {
+        if C2 == '\0' {
             PunctAny::<C1>::parser(tokens)?;
             Ok(Self)
         } else {
             PunctJoint::<C1>::parser(tokens)?;
-            if C3 == ' ' {
+            if C3 == '\0' {
                 PunctAny::<C2>::parser(tokens)?;
                 Ok(Self)
             } else {
                 PunctJoint::<C2>::parser(tokens)?;
-                if C4 == ' ' {
+                if C4 == '\0' {
                     PunctAny::<C3>::parser(tokens)?;
                     Ok(Self)
                 } else {
@@ -268,7 +274,7 @@ impl<const C1: char, const C2: char, const C3: char, const C4: char> ToTokens
     fn to_tokens(&self, tokens: &mut TokenStream) {
         // Make the spacing `Joint` when the next character is not a space.
         const fn spacing(c: char) -> Spacing {
-            if c == ' ' {
+            if c == '\0' {
                 Spacing::Alone
             } else {
                 Spacing::Joint
@@ -276,11 +282,11 @@ impl<const C1: char, const C2: char, const C3: char, const C4: char> ToTokens
         }
 
         Punct::new(C1, spacing(C2)).to_tokens(tokens);
-        if C2 != ' ' {
+        if C2 != '\0' {
             Punct::new(C2, spacing(C3)).to_tokens(tokens);
-            if C3 != ' ' {
+            if C3 != '\0' {
                 Punct::new(C3, spacing(C4)).to_tokens(tokens);
-                if C4 != ' ' {
+                if C4 != '\0' {
                     Punct::new(C4, Spacing::Alone).to_tokens(tokens);
                 }
             }
@@ -293,11 +299,11 @@ impl<const C1: char, const C2: char, const C3: char, const C4: char> std::fmt::D
     for Operator<C1, C2, C3, C4>
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if C4 != ' ' {
+        if C4 != '\0' {
             write!(f, "{C1}{C2}{C3}{C4}")
-        } else if C3 != ' ' {
+        } else if C3 != '\0' {
             write!(f, "{C1}{C2}{C3}")
-        } else if C2 != ' ' {
+        } else if C2 != '\0' {
             write!(f, "{C1}{C2}")
         } else {
             write!(f, "{C1}")
@@ -310,11 +316,11 @@ impl<const C1: char, const C2: char, const C3: char, const C4: char> std::fmt::D
     for Operator<C1, C2, C3, C4>
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if C4 != ' ' {
+        if C4 != '\0' {
             write!(f, "Operator<'{C1}{C2}{C3}{C4}'>")
-        } else if C3 != ' ' {
+        } else if C3 != '\0' {
             write!(f, "Operator<'{C1}{C2}{C3}'>")
-        } else if C2 != ' ' {
+        } else if C2 != '\0' {
             write!(f, "Operator<'{C1}{C2}'>")
         } else {
             write!(f, "Operator<'{C1}'>")

@@ -276,8 +276,7 @@ macro_rules! keyword{
 /// `operator!{ Op = "punct", ...}`
 ///
 /// * `Op` is the name for the struct to be generated
-/// * `"punct"` is up to 4 punctuation characters
-/// *  The validity of the characters is **not** checked
+/// * `"punct"` is up to 4 ASCII punctuation characters
 /// * operators are always defined as `pub`
 ///
 /// `Op::parse()` will match the defined operator. It will implement `Debug` and `Display` if
@@ -327,7 +326,7 @@ macro_rules! operator{
     // get a single ascii character from a literal string
     (@char_at $at:literal $op:literal) => {
        const {
-           concat!($op, "   ").as_bytes()[$at] as char
+           concat!($op, "\0\0\0").as_bytes()[$at] as char
        }
     }
 }
