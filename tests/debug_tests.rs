@@ -22,51 +22,33 @@ impl StripWhitespace for &str {
 }
 
 #[test]
-fn test_lazy_vec() {
-    let mut token_iter = "foo bar ; baz ;".to_token_iter();
+fn test_operator() {
+    let mut token_iter = "->".to_token_iter();
 
-    type Example = LazyVec<TokenTree, Semicolon>;
-
-    let example = Example::parse(&mut token_iter).unwrap();
+    let example = RArrow::parse(&mut token_iter).unwrap();
     assert_eq!(
         format!("{example:?}").strip_whitespace(),
-        "LazyVec<proc_macro2::TokenTree,unsynn::punct::OnePunct<';'>>{
-             vec:[
-                 Ident{sym: foo, span:bytes(1..4)},
-                 Ident{sym: bar, span:bytes(5..8)}
-             ],
-         terminator: OnePunct<';'>
-         }"
-        .strip_whitespace()
+        "Operator<'->'>".strip_whitespace()
     );
 }
 
 #[test]
-fn test_repeats() {
-    let mut token_iter = "foo ; bar ; baz ".to_token_iter();
+fn test_lazy_vec() {
+    let mut token_iter = "foo bar 1 baz 2".to_token_iter();
 
-    type Example = Exactly<3, Ident, Semicolon>;
+    type Example = LazyVec<TokenTree, LiteralInteger>;
 
     let example = Example::parse(&mut token_iter).unwrap();
     assert_eq!(
         format!("{example:?}").strip_whitespace(),
-        "Repeats<3,3,proc_macro2::Ident,unsynn::punct::OnePunct<';'>>(
-             [
-                 Delimited<proc_macro2::Ident, unsynn::punct::OnePunct<';'>>{
-                     value: Ident{sym:foo, span:bytes(1..4)},
-                     delimiter: Some(OnePunct<';'>)
-                 },
-                 Delimited<proc_macro2::Ident,unsynn::punct::OnePunct<';'>>{
-                     value: Ident{sym:bar, span:bytes(7..10)},
-                     delimiter: Some(OnePunct<';'>)
-                 },
-                 Delimited<proc_macro2::Ident,unsynn::punct::OnePunct<';'>>{
-                     value: Ident{sym:baz, span:bytes(13..16)},
-                     delimiter: None
-                 }
-             ]
-         )"
-        .strip_whitespace()
+        "LazyVec<proc_macro2::TokenTree,unsynn::literal::LiteralInteger>{
+             vec:[
+                 Ident{sym: foo, span:bytes(1..4)},
+                 Ident{sym: bar, span:bytes(5..8)}
+             ],
+         terminator: LiteralInteger
+         {literal:Literal{lit:1,span:bytes(9..10)},value:1}}"
+            .strip_whitespace()
     );
 }
 

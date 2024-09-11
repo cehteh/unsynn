@@ -270,3 +270,64 @@ macro_rules! keyword{
         )*
     }
 }
+
+/// Define types matching operators (punctuation sequences).
+///
+/// `operator!{ Op = "punct", ...}`
+///
+/// * `Op` is the name for the struct to be generated
+/// * `"punct"` is up to 4 punctuation characters
+/// *  The validity of the characters is **not** checked
+/// * operators are always defined as `pub`
+///
+/// `Op::parse()` will match the defined operator. It will implement `Debug` and `Display` if
+/// the `impl_debug` and `impl_display` features are enabled. `Clone` is always implemented
+/// for operators.
+///
+/// # Example
+///
+/// ```
+/// # use unsynn::*;
+/// operator!{
+///     /// Optional documentation for `<~~`
+///     WLArrow = "<~~",
+///     WRArrow = "~~>",
+/// }
+///
+/// let mut tokens = "<~~~~> ~~><~~".to_token_iter();
+/// let wl = WLArrow::parse(&mut tokens).unwrap();
+/// assert_eq!(wl.tokens_to_string(), "<~~");
+/// let wr = WRArrow::parse(&mut tokens).unwrap();
+/// assert_eq!(wr.tokens_to_string(), "~~>");
+/// # let wr = WRArrow::parse(&mut tokens).unwrap();
+/// # assert_eq!(wr.tokens_to_string(), "~~>");
+/// # let wl = WLArrow::parse(&mut tokens).unwrap();
+/// # assert_eq!(wl.tokens_to_string(), "<~~");
+/// ```
+#[macro_export]
+macro_rules! operator{
+    // match a list punct! defs
+    ($($(#[$attribute:meta])* $name:ident = $op:literal),*$(,)?) => {
+        $(
+            $crate::operator!(@operator $(#[$attribute])* $name = $op);
+        )*
+    };
+
+    // match a single punct! defs with len 1-3
+    (@operator $(#[$attribute:meta])* $name:ident = $op:literal) => {
+        $(#[$attribute])*
+        pub type $name = Operator<
+        {$crate::operator!(@char_at 0 $op)},
+        {$crate::operator!(@char_at 1 $op)},
+        {$crate::operator!(@char_at 2 $op)},
+        {$crate::operator!(@char_at 3 $op)},
+        >;
+    };
+
+    // get a single ascii character from a literal string
+    (@char_at $at:literal $op:literal) => {
+       const {
+           concat!($op, "   ").as_bytes()[$at] as char
+       }
+    }
+}
