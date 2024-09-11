@@ -237,8 +237,8 @@ macro_rules! unsynn{
 /// # use unsynn::*;
 /// keyword!{
 ///     /// Optional documentation for `If`
-///     If = "if",
-///     Else = "else",
+///     If = "if";
+///     Else = "else";
 /// }
 ///
 /// let mut tokens = "if else".to_token_iter();
@@ -249,7 +249,7 @@ macro_rules! unsynn{
 /// ```
 #[macro_export]
 macro_rules! keyword{
-    ($($(#[$attribute:meta])* $pub:vis $name:ident = $str:literal),*$(,)?) => {
+    ($($(#[$attribute:meta])* $pub:vis $name:ident = $str:literal);*$(;)?) => {
         $(
             $(#[$attribute])*
             #[cfg_attr(feature = "impl_debug", derive(Debug))]
@@ -300,7 +300,7 @@ macro_rules! keyword{
 
 /// Define types matching operators (punctuation sequences).
 ///
-/// `operator!{ pub Op = "punct", ...}`
+/// `operator!{ pub Op = "punct"; ...}`
 ///
 /// * `pub` defines the operators public, default is private
 /// * `Op` is the name for the struct to be generated
@@ -319,8 +319,8 @@ macro_rules! keyword{
 /// # use unsynn::*;
 /// operator!{
 ///     /// Optional documentation for `<~~`
-///     WLArrow = "<~~",
-///     WRArrow = "~~>",
+///     WLArrow = "<~~";
+///     WRArrow = "~~>";
 /// }
 ///
 /// let mut tokens = "<~~~~> ~~><~~".to_token_iter();
@@ -336,7 +336,7 @@ macro_rules! keyword{
 #[macro_export]
 macro_rules! operator{
     // match a list of operator! defs
-    ($($(#[$attribute:meta])* $pub:vis $name:ident = $op:literal),*$(,)?) => {
+    ($($(#[$attribute:meta])* $pub:vis $name:ident = $op:literal);*$(;)?) => {
         $(
             $crate::operator!(@operator $(#[$attribute])* $pub $name = $op);
         )*

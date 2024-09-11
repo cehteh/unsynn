@@ -27,7 +27,7 @@ fn test_threepunct() {
 }
 
 operator! {
-    Fancy = "<~~>",
+    Fancy = "<~~>";
 }
 
 #[test]

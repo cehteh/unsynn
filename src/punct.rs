@@ -337,99 +337,99 @@ pub type LifetimeTick = PunctJoint<'\''>;
 
 operator! {
     /// `+`
-    pub Plus = "+",
+    pub Plus = "+";
     /// `-`
-    pub Minus = "-",
+    pub Minus = "-";
     /// `*`
-    pub Star = "*",
+    pub Star = "*";
     /// `/`
-    pub Slash = "/",
+    pub Slash = "/";
     /// `%`
-    pub Percent = "%",
+    pub Percent = "%";
     /// `^`
-    pub Caret = "^",
+    pub Caret = "^";
     /// `!`
-    pub Bang = "!",
+    pub Bang = "!";
     /// `&`
-    pub And = "&",
+    pub And = "&";
     /// `|`
-    pub Or = "|",
+    pub Or = "|";
     /// `&&`
-    pub AndAnd = "&&",
+    pub AndAnd = "&&";
     /// `||`
-    pub OrOr = "||",
+    pub OrOr = "||";
     /// `<<`
-    pub Shl = "<<",
+    pub Shl = "<<";
     /// `>>`
-    pub Shr = ">>",
+    pub Shr = ">>";
     /// `+=`
-    pub PlusEq = "+=",
+    pub PlusEq = "+=";
     /// `-=`
-    pub MinusEq = "-=",
+    pub MinusEq = "-=";
     /// `*=`
-    pub StarEq = "*=",
+    pub StarEq = "*=";
     /// `/=`
-    pub SlashEq = "/=",
+    pub SlashEq = "/=";
     /// `%=`
-    pub PercentEq = "%=",
+    pub PercentEq = "%=";
     /// `^=`
-    pub CaretEq = "^=",
+    pub CaretEq = "^=";
     /// `&=`
-    pub AndEq = "&=",
+    pub AndEq = "&=";
     /// `|=`
-    pub OrEq = "|=",
+    pub OrEq = "|=";
     /// `<<=`
-    pub ShlEq = "<<=",
+    pub ShlEq = "<<=";
     /// `>>=`
-    pub ShrEq = ">>=",
+    pub ShrEq = ">>=";
     /// `=`
-    pub Assign = "=",
+    pub Assign = "=";
     /// `==`
-    pub Equal = "==",
+    pub Equal = "==";
     /// `!=`
-    pub NotEqual = "!=",
+    pub NotEqual = "!=";
     /// `>`
-    pub Gt = ">",
+    pub Gt = ">";
     /// `<`
-    pub Lt = "<",
+    pub Lt = "<";
     /// `>=`
-    pub Ge = ">=",
+    pub Ge = ">=";
     /// `<=`
-    pub Le = "<=",
+    pub Le = "<=";
     /// `@`
-    pub At = "@",
+    pub At = "@";
     /// `_`
-    pub Underscore = "_",
+    pub Underscore = "_";
     /// `.`
-    pub Dot = ".",
+    pub Dot = ".";
     /// `..`
-    pub DotDot = "..",
+    pub DotDot = "..";
     /// `...`
-    pub Ellipsis = "...",
+    pub Ellipsis = "...";
     /// `..=`
-    pub DotDotEq = "..=",
+    pub DotDotEq = "..=";
     /// `,`
-    pub Comma = ",",
+    pub Comma = ",";
     /// `;`
-    pub Semicolon = ";",
+    pub Semicolon = ";";
     /// `:`
-    pub Colon = ":",
+    pub Colon = ":";
     /// `::`
-    pub PathSep = "::",
+    pub PathSep = "::";
     /// `->`
-    pub RArrow = "->",
+    pub RArrow = "->";
     /// `=>`
-    pub FatArrow = "=>",
+    pub FatArrow = "=>";
     /// `<-`
-    pub LArrow = "<-",
+    pub LArrow = "<-";
     /// `#`
-    pub Pound = "#",
+    pub Pound = "#";
     /// `$`
-    pub Dollar = "$",
+    pub Dollar = "$";
     /// `?`
-    pub Question = "?",
+    pub Question = "?";
     /// `~`
-    pub Tilde = "~",
+    pub Tilde = "~";
     /// `\`
-    pub Backslash = "\\",
+    pub Backslash = "\\";
 }

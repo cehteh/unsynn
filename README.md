@@ -65,14 +65,14 @@ To define keywords and operators we provide the `keyword!` and `operator!` macro
 ```rust
 # use unsynn::*;
 keyword! {
-    pub Calc = "CALC",
+    pub Calc = "CALC";
 }
 
 operator! {
-    pub Add = "+",
-    pub Substract = "-",
-    pub Multiply = "*",
-    pub Divide = "/",
+    pub Add = "+";
+    pub Substract = "-";
+    pub Multiply = "*";
+    pub Divide = "/";
 }
 
 // The above can be written within a unsynn! macro as:
