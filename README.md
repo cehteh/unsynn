@@ -75,6 +75,15 @@ operator! {
     Divide = "/",
 }
 
+// The above can be written within a unsynn! macro as:
+// unsynn! {
+//     keyword Calc = "CALC";
+//     operator Add = "+";
+//     operator Substract = "-";
+//     operator Multiply = "*";
+//     operator Divide = "/";
+// }
+
 // looks like BNF, but can't do recursive types
 type Expression = Cons<Calc, AdditiveExpr, Semicolon>;
 type AdditiveOp = Either<Add, Substract>;

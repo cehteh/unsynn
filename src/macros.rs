@@ -8,6 +8,8 @@ use crate::*;
 /// `Parser` and `ToTokens` will become supported by a 'unsynn-derive' crate to give finer
 /// control over the expansion. `#[derive(Copy, Clone)]` have to be manually defined. `Debug`
 /// and `Display` are automatically implemented when the respective features are enabled.
+/// Keyword and operator definitions can also be defined, they delegate to the `keyword!` and
+/// `operator!` macro described below.
 ///
 /// Common for all three variants is that entries are tried in order. Disjunctive for enums
 /// and conjunctive in structures. This makes the order important, e.g. for enums, in case
@@ -32,13 +34,21 @@ use crate::*;
 ///     }
 ///
 ///     struct MyTupleStruct(Ident, LiteralString);
+///
+///     keyword MyKeyword = "keyword";
+///     operator MyOperator = "+++";
 /// }
 ///
 /// // Create an iterator over the things we want to parse
 /// let mut token_iter = r#"
+///     // the 4 enum variants
 ///     ident { within brace } "literal string" 1234
+///     // MyStruct fields
 ///     "literal string" 1234
+///     // MyTupleStruct fields
 ///     ident "literal string"
+///     // MyKeyword and MyOperator
+///     keyword +++
 /// "#.to_token_iter();
 ///
 /// // Use the defined types
@@ -47,9 +57,10 @@ use crate::*;
 /// let MyEnum::Text(_) = MyEnum::parse(&mut token_iter).unwrap() else { panic!()};
 /// let MyEnum::Number(_) = MyEnum::parse(&mut token_iter).unwrap() else { panic!()};
 ///
-/// let my_struct =  MyStruct::parser(&mut token_iter).unwrap();
-///
-/// let my_tuple_struct =  MyTupleStruct::parser(&mut token_iter).unwrap();
+/// let my_struct =  MyStruct::parse(&mut token_iter).unwrap();
+/// let my_tuple_struct =  MyTupleStruct::parse(&mut token_iter).unwrap();
+/// let my_keyword =  MyKeyword::parse(&mut token_iter).unwrap();
+/// let my_operator =  MyOperator::parse(&mut token_iter).unwrap();
 /// ```
 #[cfg(doc)]
 #[macro_export]
@@ -57,6 +68,8 @@ macro_rules! unsynn {
     (enum $name:ident { $( $variant:ident($parser:ty) ),* }) => {};
     (struct $name:ident { $( $member:ident: $parser:ty ),* }) => {};
     (struct $name:ident ( $( $parser:ty ),*);) => {};
+    (keyword $name:ident = "name";) => {};
+    (operator $name:ident = "name";) => {};
 }
 
 #[doc(hidden)]
@@ -165,6 +178,16 @@ macro_rules! unsynn{
                 Ok(())
             }
         }
+        $crate::unsynn!{$($cont)*}
+    };
+
+    ($(#[$attribute:meta])* keyword $name:ident = $str:literal; $($cont:tt)*) => {
+        $crate::keyword!{$(#[$attribute])* $name = $str}
+        $crate::unsynn!{$($cont)*}
+    };
+
+    ($(#[$attribute:meta])* operator $name:ident = $str:literal; $($cont:tt)*) => {
+        $crate::operator!{$(#[$attribute])* $name = $str}
         $crate::unsynn!{$($cont)*}
     };
 
