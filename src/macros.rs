@@ -305,21 +305,41 @@ macro_rules! keyword{
 /// ```
 #[macro_export]
 macro_rules! operator{
-    // match a list punct! defs
+    // match a list of operator! defs
     ($($(#[$attribute:meta])* $name:ident = $op:literal),*$(,)?) => {
         $(
             $crate::operator!(@operator $(#[$attribute])* $name = $op);
         )*
     };
 
-    // match a single punct! defs with len 1-3
+    // match a single operator! defs with len 1-4
     (@operator $(#[$attribute:meta])* $name:ident = $op:literal) => {
         $(#[$attribute])*
         pub type $name = Operator<
-        {$crate::operator!(@char_at 0 $op)},
-        {$crate::operator!(@char_at 1 $op)},
-        {$crate::operator!(@char_at 2 $op)},
-        {$crate::operator!(@char_at 3 $op)},
+        {
+                assert!(
+                    $op.len() >= 1 && $op.len() <= 4,
+                    "Operators must be 1-4 ASCII punctuation characters"
+                );
+                let c0 = $crate::operator!(@char_at 0 $op);
+                assert!(c0.is_ascii_punctuation(), "Operator must be ASCII punctuation");
+                c0
+        },
+        {
+                let c1 = $crate::operator!(@char_at 1 $op);
+                assert!(c1 == '\0' || c1.is_ascii_punctuation(), "Operator must be ASCII punctuation");
+                c1
+        },
+        {
+                let c2 = $crate::operator!(@char_at 2 $op);
+                assert!(c2 == '\0' || c2.is_ascii_punctuation(), "Operator must be ASCII punctuation");
+                c2
+        },
+        {
+                let c3 = $crate::operator!(@char_at 3 $op);
+                assert!(c3 == '\0' || c3.is_ascii_punctuation(), "Operator must be ASCII punctuation");
+                c3
+        },
         >;
     };
 
