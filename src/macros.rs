@@ -9,7 +9,8 @@ use crate::*;
 /// control over the expansion. `#[derive(Copy, Clone)]` have to be manually defined. `Debug`
 /// and `Display` are automatically implemented when the respective features are enabled.
 /// Keyword and operator definitions can also be defined, they delegate to the `keyword!` and
-/// `operator!` macro described below.
+/// `operator!` macro described below. All entities can be prefixed by `pub` to make them
+/// public.
 ///
 /// Common for all three variants is that entries are tried in order. Disjunctive for enums
 /// and conjunctive in structures. This makes the order important, e.g. for enums, in case
@@ -181,13 +182,13 @@ macro_rules! unsynn{
         $crate::unsynn!{$($cont)*}
     };
 
-    ($(#[$attribute:meta])* keyword $name:ident = $str:literal; $($cont:tt)*) => {
-        $crate::keyword!{$(#[$attribute])* $name = $str}
+    ($(#[$attribute:meta])* $pub:vis keyword $name:ident = $str:literal; $($cont:tt)*) => {
+        $crate::keyword!{$(#[$attribute])* $pub $name = $str}
         $crate::unsynn!{$($cont)*}
     };
 
-    ($(#[$attribute:meta])* operator $name:ident = $str:literal; $($cont:tt)*) => {
-        $crate::operator!{$(#[$attribute])* $name = $str}
+    ($(#[$attribute:meta])* $pub:vis operator $name:ident = $str:literal; $($cont:tt)*) => {
+        $crate::operator!{$(#[$attribute])* $pub $name = $str}
         $crate::unsynn!{$($cont)*}
     };
 
@@ -216,16 +217,19 @@ macro_rules! unsynn{
 
 /// Define types matching keywords.
 ///
-/// `keyword!{ Name = "identifier", ...}`
+/// `keyword!{ pub Name = "identifier", ...}`
 ///
+/// * `pub` defines the keyword public, default is private
 /// * `Name` is the name for the struct to be generated
 /// * `"identifier"` is the case sensitive keyword
-/// * keywords are always defined as `pub`
 ///
 /// `Name::parse()` will then only match the defined identifier.  It will implement `Debug`
 /// and `Display` if the `impl_debug` and `impl_display` features are enabled. `Clone` is
 /// always implemented for keywords. Additionally `AsRef<str>` is implemented for each Keyword
 /// to access the identifier string from rust code.
+///
+/// The `unsynn!` macro supports defining keywords by using `keyword Name = "ident";`, the
+/// `pub` specification has to come before `keyword` then.
 ///
 /// # Example
 ///
@@ -245,12 +249,12 @@ macro_rules! unsynn{
 /// ```
 #[macro_export]
 macro_rules! keyword{
-    ($($(#[$attribute:meta])* $name:ident = $str:literal),*$(,)?) => {
+    ($($(#[$attribute:meta])* $pub:vis $name:ident = $str:literal),*$(,)?) => {
         $(
             $(#[$attribute])*
             #[cfg_attr(feature = "impl_debug", derive(Debug))]
             #[derive(Clone)]
-            pub struct $name;
+            $pub struct $name;
 
             impl Parser for $name {
                 fn parser(tokens: &mut TokenIter) -> Result<Self> {
@@ -296,15 +300,18 @@ macro_rules! keyword{
 
 /// Define types matching operators (punctuation sequences).
 ///
-/// `operator!{ Op = "punct", ...}`
+/// `operator!{ pub Op = "punct", ...}`
 ///
+/// * `pub` defines the operators public, default is private
 /// * `Op` is the name for the struct to be generated
 /// * `"punct"` is up to 4 ASCII punctuation characters
-/// * operators are always defined as `pub`
 ///
 /// `Op::parse()` will match the defined operator. It will implement `Debug` and `Display` if
 /// the `impl_debug` and `impl_display` features are enabled. `Clone` is always implemented
 /// for operators.
+///
+/// The `unsynn!` macro supports defining operators by using `operator Op = "chars";`, the
+/// `pub` specification has to come before `operator` then.
 ///
 /// # Example
 ///
@@ -329,16 +336,16 @@ macro_rules! keyword{
 #[macro_export]
 macro_rules! operator{
     // match a list of operator! defs
-    ($($(#[$attribute:meta])* $name:ident = $op:literal),*$(,)?) => {
+    ($($(#[$attribute:meta])* $pub:vis $name:ident = $op:literal),*$(,)?) => {
         $(
-            $crate::operator!(@operator $(#[$attribute])* $name = $op);
+            $crate::operator!(@operator $(#[$attribute])* $pub $name = $op);
         )*
     };
 
     // match a single operator! defs with len 1-4
-    (@operator $(#[$attribute:meta])* $name:ident = $op:literal) => {
+    (@operator $(#[$attribute:meta])* $pub:vis $name:ident = $op:literal) => {
         $(#[$attribute])*
-        pub type $name = Operator<
+        $pub type $name = Operator<
         {
                 assert!(
                     $op.len() >= 1 && $op.len() <= 4,

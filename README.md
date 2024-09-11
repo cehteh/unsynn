@@ -65,23 +65,23 @@ To define keywords and operators we provide the `keyword!` and `operator!` macro
 ```rust
 # use unsynn::*;
 keyword! {
-    Calc = "CALC",
+    pub Calc = "CALC",
 }
 
 operator! {
-    Add = "+",
-    Substract = "-",
-    Multiply = "*",
-    Divide = "/",
+    pub Add = "+",
+    pub Substract = "-",
+    pub Multiply = "*",
+    pub Divide = "/",
 }
 
 // The above can be written within a unsynn! macro as:
 // unsynn! {
-//     keyword Calc = "CALC";
-//     operator Add = "+";
-//     operator Substract = "-";
-//     operator Multiply = "*";
-//     operator Divide = "/";
+//     pub keyword Calc = "CALC";
+//     pub operator Add = "+";
+//     pub operator Substract = "-";
+//     pub operator Multiply = "*";
+//     pub operator Divide = "/";
 // }
 
 // looks like BNF, but can't do recursive types

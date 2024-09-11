@@ -337,99 +337,99 @@ pub type LifetimeTick = PunctJoint<'\''>;
 
 operator! {
     /// `+`
-    Plus = "+",
+    pub Plus = "+",
     /// `-`
-    Minus = "-",
+    pub Minus = "-",
     /// `*`
-    Star = "*",
+    pub Star = "*",
     /// `/`
-    Slash = "/",
+    pub Slash = "/",
     /// `%`
-    Percent = "%",
+    pub Percent = "%",
     /// `^`
-    Caret = "^",
+    pub Caret = "^",
     /// `!`
-    Bang = "!",
+    pub Bang = "!",
     /// `&`
-    And = "&",
+    pub And = "&",
     /// `|`
-    Or = "|",
+    pub Or = "|",
     /// `&&`
-    AndAnd = "&&",
+    pub AndAnd = "&&",
     /// `||`
-    OrOr = "||",
+    pub OrOr = "||",
     /// `<<`
-    Shl = "<<",
+    pub Shl = "<<",
     /// `>>`
-    Shr = ">>",
+    pub Shr = ">>",
     /// `+=`
-    PlusEq = "+=",
+    pub PlusEq = "+=",
     /// `-=`
-    MinusEq = "-=",
+    pub MinusEq = "-=",
     /// `*=`
-    StarEq = "*=",
+    pub StarEq = "*=",
     /// `/=`
-    SlashEq = "/=",
+    pub SlashEq = "/=",
     /// `%=`
-    PercentEq = "%=",
+    pub PercentEq = "%=",
     /// `^=`
-    CaretEq = "^=",
+    pub CaretEq = "^=",
     /// `&=`
-    AndEq = "&=",
+    pub AndEq = "&=",
     /// `|=`
-    OrEq = "|=",
+    pub OrEq = "|=",
     /// `<<=`
-    ShlEq = "<<=",
+    pub ShlEq = "<<=",
     /// `>>=`
-    ShrEq = ">>=",
+    pub ShrEq = ">>=",
     /// `=`
-    Assign = "=",
+    pub Assign = "=",
     /// `==`
-    Equal = "==",
+    pub Equal = "==",
     /// `!=`
-    NotEqual = "!=",
+    pub NotEqual = "!=",
     /// `>`
-    Gt = ">",
+    pub Gt = ">",
     /// `<`
-    Lt = "<",
+    pub Lt = "<",
     /// `>=`
-    Ge = ">=",
+    pub Ge = ">=",
     /// `<=`
-    Le = "<=",
+    pub Le = "<=",
     /// `@`
-    At = "@",
+    pub At = "@",
     /// `_`
-    Underscore = "_",
+    pub Underscore = "_",
     /// `.`
-    Dot = ".",
+    pub Dot = ".",
     /// `..`
-    DotDot = "..",
+    pub DotDot = "..",
     /// `...`
-    Ellipsis = "...",
+    pub Ellipsis = "...",
     /// `..=`
-    DotDotEq = "..=",
+    pub DotDotEq = "..=",
     /// `,`
-    Comma = ",",
+    pub Comma = ",",
     /// `;`
-    Semicolon = ";",
+    pub Semicolon = ";",
     /// `:`
-    Colon = ":",
+    pub Colon = ":",
     /// `::`
-    PathSep = "::",
+    pub PathSep = "::",
     /// `->`
-    RArrow = "->",
+    pub RArrow = "->",
     /// `=>`
-    FatArrow = "=>",
+    pub FatArrow = "=>",
     /// `<-`
-    LArrow = "<-",
+    pub LArrow = "<-",
     /// `#`
-    Pound = "#",
+    pub Pound = "#",
     /// `$`
-    Dollar = "$",
+    pub Dollar = "$",
     /// `?`
-    Question = "?",
+    pub Question = "?",
     /// `~`
-    Tilde = "~",
+    pub Tilde = "~",
     /// `\`
-    Backslash = "\\",
+    pub Backslash = "\\",
 }
