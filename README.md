@@ -58,6 +58,34 @@ assert_eq!(
 )
 ```
 
+## Custom Operators and Keywords
+
+To define keywords and operators we provide the `keyword!` and `operator!` macros:
+
+```rust
+# use unsynn::*;
+keyword! {
+    Calc = "CALC",
+}
+
+operator! {
+    Add = "+",
+    Substract = "-",
+    Multiply = "*",
+    Divide = "/",
+}
+
+// looks like BNF, but can't do recursive types
+type Expression = Cons<Calc, AdditiveExpr, Semicolon>;
+type AdditiveOp = Either<Add, Substract>;
+type AdditiveExpr = Either<Cons<MultiplicativeExpr, AdditiveOp, MultiplicativeExpr>, MultiplicativeExpr>;
+type MultiplicativeOp = Either<Multiply, Divide>;
+type MultiplicativeExpr = Either<Cons<LiteralInteger, MultiplicativeOp, LiteralInteger>, LiteralInteger>;
+
+let ast = "CALC 2*3+4/5 ;".to_token_iter()
+    .parse::<Expression>().expect("syntax error");
+```
+
 
 # Feature Flags
 
