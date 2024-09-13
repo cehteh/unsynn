@@ -77,6 +77,7 @@ macro_rules! unsynn {
 #[cfg(not(doc))]
 #[macro_export]
 macro_rules! unsynn{
+    // enums
     ($(#[$attribute:meta])* $pub:vis enum $name:ident {
         $($(#[$vattr:meta])* $variant:ident($parser:ty)),* $(,)?
     } $($cont:tt)*) => {
@@ -119,9 +120,11 @@ macro_rules! unsynn{
                 }
             }
         }
+        // next item
         $crate::unsynn!{$($cont)*}
     };
 
+    // normal structs
     ($(#[$attribute:meta])* $pub:vis struct $name:ident {
         $($(#[$mattr:meta])* $mpub:vis $member:ident: $parser:ty),* $(,)?
     } $($cont:tt)*) => {
@@ -149,9 +152,11 @@ macro_rules! unsynn{
                     Ok(())
             }
         }
+        // next item
         $crate::unsynn!{$($cont)*}
     };
 
+    // tuple structs
     ($(#[$attribute:meta])* $pub:vis struct $name:ident (
         $($(#[$mattr:meta])* $mpub:vis $parser:ty),* $(,)?
     ); $($cont:tt)*) => {
@@ -168,25 +173,28 @@ macro_rules! unsynn{
 
         impl ToTokens for $name {
             fn to_tokens(&self, tokens: &mut TokenStream) {
-                $crate::unsynn!{@tuple_to_tokens $name(self, tokens) $($parser),*}
+                $crate::unsynn!{@tuple_to_tokens(self, tokens) $name $($parser),*}
             }
         }
 
         #[cfg(feature = "impl_display")]
         impl std::fmt::Display for $name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                $crate::unsynn!{@tuple_write $name(self, f) $($parser),*}
+                $crate::unsynn!{@tuple_write(self, f) $name $($parser),*}
                 Ok(())
             }
         }
+        // next item
         $crate::unsynn!{$($cont)*}
     };
 
+    // keyword delegation
     ($(#[$attribute:meta])* $pub:vis keyword $name:ident = $str:literal; $($cont:tt)*) => {
         $crate::keyword!{$(#[$attribute])* $pub $name = $str}
         $crate::unsynn!{$($cont)*}
     };
 
+    // operator delegation
     ($(#[$attribute:meta])* $pub:vis operator $name:ident = $str:literal; $($cont:tt)*) => {
         $crate::operator!{$(#[$attribute])* $pub $name = $str}
         $crate::unsynn!{$($cont)*}
@@ -196,20 +204,20 @@ macro_rules! unsynn{
     () => {};
 
     // For the tuple struct ToTokens impl we need to match each tuple member and call to_tokens on it
-    (@tuple_to_tokens $name:ident($this:ident,$param:ident) $element:ty $(,$rest:ty)* $(,)?) => {
-        $crate::unsynn!{@tuple_to_tokens $name($this,$param) $($rest),*}
+    (@tuple_to_tokens($this:ident,$param:ident) $name:ident $element:ty $(,$rest:ty)* $(,)?) => {
+        $crate::unsynn!{@tuple_to_tokens($this,$param) $name $($rest),*}
         let $name($($crate::unsynn!{@_ $rest},)*  that, .. ) = $this;
         that.to_tokens($param);
     };
-    (@tuple_to_tokens $name:ident($this:ident,$param:ident)) => {};
+    (@tuple_to_tokens($this:ident,$param:ident) $name:ident) => {};
 
     // same for write
-    (@tuple_write $name:ident($this:ident,$f:ident) $element:ty $(,$rest:ty)* $(,)?) => {
-        $crate::unsynn!{@tuple_write $name($this,$f) $($rest),*}
+    (@tuple_write($this:ident,$f:ident) $name:ident $element:ty $(,$rest:ty)* $(,)?) => {
+        $crate::unsynn!{@tuple_write($this,$f) $name $($rest),*}
         let $name($($crate::unsynn!{@_ $rest},)*  that, .. ) = $this;
         write!($f, "{} ", &that)?;
     };
-    (@tuple_write $name:ident($this:ident,$f:ident)) => {};
+    (@tuple_write($this:ident,$f:ident) $name:ident) => {};
 
     // replaces a single token with a underscore
     (@_ $unused:tt) => {_};
@@ -219,7 +227,7 @@ macro_rules! unsynn{
 ///
 /// `keyword!{ pub Name = "identifier", ...}`
 ///
-/// * `pub` defines the keyword public, default is private
+/// * A optional `pub` defines the keyword public, default is private
 /// * `Name` is the name for the struct to be generated
 /// * `"identifier"` is the case sensitive keyword
 ///
@@ -302,7 +310,7 @@ macro_rules! keyword{
 ///
 /// `operator!{ pub Op = "punct"; ...}`
 ///
-/// * `pub` defines the operators public, default is private
+/// * A optional `pub` defines the operators public, default is private
 /// * `Op` is the name for the struct to be generated
 /// * `"punct"` is up to 4 ASCII punctuation characters
 ///
