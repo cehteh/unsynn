@@ -16,17 +16,33 @@ use crate::*;
 /// and conjunctive in structures. This makes the order important, e.g. for enums, in case
 /// some entries are subsets of others.
 ///
+/// Enum variants without any data will never be parsed and will not generate any tokens.  For
+/// parsing a enum that is entirely optional one can add a variant like `None(Nothing)` at
+/// the end (at the end is important, because Nothing always matches).
+///
 /// # Example
 ///
 /// ```
 /// # use unsynn::*;
 /// // Define some types
 /// unsynn!{
+///     keyword MyKeyword = "keyword";
+///     // all items can be declared pub/pub(..) etc
+///     pub(crate) operator MyOperator = "+++";
+///
 ///     enum MyEnum {
+///         /// Entries can have attributes/doc comments
 ///         Ident(Ident),
 ///         Braced(BraceGroup),
 ///         Text(LiteralString),
 ///         Number(LiteralInteger),
+/// #       TestTrailingComma(LiteralInteger, Ident,),
+///         Struct{
+///             keyword: MyKeyword,
+///             id: Ident,
+///         },
+///         None(Nothing),
+///         Empty, // won't be parsed
 ///     }
 ///
 ///     struct MyStruct {
@@ -35,15 +51,12 @@ use crate::*;
 ///     }
 ///
 ///     struct MyTupleStruct(Ident, LiteralString);
-///
-///     keyword MyKeyword = "keyword";
-///     operator MyOperator = "+++";
 /// }
 ///
 /// // Create an iterator over the things we want to parse
 /// let mut token_iter = r#"
-///     // the 4 enum variants
-///     ident { within brace } "literal string" 1234
+///     // some enum variants
+///     ident { within brace } "literal string" 1234 ()
 ///     // MyStruct fields
 ///     "literal string" 1234
 ///     // MyTupleStruct fields
@@ -53,10 +66,19 @@ use crate::*;
 /// "#.to_token_iter();
 ///
 /// // Use the defined types
-/// let MyEnum::Ident(_) = MyEnum::parse(&mut token_iter).unwrap() else { panic!()};
-/// let MyEnum::Braced(_) = MyEnum::parse(&mut token_iter).unwrap() else { panic!()};
-/// let MyEnum::Text(_) = MyEnum::parse(&mut token_iter).unwrap() else { panic!()};
-/// let MyEnum::Number(_) = MyEnum::parse(&mut token_iter).unwrap() else { panic!()};
+/// let MyEnum::Ident(myenum_ident) = MyEnum::parse(&mut token_iter).unwrap() else { panic!()};
+/// # assert_eq!(myenum_ident.tokens_to_string(), "ident");
+/// let MyEnum::Braced(myenum_braced) = MyEnum::parse(&mut token_iter).unwrap() else { panic!()};
+/// # assert_eq!(myenum_braced.tokens_to_string(), "{within brace}".tokens_to_string());
+/// let MyEnum::Text(myenum_text) = MyEnum::parse(&mut token_iter).unwrap() else { panic!()};
+/// # assert_eq!(myenum_text.tokens_to_string(), "\"literal string\"");
+/// let MyEnum::Number(myenum_number) = MyEnum::parse(&mut token_iter).unwrap() else { panic!()};
+/// # assert_eq!(myenum_number.tokens_to_string(), "1234");
+/// // the () will not be consumed by the MyEnum but match None(Nothing)
+/// let myenum_nothing = MyEnum::parse(&mut token_iter).unwrap();
+/// # assert_eq!(myenum_nothing.tokens_to_string(), "");
+/// // consume the ()
+/// <ParenthesisGroup>::parse(&mut token_iter).unwrap();
 ///
 /// let my_struct =  MyStruct::parse(&mut token_iter).unwrap();
 /// let my_tuple_struct =  MyTupleStruct::parse(&mut token_iter).unwrap();
@@ -66,11 +88,11 @@ use crate::*;
 #[cfg(doc)]
 #[macro_export]
 macro_rules! unsynn {
-    (enum $name:ident { $( $variant:ident($parser:ty) ),* }) => {};
+    (enum $name:ident { $( $variant:ident... ),* }) => {};
     (struct $name:ident { $( $member:ident: $parser:ty ),* }) => {};
     (struct $name:ident ( $( $parser:ty ),*);) => {};
     (keyword $name:ident = "name";) => {};
-    (operator $name:ident = "name";) => {};
+    (operator $name:ident = "punct";) => {};
 }
 
 #[doc(hidden)]
@@ -79,47 +101,37 @@ macro_rules! unsynn {
 macro_rules! unsynn{
     // enums
     ($(#[$attribute:meta])* $pub:vis enum $name:ident {
-        $($(#[$vattr:meta])* $variant:ident($parser:ty)),* $(,)?
+        $($variants:tt)*
     } $($cont:tt)*) => {
+        // The actual enum definition is written as given
         #[cfg_attr(feature = "impl_debug", derive(Debug))]
         $(#[$attribute])* $pub enum $name {
-            $($(#[$vattr])* $variant($parser)),*
+            $($variants)*
         }
 
         impl Parser for $name {
             fn parser(tokens: &mut TokenIter) -> Result<Self> {
-                $(
-                    if let Ok(parsed) = <$parser>::parse(tokens) {
-                        return Ok($name::$variant(parsed));
-                    }
-                )*
-                    match tokens.next() {
-                        Some(token) => $crate::Error::unexpected_token(token),
-                        None => $crate::Error::unexpected_end()
-                    }
+                // try to parse each variant
+                $crate::unsynn!{@enum_parse_variant(tokens) $($variants)*}
+                // nothing matched, error out
+                $crate::Error::unexpected_token_or_end(tokens.next())
             }
         }
 
         impl ToTokens for $name {
             fn to_tokens(&self, tokens: &mut TokenStream) {
-                match self {
-                    $(
-                        $name::$variant(matched) => matched.to_tokens(tokens),
-                    )*
-                }
+                $crate::unsynn!{@enum_to_tokens(self, tokens) {$($variants)*}}
             }
         }
 
         #[cfg(feature = "impl_display")]
         impl std::fmt::Display for $name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                match self {
-                    $(
-                        $name::$variant(matched) => write!(f, "{matched} "),
-                    )*
-                }
+                $crate::unsynn!{@enum_write(self, f) {$($variants)*}}
+                Ok(())
             }
         }
+
         // next item
         $crate::unsynn!{$($cont)*}
     };
@@ -133,13 +145,13 @@ macro_rules! unsynn{
             $($(#[$mattr])* $mpub $member : $parser),*
         }
 
-        impl Parser for $name {
+        impl $crate::Parser for $name {
             fn parser(tokens: &mut TokenIter) -> Result<Self> {
                 Ok(Self{$($member: <$parser>::parser(tokens)?),*})
             }
         }
 
-        impl ToTokens for $name {
+        impl $crate::ToTokens for $name {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 $(self.$member.to_tokens(tokens);)*
             }
@@ -148,10 +160,11 @@ macro_rules! unsynn{
         #[cfg(feature = "impl_display")]
         impl std::fmt::Display for $name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                $(write!(f, "{} ", &self.$member);)*
-                    Ok(())
+                $(write!(f, "{} ", &self.$member)?;)*
+                Ok(())
             }
         }
+
         // next item
         $crate::unsynn!{$($cont)*}
     };
@@ -165,25 +178,26 @@ macro_rules! unsynn{
             $($(#[$mattr])* $mpub $parser),*
         );
 
-        impl Parser for $name {
+        impl $crate::Parser for $name {
             fn parser(tokens: &mut TokenIter) -> Result<Self> {
                 Ok(Self($(<$parser>::parser(tokens)?),*))
             }
         }
 
-        impl ToTokens for $name {
+        impl $crate::ToTokens for $name {
             fn to_tokens(&self, tokens: &mut TokenStream) {
-                $crate::unsynn!{@tuple_to_tokens(self, tokens) $name $($parser),*}
+                $crate::unsynn!{@tuple_to_tokens(self, tokens) $name : ($($parser),*)}
             }
         }
 
         #[cfg(feature = "impl_display")]
         impl std::fmt::Display for $name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                $crate::unsynn!{@tuple_write(self, f) $name $($parser),*}
+                $crate::unsynn!{@tuple_write(self, f) $name : ($($parser),*)}
                 Ok(())
             }
         }
+
         // next item
         $crate::unsynn!{$($cont)*}
     };
@@ -203,21 +217,127 @@ macro_rules! unsynn{
     // terminate recursion
     () => {};
 
-    // For the tuple struct ToTokens impl we need to match each tuple member and call to_tokens on it
-    (@tuple_to_tokens($this:ident,$param:ident) $name:ident $element:ty $(,$rest:ty)* $(,)?) => {
-        $crate::unsynn!{@tuple_to_tokens($this,$param) $name $($rest),*}
-        let $name($($crate::unsynn!{@_ $rest},)*  that, .. ) = $this;
-        that.to_tokens($param);
+    // to_tokens for enum tuple variant
+    (@enum_to_tokens($self:ident, $tokens:ident) {$(#[$_attrs:meta])* $variant:ident($($tuple:tt)*) $(,$($cont:tt)*)?} ) => {
+        if matches!($self, Self::$variant(..)) {
+            $crate::unsynn!{@tuple_to_tokens($self, $tokens) Self::$variant : ($($tuple)*)}
+            return
+        }
+        $crate::unsynn!{@enum_to_tokens($self, $tokens) {$($($cont)*)?}}
     };
-    (@tuple_to_tokens($this:ident,$param:ident) $name:ident) => {};
+
+    // to_tokens for enum struct variant
+    (@enum_to_tokens($self:ident, $tokens:ident) {
+        $(#[$_attrs:meta])* $variant:ident {
+            $($(#[$_mattrs:meta])* $member:ident: $_type:ty),* $(,)?
+        } $(,$($cont:tt)*)?} ) => {
+            if matches!($self, Self::$variant{..}) {
+                $(
+                    let Self::$variant{$member: member, ..} = $self else {unreachable!()};
+                    member.to_tokens($tokens);
+                )*
+                return
+            }
+            $crate::unsynn!{@enum_to_tokens($self, $tokens) {$($($cont)*)?}}
+    };
+
+    // to_tokens for empty variant does nothing
+    (@enum_to_tokens($self:ident, $tokens:ident) {$(#[$_attrs:meta])* $variant:ident $(,$($cont:tt)*)?} ) => {
+        if matches!($self, Self::$variant) {
+            return
+        }
+        $crate::unsynn!{@enum_to_tokens($self, $tokens) {$($($cont)*)?}}
+    };
+
+    // end recursion
+    (@enum_to_tokens($self:ident, $tokens:ident) {}) => {};
+
+    // write for enum tuple variant
+    (@enum_write($self:ident, $f:ident) {$(#[$_attrs:meta])* $variant:ident($($tuple:tt)*) $(,$($cont:tt)*)?} ) => {
+        if matches!($self, Self::$variant(..)) {
+            $crate::unsynn!{@tuple_write($self, $f) Self::$variant : ($($tuple)*)}
+        }
+        $crate::unsynn!{@enum_write($self, $f) {$($($cont)*)?}}
+    };
+
+    // to_tokens for enum struct variant
+    (@enum_write($self:ident, $f:ident) {
+        $(#[$_attrs:meta])* $variant:ident {
+            $($(#[$_mattrs:meta])* $member:ident: $_type:ty),* $(,)?
+        } $(,$($cont:tt)*)?} ) => {
+            if matches!($self, Self::$variant{..}) {
+                $(
+                    let Self::$variant{$member: that, ..} = $self else {unreachable!()};
+                    write!($f, "{} ", that)?;
+                )*
+            }
+            $crate::unsynn!{@enum_write($self, $f) {$($($cont)*)?}}
+    };
+
+    // write for empty variant does nothing
+    (@enum_write($self:ident, $f:ident) {$(#[$_attrs:meta])* $variant:ident $(,$($cont:tt)*)?} ) => {
+        if matches!($self, Self::$variant) {
+        }
+        $crate::unsynn!{@enum_write($self, $f) {$($($cont)*)?}}
+    };
+
+    // end recursion
+    (@enum_write($self:ident, $f:ident) {}) => {};
+
+    // Tuple enum variant
+    (@enum_parse_variant($tokens:ident) $(#[$_attrs:meta])* $variant:ident($($tuple:tt)*) $(, $($cont:tt)*)?) => {
+        if let Ok(parsed) = (|| -> $crate::Result<_> {
+            $crate::unsynn!{@enum_parse_tuple($tokens) $variant($($tuple)*)}
+        })() {
+            return Ok(parsed);
+        }
+        $crate::unsynn!{@enum_parse_variant($tokens) $($($cont)*)?}
+    };
+
+    // Struct enum variant
+    (@enum_parse_variant($tokens:ident) $(#[$_attrs:meta])* $variant:ident{$($members:tt)*} $(, $($cont:tt)*)?) => {
+        if let Ok(parsed) = (|| -> $crate::Result<_> {
+            $crate::unsynn!{@enum_parse_struct($tokens) $variant{$($members)*}}
+        })() {
+            return Ok(parsed);
+        }
+        $crate::unsynn!{@enum_parse_variant($tokens) $($($cont)*)?}
+    };
+
+    // Empty enum variant
+    (@enum_parse_variant($tokens:ident) $(#[$_attrs:meta])* $variant:ident $(, $($cont:tt)*)?) => {
+        /* NOP */
+        $crate::unsynn!{@enum_parse_variant($tokens) $($($cont)*)?}
+    };
+
+    // end recursion
+    (@enum_parse_variant($tokens:ident)) => {};
+
+    // Create a tuple variant
+    (@enum_parse_tuple($tokens:ident) $variant:ident($($(#[$_attrs:meta])* $parser:ty),* $(,)?)) => {
+        Ok(Self::$variant($(<$parser>::parse($tokens)?,)*))
+    };
+
+    // Create a struct variant
+    (@enum_parse_struct($tokens:ident) $variant:ident{$($(#[$_attrs:meta])* $name:ident : $parser:ty),* $(,)?}) => {
+        Ok(Self::$variant{$($name : <$parser>::parse($tokens)?,)*})
+    };
+
+    // ToTokens for a tuple or enum tuple variant
+    (@tuple_to_tokens($self:ident,$tokens:ident) $path:path : ($(#[$_attrs:meta])* $element:ty $(,$cont:tt)* $(,)?)) => {
+        $crate::unsynn!{@tuple_to_tokens($self,$tokens) $path : ($($cont),*)}
+        let $path($($crate::unsynn!{@_ $cont},)*  that, .. ) = $self else {unreachable!()};
+        that.to_tokens($tokens);
+    };
+    (@tuple_to_tokens($self:ident,$tokens:ident) $path:path : ()) => {};
 
     // same for write
-    (@tuple_write($this:ident,$f:ident) $name:ident $element:ty $(,$rest:ty)* $(,)?) => {
-        $crate::unsynn!{@tuple_write($this,$f) $name $($rest),*}
-        let $name($($crate::unsynn!{@_ $rest},)*  that, .. ) = $this;
-        write!($f, "{} ", &that)?;
+    (@tuple_write($self:ident,$f:ident) $path:path : ($(#[$_attrs:meta])* $element:ty $(,$cont:tt)* $(,)?)) => {
+        $crate::unsynn!{@tuple_write($self,$f) $path : ($($cont),*)}
+        let $path($($crate::unsynn!{@_ $cont},)*  that, .. ) = $self else {unreachable!()};
+        write!($f, "{} " , &that)?;
     };
-    (@tuple_write($this:ident,$f:ident) $name:ident) => {};
+    (@tuple_write($self:ident,$_f:ident) $_path:path : ()) => {};
 
     // replaces a single token with a underscore
     (@_ $unused:tt) => {_};
@@ -264,8 +384,8 @@ macro_rules! keyword{
             #[derive(Clone)]
             $pub struct $name;
 
-            impl Parser for $name {
-                fn parser(tokens: &mut TokenIter) -> Result<Self> {
+            impl $crate::Parser for $name {
+                fn parser(tokens: &mut $crate::TokenIter) -> Result<Self> {
                     use $crate::Parse;
                     $crate::CachedIdent::parse_with(tokens, |ident| {
                         if ident == $str {
@@ -284,7 +404,7 @@ macro_rules! keyword{
                 }
             }
 
-            impl ToTokens for $name {
+            impl $crate::ToTokens for $name {
                 fn to_tokens(&self, tokens: &mut TokenStream) {
                     $crate::Ident::new($str, $crate::Span::call_site()).to_tokens(tokens);
                 }
