@@ -124,9 +124,7 @@ pub trait ToTokens {
     /// Convert `&self` into a `TokenIter` object.
     // This is mostly used in the test suite to replace the quote! macro
     fn to_token_iter(&self) -> TokenIter {
-        let mut tokens = TokenStream::new();
-        self.to_tokens(&mut tokens);
-        tokens.into_iter()
+        self.to_token_stream().into_iter()
     }
 
     /// Convert `&self` into a `String` object.  This is mostly used in the test suite to
