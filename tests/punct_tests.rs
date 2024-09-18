@@ -37,3 +37,8 @@ fn test_fancy() {
     let fancy = Fancy::parse(&mut token_iter).unwrap();
     assert_eq!(fancy.tokens_to_string(), "<~~>");
 }
+
+#[test]
+fn test_joint_text() {
+    assert_eq!("<text>".tokens_to_string(), "< text >");
+}
