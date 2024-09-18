@@ -37,7 +37,7 @@ use crate::*;
 /// #           /// fooo
 /// #           Ident,
 /// #           /// bar
-/// #           Option<Ident>
+/// #           Optional<Ident>
 /// #       ),
 ///         Braced(BraceGroup),
 ///         Text(LiteralString),
@@ -201,7 +201,9 @@ macro_rules! unsynn{
         #[cfg(feature = "impl_display")]
         impl std::fmt::Display for $name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                $crate::unsynn!{@tuple_write(self, f) $name : ($($parser),*)}
+                unsynn! {@tuple_for_each item in self : Self($($parser),*) {
+                    write!(f, "{} " , &item)?;
+                }}
                 Ok(())
             }
         }
@@ -265,7 +267,9 @@ macro_rules! unsynn{
     // write for enum tuple variant
     (@enum_write($self:ident, $f:ident) {$(#[$_attrs:meta])* $variant:ident($($tuple:tt)*) $(,$($cont:tt)*)?} ) => {
         if matches!($self, Self::$variant(..)) {
-            $crate::unsynn!{@tuple_write($self, $f) Self::$variant : ($($tuple)*)}
+            unsynn! {@tuple_for_each item in $self : Self::$variant($($tuple)*) {
+                write!($f, "{} " , &item)?;
+            }}
         }
         $crate::unsynn!{@enum_write($self, $f) {$($($cont)*)?}}
     };
@@ -357,13 +361,13 @@ macro_rules! unsynn{
     ) => {
         $crate::unsynn!{@tuple_for_each $i in $this : $($variant)::*[$($($rest)*)?] { $($code)* }}
         #[allow(irrefutable_let_patterns)]
-        let $crate::unsynn!{@_ $i $($variant)::*[$($($rest)*)?]} = $this else {unreachable!()};
+        let $crate::unsynn!{@tuple_nth $i $($variant)::*[$($($rest)*)?]} = $this else {unreachable!()};
             $($code)*
         };
     (@tuple_for_each $i:ident in $_this:ident : $($variant:ident)::*[] { $($code:tt)* }) => {};
 
-    // replaces each item with a underscore,
-    (@_ $i:ident $($variant:ident)::*[$($(#[$_attrs:meta])* $_pub:vis $_element:ty),* $(,)?]) => {
+    // replaces each prefix item with a underscore, followed by $i and .. finally
+    (@tuple_nth $i:ident $($variant:ident)::*[$($(#[$_attrs:meta])* $_pub:vis $_element:ty),* $(,)?]) => {
         $($variant)::*(
             $($crate::unsynn!(@_ $_element),)*
             $i,
