@@ -33,10 +33,16 @@ use crate::*;
 ///     enum MyEnum {
 ///         /// Entries can have attributes/doc comments
 ///         Ident(Ident),
+/// #       TupleWithDocs(
+/// #           /// fooo
+/// #           Ident,
+/// #           /// bar
+/// #           Option<Ident>
+/// #       ),
 ///         Braced(BraceGroup),
 ///         Text(LiteralString),
 ///         Number(LiteralInteger),
-/// #       TestTrailingComma(LiteralInteger, Ident,),
+/// #       TrailingComma(LiteralInteger, Ident,),
 ///         Struct{
 ///             keyword: MyKeyword,
 ///             id: Ident,
@@ -186,7 +192,9 @@ macro_rules! unsynn{
 
         impl $crate::ToTokens for $name {
             fn to_tokens(&self, tokens: &mut TokenStream) {
-                $crate::unsynn!{@tuple_to_tokens(self, tokens) $name : ($($parser),*)}
+                unsynn! {@tuple_for_each item in self : Self($($parser),*) {
+                    item.to_tokens(tokens);
+                }}
             }
         }
 
@@ -220,7 +228,9 @@ macro_rules! unsynn{
     // to_tokens for enum tuple variant
     (@enum_to_tokens($self:ident, $tokens:ident) {$(#[$_attrs:meta])* $variant:ident($($tuple:tt)*) $(,$($cont:tt)*)?} ) => {
         if matches!($self, Self::$variant(..)) {
-            $crate::unsynn!{@tuple_to_tokens($self, $tokens) Self::$variant : ($($tuple)*)}
+            unsynn! {@tuple_for_each item in $self : Self::$variant($($tuple)*) {
+                item.to_tokens($tokens);
+            }}
             return
         }
         $crate::unsynn!{@enum_to_tokens($self, $tokens) {$($($cont)*)?}}
@@ -323,24 +333,46 @@ macro_rules! unsynn{
         Ok(Self::$variant{$($name : <$parser>::parse($tokens)?,)*})
     };
 
-    // ToTokens for a tuple or enum tuple variant
-    (@tuple_to_tokens($self:ident,$tokens:ident) $path:path : ($(#[$_attrs:meta])* $element:ty $(,$cont:tt)* $(,)?)) => {
-        $crate::unsynn!{@tuple_to_tokens($self,$tokens) $path : ($($cont),*)}
-        let $path($($crate::unsynn!{@_ $cont},)*  that, .. ) = $self else {unreachable!()};
-        that.to_tokens($tokens);
+    // iterate over $variant:($tuple) in $this and apply some $code for each $i
+    (@tuple_for_each
+        $i:ident in $this:ident :
+        $($variant:ident)::*($($tuple:tt)*)
+        {
+            $($code:tt)*
+        }
+    ) => {
+        {
+            $crate::unsynn!{@tuple_for_each $i in $this : $($variant)::*[$($tuple)*] { $($code)* }}
+        }
     };
-    (@tuple_to_tokens($self:ident,$tokens:ident) $path:path : ()) => {};
 
-    // same for write
-    (@tuple_write($self:ident,$f:ident) $path:path : ($(#[$_attrs:meta])* $element:ty $(,$cont:tt)* $(,)?)) => {
-        $crate::unsynn!{@tuple_write($self,$f) $path : ($($cont),*)}
-        let $path($($crate::unsynn!{@_ $cont},)*  that, .. ) = $self else {unreachable!()};
-        write!($f, "{} " , &that)?;
+    (@tuple_for_each
+        $i:ident in $this:ident :
+        $($variant:ident)::*[
+            $(#[$_attrs:meta])* $_pub:vis $element:ty
+            $(,$($rest:tt)*)?
+        ]{
+            $($code:tt)*
+        }
+    ) => {
+        $crate::unsynn!{@tuple_for_each $i in $this : $($variant)::*[$($($rest)*)?] { $($code)* }}
+        #[allow(irrefutable_let_patterns)]
+        let $crate::unsynn!{@_ $i $($variant)::*[$($($rest)*)?]} = $this else {unreachable!()};
+            $($code)*
+        };
+    (@tuple_for_each $i:ident in $_this:ident : $($variant:ident)::*[] { $($code:tt)* }) => {};
+
+    // replaces each item with a underscore,
+    (@_ $i:ident $($variant:ident)::*[$($(#[$_attrs:meta])* $_pub:vis $_element:ty),* $(,)?]) => {
+        $($variant)::*(
+            $($crate::unsynn!(@_ $_element),)*
+            $i,
+            ..
+        )
     };
-    (@tuple_write($self:ident,$_f:ident) $_path:path : ()) => {};
 
     // replaces a single token with a underscore
-    (@_ $unused:tt) => {_};
+    (@_ $_tt:tt) => {_}
 }
 
 /// Define types matching keywords.
