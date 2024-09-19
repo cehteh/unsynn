@@ -219,7 +219,7 @@ fn test_alone_punct_into_tt() {
 /// Custom operators can be defined with the `operator!` macro. All but the last character are
 /// `Spacing::Joint`. Attention must be payed when operators have the same prefix, the shorter
 /// ones need to be tried first.
-#[derive(Default, Clone)]
+#[derive(Default, Copy, Clone, PartialEq, Eq)]
 pub struct Operator<
     const C1: char,
     const C2: char = '\0',

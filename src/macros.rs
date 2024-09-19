@@ -417,7 +417,7 @@ macro_rules! keyword{
         $(
             $(#[$attribute])*
             #[cfg_attr(feature = "impl_debug", derive(Debug))]
-            #[derive(Clone)]
+            #[derive(Default, Clone, Copy, PartialEq, Eq)]
             $pub struct $name;
 
             impl $crate::Parser for $name {
