@@ -103,7 +103,9 @@ always present are the [`Parser`], [`Parse`] and [`ToTokens`] traits.  The follo
 enable extra traits:
 
 - **impl_debug**  
-  Adds [`Debug`](std::fmt::Debug) implementations to generic unsynn types.
+  Unsynn generates Debug impls only in debug builds (`debug_assertions` is set). This flag
+  adds [`Debug`](std::fmt::Debug) implementations to generic unsynn types in release builds as
+  well.
 
 - **impl_display**  
   Adds [`Display`](std::fmt::Display) implementations to generic unsynn types.

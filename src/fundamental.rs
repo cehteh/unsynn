@@ -239,7 +239,7 @@ impl<T> AsRef<str> for Cached<T> {
     }
 }
 
-#[cfg(feature = "impl_debug")]
+#[cfg(any(debug_assertions, feature = "impl_debug"))]
 impl<T: std::fmt::Debug> std::fmt::Debug for Cached<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct(&format!("Cached<{}>", std::any::type_name::<T>()))
@@ -285,7 +285,7 @@ pub type CachedLiteral = Cached<Literal>;
 /// to parse a [`Repeats`] without a delimiter.  Note that using `Nothing` as primary entity
 /// in a [`Vec`], [`LazyVec`], [`DelimitedVec`] or [`Repeats`] will result in an infinite
 /// loop.
-#[cfg_attr(feature = "impl_debug", derive(Debug))]
+#[cfg_attr(any(debug_assertions, feature = "impl_debug"), derive(Debug))]
 #[derive(Clone)]
 pub struct Nothing;
 
@@ -312,7 +312,7 @@ impl std::fmt::Display for Nothing {
 
 /// A unit that always fails to match. This is useful as default for generics.
 /// See how [`Either<A, B, C, D>`] uses this for unused alternatives.
-#[cfg_attr(feature = "impl_debug", derive(Debug))]
+#[cfg_attr(any(debug_assertions, feature = "impl_debug"), derive(Debug))]
 #[derive(Clone)]
 pub struct Invalid;
 
@@ -366,7 +366,7 @@ impl<T> ToTokens for Except<T> {
     }
 }
 
-#[cfg(feature = "impl_debug")]
+#[cfg(any(debug_assertions, feature = "impl_debug"))]
 impl<T: std::fmt::Debug> std::fmt::Debug for Except<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct(&format!("Except<{}>", std::any::type_name::<T>()))
@@ -412,7 +412,7 @@ impl<T> ToTokens for Expect<T> {
     }
 }
 
-#[cfg(feature = "impl_debug")]
+#[cfg(any(debug_assertions, feature = "impl_debug"))]
 impl<T: std::fmt::Debug> std::fmt::Debug for Expect<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct(&format!("Expect<{}>", std::any::type_name::<T>()))
@@ -437,7 +437,7 @@ impl<T> std::fmt::Display for Expect<T> {
 ///
 /// let _end_ = EndOfStream::parser(&mut token_iter).unwrap();
 /// ```
-#[cfg_attr(feature = "impl_debug", derive(Debug))]
+#[cfg_attr(any(debug_assertions, feature = "impl_debug"), derive(Debug))]
 #[derive(Clone)]
 pub struct EndOfStream;
 
@@ -501,7 +501,7 @@ impl<T: Default> Default for HiddenState<T> {
     }
 }
 
-#[cfg(feature = "impl_debug")]
+#[cfg(any(debug_assertions, feature = "impl_debug"))]
 impl<T: Default + std::fmt::Debug> std::fmt::Debug for HiddenState<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_tuple(&format!("HiddenState<{}>", std::any::type_name::<T>()))

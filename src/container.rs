@@ -224,7 +224,7 @@ impl<T: Parse, S: Parse> RangedRepeats for LazyVec<T, S> {
     }
 }
 
-#[cfg(feature = "impl_debug")]
+#[cfg(any(debug_assertions, feature = "impl_debug"))]
 impl<T: std::fmt::Debug, S: std::fmt::Debug> std::fmt::Debug for LazyVec<T, S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct(&format!(
@@ -309,7 +309,7 @@ impl<T: Parse, D: Parse> RangedRepeats for DelimitedVec<T, D> {
     }
 }
 
-#[cfg(feature = "impl_debug")]
+#[cfg(any(debug_assertions, feature = "impl_debug"))]
 impl<T: std::fmt::Debug, D: std::fmt::Debug> std::fmt::Debug for DelimitedVec<T, D> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_tuple(&format!(
@@ -396,7 +396,7 @@ impl<const MIN: usize, const MAX: usize, T, D> From<Repeats<MIN, MAX, T, D>> for
     }
 }
 
-#[cfg(feature = "impl_debug")]
+#[cfg(any(debug_assertions, feature = "impl_debug"))]
 impl<const MIN: usize, const MAX: usize, T: std::fmt::Debug, D: std::fmt::Debug> std::fmt::Debug
     for Repeats<MIN, MAX, T, D>
 {

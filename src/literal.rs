@@ -11,7 +11,7 @@ use crate::{Error, Literal, Parser, Result, ToTokens, TokenIter, TokenStream, To
 /// A simple unsigned 128 bit integer. This is the most simple form to parse integers. Note
 /// that only decimal integers without any other characters, signs or suffixes are supported,
 /// this is *not* full rust syntax.
-#[cfg_attr(feature = "impl_debug", derive(Debug))]
+#[cfg_attr(any(debug_assertions, feature = "impl_debug"), derive(Debug))]
 #[derive(Clone)]
 pub struct LiteralInteger {
     /// Literal representing an integer
@@ -89,7 +89,7 @@ fn test_literalinteger_into_tt() {
 }
 
 /// A single quoted character literal (`'x'`).
-#[cfg_attr(feature = "impl_debug", derive(Debug))]
+#[cfg_attr(any(debug_assertions, feature = "impl_debug"), derive(Debug))]
 #[derive(Clone)]
 pub struct LiteralCharacter {
     /// Literal representing a single quoted character
@@ -176,7 +176,7 @@ fn test_literalcharacter_into_tt() {
 /// A double quoted string literal (`"hello"`). The quotes are included in the value.  Note
 /// that this is a simplified string literal, and only double quoted strings are supported,
 /// this is *not* full rust syntax, eg. byte and C string literals are not supported.
-#[cfg_attr(feature = "impl_debug", derive(Debug))]
+#[cfg_attr(any(debug_assertions, feature = "impl_debug"), derive(Debug))]
 #[derive(Clone)]
 pub struct LiteralString {
     /// Literal representing a double quoted string

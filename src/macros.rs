@@ -110,7 +110,7 @@ macro_rules! unsynn{
         $($variants:tt)*
     } $($cont:tt)*) => {
         // The actual enum definition is written as given
-        #[cfg_attr(feature = "impl_debug", derive(Debug))]
+        #[cfg_attr(any(debug_assertions, feature = "impl_debug"), derive(Debug))]
         $(#[$attribute])* $pub enum $name {
             $($variants)*
         }
@@ -146,7 +146,7 @@ macro_rules! unsynn{
     ($(#[$attribute:meta])* $pub:vis struct $name:ident {
         $($(#[$mattr:meta])* $mpub:vis $member:ident: $parser:ty),* $(,)?
     } $($cont:tt)*) => {
-        #[cfg_attr(feature = "impl_debug", derive(Debug))]
+        #[cfg_attr(any(debug_assertions, feature = "impl_debug"), derive(Debug))]
         $(#[$attribute])* $pub struct $name {
             $($(#[$mattr])* $mpub $member : $parser),*
         }
@@ -179,7 +179,7 @@ macro_rules! unsynn{
     ($(#[$attribute:meta])* $pub:vis struct $name:ident (
         $($(#[$mattr:meta])* $mpub:vis $parser:ty),* $(,)?
     ); $($cont:tt)*) => {
-        #[cfg_attr(feature = "impl_debug", derive(Debug))]
+        #[cfg_attr(any(debug_assertions, feature = "impl_debug"), derive(Debug))]
         $(#[$attribute])* $pub struct $name (
             $($(#[$mattr])* $mpub $parser),*
         );
@@ -416,7 +416,7 @@ macro_rules! keyword{
     ($($(#[$attribute:meta])* $pub:vis $name:ident = $str:literal);*$(;)?) => {
         $(
             $(#[$attribute])*
-            #[cfg_attr(feature = "impl_debug", derive(Debug))]
+            #[cfg_attr(any(debug_assertions, feature = "impl_debug"), derive(Debug))]
             #[derive(Default, Clone, Copy, PartialEq, Eq)]
             $pub struct $name;
 

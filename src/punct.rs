@@ -43,7 +43,7 @@ impl<const C: char> std::fmt::Display for PunctAny<C> {
     }
 }
 
-#[cfg(feature = "impl_debug")]
+#[cfg(any(debug_assertions, feature = "impl_debug"))]
 impl<const C: char> std::fmt::Debug for PunctAny<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "PunctAny<{C:?}>")
@@ -115,7 +115,7 @@ impl<const C: char> std::fmt::Display for PunctJoint<C> {
     }
 }
 
-#[cfg(feature = "impl_debug")]
+#[cfg(any(debug_assertions, feature = "impl_debug"))]
 impl<const C: char> std::fmt::Debug for PunctJoint<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "PunctJoint<{C:?}>")
@@ -193,7 +193,7 @@ impl<const C: char> std::fmt::Display for PunctAlone<C> {
     }
 }
 
-#[cfg(feature = "impl_debug")]
+#[cfg(any(debug_assertions, feature = "impl_debug"))]
 impl<const C: char> std::fmt::Debug for PunctAlone<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "PunctAlone<{C:?}>")
@@ -311,7 +311,8 @@ impl<const C1: char, const C2: char, const C3: char, const C4: char> std::fmt::D
     }
 }
 
-#[cfg(feature = "impl_debug")]
+// TODO: enable everywhere on debug_assertions, document this
+#[cfg(any(debug_assertions, feature = "impl_debug"))]
 impl<const C1: char, const C2: char, const C3: char, const C4: char> std::fmt::Debug
     for Operator<C1, C2, C3, C4>
 {

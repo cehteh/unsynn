@@ -86,7 +86,7 @@ impl<A, B, C, D> From<Cons<A, B, C, D>> for (A, B, C, D) {
     }
 }
 
-#[cfg(feature = "impl_debug")]
+#[cfg(any(debug_assertions, feature = "impl_debug"))]
 impl<A, B, C, D> std::fmt::Debug for Cons<A, B, C, D>
 where
     A: std::fmt::Debug,
@@ -374,7 +374,7 @@ where
     }
 }
 
-//#[cfg(feature = "impl_debug")]
+#[cfg(any(debug_assertions, feature = "impl_debug"))]
 impl<A, B, C, D> std::fmt::Debug for Either<A, B, C, D>
 where
     A: std::fmt::Debug,

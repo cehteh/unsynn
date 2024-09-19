@@ -16,7 +16,7 @@ macro_rules! make_group {
     ($($name:ident: $delimiter:ident);* $(;)?) => {
         $(
             #[doc = stringify!(A opaque group of tokens within a $delimiter)]
-            #[cfg_attr(feature = "impl_debug", derive(Debug))]
+            #[cfg_attr(any(debug_assertions, feature = "impl_debug"), derive(Debug))]
             #[derive(Clone)]
             pub struct $name(pub Group);
 
@@ -137,7 +137,7 @@ impl<C: ToTokens> ToTokens for GroupContaining<C> {
     }
 }
 
-#[cfg(feature = "impl_debug")]
+#[cfg(any(debug_assertions, feature = "impl_debug"))]
 impl<C: std::fmt::Debug> std::fmt::Debug for GroupContaining<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         f.debug_struct(&format!("GroupContaining<{}>", std::any::type_name::<C>()))
@@ -212,7 +212,7 @@ macro_rules! make_group_containing {
                 }
             }
 
-            #[cfg(feature = "impl_debug")]
+            #[cfg(any(debug_assertions, feature = "impl_debug"))]
             impl<C: std::fmt::Debug> std::fmt::Debug
                 for $name<C>
             {

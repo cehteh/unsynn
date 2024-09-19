@@ -1,5 +1,5 @@
 #![allow(clippy::items_after_statements)]
-#![cfg(feature = "impl_debug")]
+#![cfg(any(debug_assertions, feature = "impl_debug"))]
 use unsynn::*;
 
 // Debug formats are not stable, we're stripping whitespace from strings to make the tests
