@@ -3,22 +3,22 @@ use crate::*;
 
 /// This macro supports the definition of enums, tuple structs and normal structs and
 /// generates [`Parser`] and [`ToTokens`] implementations for them. It will implement `Debug`
-/// and `Display` if the `impl_debug` and `impl_display` features are
-/// enabled. Generics/Lifetimes are not supported (yet). Note: eventually a derive macro for
-/// `Parser` and `ToTokens` will become supported by a 'unsynn-derive' crate to give finer
-/// control over the expansion. `#[derive(Copy, Clone)]` have to be manually defined. `Debug`
-/// and `Display` are automatically implemented when the respective features are enabled.
-/// Keyword and operator definitions can also be defined, they delegate to the `keyword!` and
-/// `operator!` macro described below. All entities can be prefixed by `pub` to make them
-/// public.
+/// in debug builds and `Debug` and `Display` when the `impl_debug` and `impl_display`
+/// features are enabled. Generics/Lifetimes are not supported (yet) on the primary
+/// type. Note: eventually a derive macro for `Parser` and `ToTokens` will become supported by
+/// a 'unsynn-derive' crate to give finer control over the expansion. `#[derive(Copy, Clone)]`
+/// have to be manually defined. `Debug` and `Display` are automatically implemented when the
+/// respective features are enabled.  Keyword and operator definitions can also be defined,
+/// they delegate to the `keyword!` and `operator!` macro described below. All entities can be
+/// prefixed by `pub` to make them public.
 ///
-/// Common for all three variants is that entries are tried in order. Disjunctive for enums
-/// and conjunctive in structures. This makes the order important, e.g. for enums, in case
-/// some entries are subsets of others.
+/// Common for all variants is that entries are tried in order. Disjunctive for enums and
+/// conjunctive in structures. This makes the order important, e.g. for enums, in case some
+/// entries are subsets of others.
 ///
 /// Enum variants without any data will never be parsed and will not generate any tokens.  For
-/// parsing a enum that is entirely optional one can add a variant like `None(Nothing)` at
-/// the end (at the end is important, because Nothing always matches).
+/// *parsing* a enum that is optional one can add a variant like `None(Nothing)` at the end
+/// (at the end is important, because Nothing always matches).
 ///
 /// # Example
 ///
@@ -47,8 +47,10 @@ use crate::*;
 ///             keyword: MyKeyword,
 ///             id: Ident,
 ///         },
+///         // finally if nothing of the above matched, this will match.
 ///         None(Nothing),
-///         Empty, // won't be parsed
+///         // won't be parsed/matched at all
+///         Empty,
 ///     }
 ///
 ///     struct MyStruct {
