@@ -91,7 +91,37 @@ where
     /// creates a new result or returns an Error.
     ///
     /// This method is a very powerful tool as it allows anything from simple validations to
-    /// complete transformations into a new type.
+    /// complete transformations into a new type. You may find this useful to implement
+    /// parsers for complex types that need some runtime logic.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use unsynn::*;
+    /// # use std::collections::BTreeSet;
+    /// // A parser that parses a comma delimited list of anything but commas
+    /// // and stores these lexical sorted.
+    /// struct OrderedStrings {
+    ///     strings: Vec<String>
+    /// }
+    ///
+    /// impl Parser for OrderedStrings {
+    ///     fn parser(tokens: &mut TokenIter) -> Result<Self> {
+    ///         // Our input is CommaDelimitedVec<String>, we'll transform that into
+    ///         // OrderedStrings.
+    ///         Parse::parse_with(tokens, |this : CommaDelimitedVec<String>| {
+    ///             let mut strings: Vec<String> = this.into_iter()
+    ///                 .map(|s| s.value)
+    ///                 .collect();
+    ///             strings.sort();
+    ///             Ok(OrderedStrings { strings })
+    ///         })
+    ///     }
+    /// }
+    /// let mut input = "a, d, b, e, c,".to_token_iter();
+    /// let ordered_strings: OrderedStrings = input.parse().unwrap();
+    /// assert_eq!(ordered_strings.strings, vec!["a", "b", "c", "d", "e"]);
+    /// ```
     ///
     /// # Errors
     ///
