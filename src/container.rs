@@ -224,6 +224,15 @@ impl<T: Parse, S: Parse> RangedRepeats for LazyVec<T, S> {
     }
 }
 
+impl<T, S> IntoIterator for LazyVec<T, S> {
+    type Item = T;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.vec.into_iter()
+    }
+}
+
 #[cfg(any(debug_assertions, feature = "impl_debug"))]
 impl<T: std::fmt::Debug, S: std::fmt::Debug> std::fmt::Debug for LazyVec<T, S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -306,6 +315,15 @@ impl<T: Parse, D: Parse> RangedRepeats for DelimitedVec<T, D> {
         } else {
             Error::other(format!("less than {} elements, got {}", min, output.len()))
         }
+    }
+}
+
+impl<T, D> IntoIterator for DelimitedVec<T, D> {
+    type Item = Delimited<T, D>;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
     }
 }
 
@@ -393,6 +411,15 @@ impl<const MIN: usize, const MAX: usize, T, D> From<Repeats<MIN, MAX, T, D>> for
             .into_iter()
             .map(|delimited| delimited.value)
             .collect()
+    }
+}
+
+impl<const MIN: usize, const MAX: usize, T, D> IntoIterator for Repeats<MIN, MAX, T, D> {
+    type Item = Delimited<T, D>;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
     }
 }
 
