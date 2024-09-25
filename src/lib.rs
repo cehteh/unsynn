@@ -66,11 +66,9 @@ where
     ///
     /// When the parser returns an error the transaction is rolled back and the error is
     /// returned.
+    #[inline]
     fn parse(tokens: &mut TokenIter) -> Result<Self> {
-        let mut ptokens = tokens.clone();
-        let result = Self::parser(&mut ptokens)?;
-        *tokens = ptokens;
-        Ok(result)
+        tokens.transaction(Self::parser)
     }
 
     /// Exhaustive parsing within a transaction. This is a convenience method that implies a
@@ -80,11 +78,11 @@ where
     ///
     /// When the parser returns an error or there are tokens left in the stream the
     /// transaction is rolled back and a error is returned.
+    #[inline]
     fn parse_all(tokens: &mut TokenIter) -> Result<Self> {
-        let mut ptokens = tokens.clone();
-        let result = Cons::<Self, EndOfStream>::parser(&mut ptokens)?;
-        *tokens = ptokens;
-        Ok(result.first)
+        tokens
+            .transaction(Cons::<Self, EndOfStream>::parser)
+            .map(|result| result.first)
     }
 
     /// Parse a value in a transaction, pass it to a `FnOnce(Self) -> Result<T>` closure which
@@ -128,10 +126,10 @@ where
     /// When the parser or the closure returns an error, the transaction is rolled back and
     /// the error is returned.
     fn parse_with<T>(tokens: &mut TokenIter, f: impl FnOnce(Self) -> Result<T>) -> Result<T> {
-        let mut ptokens = tokens.clone();
-        let result = f(Self::parser(&mut ptokens)?)?;
-        *tokens = ptokens;
-        Ok(result)
+        tokens.transaction(|tokens| {
+            let result = Self::parser(tokens)?;
+            f(result)
+        })
     }
 }
 
@@ -214,6 +212,26 @@ impl IParse for &mut TokenIter {
         T::parse_all(self)
     }
 }
+
+/// Helper trait to make [`TokenIter`] transactional
+pub trait Transaction: Clone {
+    /// Transaction on a [`TokenIter`], calls a `FnOnce(&mut TokenIter) -> Result<T>` within a
+    /// transaction. When the closure succeeds, then the transaction is committed and its result
+    /// is returned.
+    ///
+    /// # Errors
+    ///
+    /// When the closure returns an error, the transaction is rolled back and the error
+    /// is returned.
+    fn transaction<R>(&mut self, f: impl FnOnce(&mut Self) -> Result<R>) -> Result<R> {
+        let mut ttokens = self.clone();
+        let result = f(&mut ttokens)?;
+        *self = ttokens;
+        Ok(result)
+    }
+}
+
+impl Transaction for TokenIter {}
 
 // Result and error type
 mod error;

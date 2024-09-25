@@ -47,23 +47,23 @@ there custom structs.
 
 ### Transactions
 
-The [`Parse`] Trait parses items within a transaction. The user defined [`Parser::parser()`]
-are called within a transaction. This means that if a parser fails, the input is reset to the
-state before the parser was called. For efficiency reasons the [`Parser::parser()`] methods
-are themself not transactional, when they fail they leave the input in a consumed state.
+The [`Parse`] Trait parses items within a transaction. This is with the
+[`Transaction::transaction()`] method. Internally this clones the iterator, calls the
+[`Parser::parser()`] method and copies the cloned iterator back to the original on success.
+This means that if a parser fails, the input is reset to the state before the parser was
+called. For efficiency reasons the [`Parser::parser()`] methods are themself not
+transactional, when they fail they leave the input in a consumed state.
 
-When one wants to mannually parse alternatives within a `Parser` a transaction (like in a
-enum) a transaction has to be set up manuallly. This is done by cloning the input iterator,
-operating on that cloned operator and copy it back to the input on success. This is only
-necessary when the parsed entity is compound and not the final alternative. For simple
-parsable entities one can just call the `parse()` method which already provides the
-transaction.
+When one wants to manually parse *alternatives* within a `Parser` (like in a enum) it must be
+manually called within a transaction. This is only necessary when the parsed entity is
+compound and not the final alternative. For simple parsable entities one can just call the
+`parse()` method which already provides the transaction.
 
 ```rust
 # use unsynn::*;
 enum MyEnum {
     // Complex variant
-    Tuple(i32,i32),
+    Tuple(i32, i32),
     // Simple variant
     Simple(i32),
     // Another simple variant
@@ -72,14 +72,15 @@ enum MyEnum {
 
 impl Parser for MyEnum {
     fn parser(input: &mut TokenIter) -> Result<Self> {
-        // Clone the input
-        let mut cloned_input = input.clone();
-        // Try to parse the complex variant
-        // since we are in a transaction we can call the parser directly
-        if let (Ok(a),Ok(b)) = (i32::parser(&mut cloned_input), i32::parser(&mut cloned_input)) {
-            // Commit the transaction, copy the cloned input back to the original
-            *input = cloned_input;
-            Ok(MyEnum::Tuple(a,b))
+        // Use [`Transaction::transaction()`] to parse the tuple variant
+        if let Ok(tuple) = input.transaction(
+            |mut trans_input|
+            Ok(MyEnum::Tuple(
+                i32::parser(&mut trans_input)?,
+                i32::parser(&mut trans_input)?,
+            ))
+        ) {
+            Ok(tuple)
         } else
         // Try to parse the simple variant
         // can use the `Parse::parse()` or `IParse::parse()` method directly since a

@@ -331,18 +331,16 @@ macro_rules! unsynn{
 
     // Parse a tuple variant
     (@enum_parse_tuple($tokens:ident) $variant:ident($($(#[$_attrs:meta])* $parser:ty),* $(,)?)) => {
-        let mut ptokens = $tokens.clone();
-        let result = Self::$variant($(<$parser>::parser(&mut ptokens)?,)*);
-        *$tokens = ptokens;
-        Ok(result)
+        $tokens.transaction(
+            |mut tokens| Ok(Self::$variant($(<$parser>::parser(&mut tokens)?,)*))
+        )
     };
 
     // Parse a struct variant
     (@enum_parse_struct($tokens:ident) $variant:ident{$($(#[$_attrs:meta])* $name:ident : $parser:ty),* $(,)?}) => {
-        let mut ptokens = $tokens.clone();
-        let result = Self::$variant{$($name : <$parser>::parser(&mut ptokens)?,)*};
-        *$tokens = ptokens;
-        Ok(result)
+        $tokens.transaction(
+            |mut tokens| Ok(Self::$variant{$($name : <$parser>::parser(&mut tokens)?,)*})
+        )
     };
 
     // iterate over $variant:($tuple) in $this and apply some $code for each $i
