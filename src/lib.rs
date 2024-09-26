@@ -3,7 +3,7 @@
 //! # Detailed Introduction
 //!
 //! For a more detailed introduction about how to use unsynn see the
-//! [Cookbook](Parse#cookbook) section in the Parse trait.
+//! [Cookbook](Parse#cookbook) section in the `Parse` trait.
 //!
 //! # Roadmap
 //!
@@ -15,7 +15,7 @@
 pub type TokenIter = <TokenStream as IntoIterator>::IntoIter;
 
 /// The `Parser` trait that must be implemented by anything we want to parse. We are parsing
-/// over a `proc_macro2::TokenStream` iterator.
+/// over a [`TokenIter`] ([`proc_macro2::TokenStream`] iterator).
 pub trait Parser
 where
     Self: Sized,
@@ -26,16 +26,17 @@ where
     ///
     /// # Implementing Parsers
     ///
-    /// The parsers for `TokenStream`, `TokenTree`, `Group`, `Ident`, `Punct`, `Literal`,
-    /// `Except` and `Nothing` are the fundamental parsers. Any other parser is composed from
-    /// those. This composition is done by calling other `parse()` (or `parser()`)
-    /// implementations until eventually one of the above fundamental parsers is called.
+    /// The parsers for [`TokenStream`], [`TokenTree`], [`Group`], [`Ident`], [`Punct`],
+    /// [`Literal`], [`Except`] and [`Nothing`] (and few more) are the fundamental parsers.
+    /// Any other parser is composed from those.
     ///
-    /// Calling another `T::parser()` from a `Parser::parser()` implementation is only valid
-    /// when this is a conjunctive operation and a failure is returned immediately by the `?`
-    /// operator. Failing to do so will leave the iterator in a consumed state which breaks
-    /// further parsing. This can be used as performance optimization. When in doubt use
-    /// `parse()` which is never wrong.
+    /// Calling another `T::parser()` implementation is only valid when this is a conjunctive
+    /// operation and a failure is returned immediately by the `?` operator. This can be used
+    /// as performance optimization. Any other call to a parser must be done within a transaction.
+    /// Otherwise the iterator will be left in a consumed state which breaks further parsing.
+    ///
+    /// Transactions can be done by calling [`Parse::parse()`] or with the
+    /// [`Transaction::transaction()`] method on the iterator.
     ///
     /// # Errors
     ///
@@ -47,7 +48,7 @@ where
 }
 
 /// This trait provides the user facing API to parse grammatical entities. It is implemented
-/// for anything that implements the `Parser` trait. The methods here encapsulating the
+/// for anything that implements the [`Parser`] trait. The methods here encapsulating the
 /// iterator that is used for parsing into a transaction. This iterator is always
 /// `Copy`. Instead using a peekable iterator or implementing deeper peeking, parse clones
 /// this iterator to make access transactional, when parsing succeeds then the transaction
@@ -133,51 +134,51 @@ where
     }
 }
 
-/// Parse is implemented for anything that implements `Parser`.
+/// Parse is implemented for anything that implements [`Parser`].
 impl<T: Parser> Parse for T {}
 
-/// unsynn defines its own `ToTokens` trait to be able to implement it for std container types.
+/// unsynn defines its own [`ToTokens`] trait to be able to implement it for std container types.
 /// This is pretty much similar to the `ToTokens` from the quote crate.
 pub trait ToTokens {
-    /// Write `&self` to the given `TokenStream`.
+    /// Write `&self` to the given [`TokenStream`].
     fn to_tokens(&self, tokens: &mut TokenStream);
 
-    /// Convert `&self` into a `TokenStream` object.
+    /// Convert `&self` into a [`TokenStream`] object.
     fn to_token_stream(&self) -> TokenStream {
         let mut tokens = TokenStream::new();
         self.to_tokens(&mut tokens);
         tokens
     }
 
-    /// Convert `&self` into a `TokenIter` object.
+    /// Convert `&self` into a [`TokenIter`] object.
     // This is mostly used in the test suite to replace the quote! macro
     fn to_token_iter(&self) -> TokenIter {
         self.to_token_stream().into_iter()
     }
 
-    /// Convert `&self` into a `String` object.  This is mostly used in the test suite to
+    /// Convert `&self` into a [`String`] object.  This is mostly used in the test suite to
     /// compare the outputs.  When the input is a `&str` then this parses it and returns a
-    /// normalized `String`.
+    /// normalized [`String`].
     fn tokens_to_string(&self) -> String {
         self.to_token_stream().to_string()
     }
 }
 
-/// Extension trait for `TokenIter` that calls `Parse::parse()`.
+/// Extension trait for [`TokenIter`] that calls [`Parse::parse()`].
 #[allow(clippy::missing_errors_doc)]
 pub trait IParse: private::Sealed {
     /// Parse a value from the iterator. This is a convenience method that calls
-    /// `Parse::parse()`.
+    /// [`Parse::parse()`].
     fn parse<T: Parse>(self) -> Result<T>;
 
     /// Parse a value from the iterator. This is a convenience method that calls
-    /// `Parse::parse_all()`.
+    /// [`Parse::parse_all()`].
     fn parse_all<T: Parse>(self) -> Result<T>;
 }
 
 impl private::Sealed for &mut TokenIter {}
 
-/// Implements `IParse` for `&mut TokenIter`. This API is more convenient in cases where the
+/// Implements [`IParse`] for [`&mut TokenIter`]. This API is more convenient in cases where the
 /// compiler can infer types because no turbofish notations are required.
 ///
 /// # Example

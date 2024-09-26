@@ -1,6 +1,6 @@
-//! This module provides parsers for types that contain possibly multiple values.  This
-//! includes stdlib types like `Option`, `Vec`, `Box`, `Rc`, `RefCell` and types for delimited
-//! and repeated values with numbered repeats.
+//! This module provides parsers for types that contain possibly multiple values. This
+//! includes stdlib types like [`Option`], [`Vec`], [`Box`], [`Rc`], [`RefCell`] and types
+//! for delimited and repeated values with numbered repeats.
 
 use crate::{
     Colon, Comma, Delimited, Dot, Error, Nothing, Parse, Parser, PathSep, Result, Semicolon,
@@ -257,8 +257,8 @@ impl<T: std::fmt::Display, S: std::fmt::Display> std::fmt::Display for LazyVec<T
     }
 }
 
-/// Since the delimiter in [`Delimited<T,D>`] is optional a `Vec<Delimited<T,D>>` would parse
-/// consecutive values even without delimiters. `DelimimitedVec<T,D>` will stop parsing after
+/// Since the delimiter in [`Delimited<T,D>`] is optional a [`Vec<Delimited<T,D>>`] would parse
+/// consecutive values even without delimiters. [`DelimitedVec<T,D>`] will stop parsing after
 /// the first value without a delimiter.
 #[derive(Clone)]
 pub struct DelimitedVec<T, D>(pub Vec<Delimited<T, D>>);
@@ -277,7 +277,7 @@ impl<T: Parse, D: Parse> Parser for DelimitedVec<T, D> {
     }
 }
 
-/// Converts a `DelimitedVec<T, D>` into a `Vec<T>`.
+/// Converts a [`DelimitedVec<T, D>`] into a [`Vec<T>`].
 /// This loses all delimiters, which may have been stateful (`Either` or other enums).
 impl<T, D> From<DelimitedVec<T, D>> for Vec<T> {
     fn from(delimited_vec: DelimitedVec<T, D>) -> Self {
@@ -402,8 +402,8 @@ impl<const MIN: usize, const MAX: usize, T: ToTokens, D: ToTokens> ToTokens
     }
 }
 
-/// Converts a `Repeats<MIN, MAX, T, D>` into a `Vec<T>`.
-/// As with `DelimitedVec` this loses the maybe stateful delimiters.
+/// Converts a `[Repeats<MIN, MAX, T, D>`] into a [`Vec<T>`].
+/// As with [`DelimitedVec`] this loses the potentially stateful delimiters.
 impl<const MIN: usize, const MAX: usize, T, D> From<Repeats<MIN, MAX, T, D>> for Vec<T> {
     fn from(repeats: Repeats<MIN, MAX, T, D>) -> Self {
         repeats
@@ -450,17 +450,17 @@ impl<const MIN: usize, const MAX: usize, T: std::fmt::Display, D: std::fmt::Disp
     }
 }
 
-/// Any number of T delimited by D or Nothing
+/// Any number of T delimited by D or [`Nothing`]
 pub type Any<T, D = Nothing> = Repeats<0, { usize::MAX }, T, D>;
-/// One or more of T delimited by D or Nothing
+/// One or more of T delimited by D or [`Nothing`]
 pub type Many<T, D = Nothing> = Repeats<1, { usize::MAX }, T, D>;
-/// Zero or one of T delimited by D or Nothing, similar to `Option` but implements `Display`
+/// Zero or one of T delimited by D or [`Nothing`], similar to [`Option`] but implements [`std::fmt::Display`]
 pub type Optional<T, D = Nothing> = Repeats<0, 1, T, D>;
-/// Exactly N of T delimited by D or Nothing
+/// Exactly N of T delimited by D or [`Nothing`]
 pub type Exactly<const N: usize, T, D = Nothing> = Repeats<N, N, T, D>;
-/// At most N of T delimited by D or Nothing
+/// At most N of T delimited by D or [`Nothing`]
 pub type AtMost<const N: usize, T, D = Nothing> = Repeats<0, N, T, D>;
-/// At least N of T delimited by D or Nothing
+/// At least N of T delimited by D or [`Nothing`]
 pub type AtLeast<const N: usize, T, D = Nothing> = Repeats<N, { usize::MAX }, T, D>;
 
 // PLANNED: needs https://github.com/rust-lang/rust/issues/96097 impl<const N: usize, T: Parse> Parser for [T;N] {

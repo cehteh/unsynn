@@ -54,10 +54,10 @@ This means that if a parser fails, the input is reset to the state before the pa
 called. For efficiency reasons the [`Parser::parser()`] methods are themself not
 transactional, when they fail they leave the input in a consumed state.
 
-When one wants to manually parse *alternatives* within a `Parser` (like in a enum) it must be
+When one wants to manually parse *alternatives* within a [`Parser`] (like in a enum) it must be
 manually called within a transaction. This is only necessary when the parsed entity is
 compound and not the final alternative. For simple parsable entities one can just call the
-`parse()` method which already provides the transaction.
+[`Parse::parse()`] method which already provides the transaction.
 
 ```rust
 # use unsynn::*;

@@ -89,12 +89,12 @@ pub trait GroupDelimiter: private::Sealed {
 }
 
 /// Any kind of Group `G` with parseable content `C`.  The content `C` must parse exhaustive,
-/// a `EndOfStream` is automatically implied.
+/// a [`EndOfStream`] is automatically implied.
 #[derive(Clone)]
 pub struct GroupContaining<C> {
     /// The delimiters around the group.
     pub delimiter: Delimiter,
-    /// The content of the group. That can be anything that implements `Parse`.
+    /// The content of the group.
     pub content: C,
 }
 

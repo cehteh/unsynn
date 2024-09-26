@@ -1,13 +1,13 @@
 //! A unique feature of unsynn is that one can define a parser as a composition of other
 //! parsers on the fly without the need to define custom structures. This is done by using the
-//! `Cons` and `Either` types. The [`Cons`] type is used to define a parser that is a
+//! [`Cons`] and [`Either`] types. The [`Cons`] type is used to define a parser that is a
 //! conjunction of two to four other parsers, while the [`Either`] type is used to define a
 //! parser that is a disjunction of two to four other parsers.
 
 use crate::{Invalid, Nothing, Parse, Parser, Result, ToTokens, TokenIter, TokenStream};
 
 /// Conjunctive `A` followed by `B` and optional `C` and `D`
-/// When `C` and `D` are not used, they are set to `Nothing`.
+/// When `C` and `D` are not used, they are set to [`Nothing`].
 #[derive(Clone)]
 pub struct Cons<A, B, C = Nothing, D = Nothing> {
     /// The first value
@@ -155,7 +155,7 @@ where
 }
 
 /// Disjunctive `A` or `B` or optional `C` or `D`  tried in that order.
-/// When `C` and `D` are not used, they are set to `Invalid`.
+/// When `C` and `D` are not used, they are set to [`Invalid`].
 #[derive(Clone)]
 pub enum Either<A, B, C = Invalid, D = Invalid> {
     /// The first alternative

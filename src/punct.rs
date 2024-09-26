@@ -1,7 +1,7 @@
 //! This module contains types for punctuation tokens. These are used to represent single and
 //! multi character punctuation tokens. For single character punctuation tokens, there are
-//! there are `PunctAny`, `PunctAlone` and `PunctJoint` types.
-//! Combined punctuation tokens are represented by `Operator`. The `operator!` macro can be
+//! there are [`PunctAny`], [`PunctAlone`] and [`PunctJoint`] types.
+//! Combined punctuation tokens are represented by [`Operator`]. The [`operator!`] macro can be
 //! used to define custom operators.
 #![allow(clippy::module_name_repetitions)]
 
@@ -9,7 +9,7 @@ pub use proc_macro2::Spacing;
 
 use crate::{operator, Error, Parser, Punct, Result, ToTokens, TokenIter, TokenStream, TokenTree};
 
-/// A single character punctuation token.
+/// A single character punctuation token with any kind of [`Spacing`],
 #[derive(Default, Clone)]
 pub struct PunctAny<const C: char>;
 
@@ -75,7 +75,7 @@ impl<const C: char> std::fmt::Debug for PunctAny<C> {
 pub struct PunctJoint<const C: char>;
 
 impl<const C: char> PunctJoint<C> {
-    /// Create a new `PunctJoint` object.
+    /// Create a new [`PunctJoint`] object.
     #[must_use]
     pub const fn new() -> Self {
         Self
@@ -122,7 +122,7 @@ impl<const C: char> std::fmt::Debug for PunctJoint<C> {
     }
 }
 
-/// Convert a `PunctJoint` object into a `TokenTree`.
+/// Convert a [`PunctJoint`] object into a [`TokenTree`].
 impl<const C: char> From<PunctJoint<C>> for TokenTree {
     fn from(_: PunctJoint<C>) -> Self {
         TokenTree::Punct(Punct::new(C, Spacing::Joint))
@@ -153,7 +153,7 @@ fn test_joint_punct_into_tt() {
 pub struct PunctAlone<const C: char>;
 
 impl<const C: char> PunctAlone<C> {
-    /// Create a new `PunctAlone` object.
+    /// Create a new [`PunctAlone`] object.
     #[must_use]
     pub const fn new() -> Self {
         Self
@@ -200,7 +200,7 @@ impl<const C: char> std::fmt::Debug for PunctAlone<C> {
     }
 }
 
-/// Convert a `PunctAlone` object into a `TokenTree`.
+/// Convert a [`PunctAlone`] object into a [`TokenTree`].
 impl<const C: char> From<PunctAlone<C>> for TokenTree {
     fn from(_: PunctAlone<C>) -> Self {
         TokenTree::Punct(Punct::new(C, Spacing::Alone))
@@ -215,9 +215,9 @@ fn test_alone_punct_into_tt() {
     let _: TokenTree = plus.into();
 }
 
-/// Operators made from up to 4 ASCII punctuation characters. Unused characters must be `\0`.
-/// Custom operators can be defined with the `operator!` macro. All but the last character are
-/// `Spacing::Joint`. Attention must be payed when operators have the same prefix, the shorter
+/// Operators made from up to four ASCII punctuation characters. Unused characters default to `\0`.
+/// Custom operators can be defined with the [`operator!`] macro. All but the last character are
+/// [`Spacing::Joint`]. Attention must be payed when operators have the same prefix, the shorter
 /// ones need to be tried first.
 #[derive(Default, Copy, Clone, PartialEq, Eq)]
 pub struct Operator<
@@ -311,7 +311,6 @@ impl<const C1: char, const C2: char, const C3: char, const C4: char> std::fmt::D
     }
 }
 
-// TODO: enable everywhere on debug_assertions, document this
 #[cfg(any(debug_assertions, feature = "impl_debug"))]
 impl<const C1: char, const C2: char, const C3: char, const C4: char> std::fmt::Debug
     for Operator<C1, C2, C3, C4>

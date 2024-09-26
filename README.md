@@ -11,10 +11,10 @@ own grammar or need only sparse rust parsers.
 
 ## Custom Types
 
-The `unsynn!{}` macro will generate the `Parser` and `ToToken` impls (and more).  This is
-optional, the impls could be written by hand when necessary.
+The [`unsynn!{}`] macro will generate the [`Parser`] and [`ToTokens`] impls (and more).  This
+is optional, the impls could be written by hand when necessary.
 
-Notice that unsynn implements `Parser` and `ToTokens` for many standard rust types. Like
+Notice that unsynn implements [`Parser`] and [`ToTokens`] for many standard rust types. Like
 we use `u32` in this example.
 
 ```rust
