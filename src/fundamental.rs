@@ -238,7 +238,21 @@ impl<T> Deref for Cached<T> {
 
 impl<T> PartialEq<&str> for Cached<T> {
     fn eq(&self, other: &&str) -> bool {
-        &self.string == other
+        self.as_str() == *other
+    }
+}
+
+impl<T> PartialEq for Cached<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.as_str() == other.as_str()
+    }
+}
+
+impl<T> Eq for Cached<T> {}
+
+impl<T> std::hash::Hash for Cached<T> {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.as_str().hash(state)
     }
 }
 
@@ -250,7 +264,7 @@ impl<T> AsRef<T> for Cached<T> {
 
 impl<T> AsRef<str> for Cached<T> {
     fn as_ref(&self) -> &str {
-        &self.string
+        self.as_str()
     }
 }
 
