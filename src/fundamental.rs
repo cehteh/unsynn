@@ -207,6 +207,11 @@ impl<T: ToTokens> Cached<T> {
         self.value
     }
 
+    /// Deconstructs self and returns the contained `String` representation.
+    pub fn into_string(self) -> String {
+        self.string
+    }
+
     #[doc(hidden)]
     #[deprecated = "use as_str()"]
     // TODO: remove before 0.1.0
