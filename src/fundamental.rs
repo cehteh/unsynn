@@ -201,7 +201,9 @@ impl<T: ToTokens> Cached<T> {
         self.value = value;
         self.string = self.value.tokens_to_string();
     }
+}
 
+impl<T> Cached<T> {
     /// Deconstructs self and returns the inner value.
     pub fn into_inner(self) -> T {
         self.value
