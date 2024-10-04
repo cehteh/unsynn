@@ -437,7 +437,7 @@ macro_rules! keyword{
                                 format!(
                                     "keyword {:?} expected, got {:?} at {:?}",
                                     $str,
-                                    ident.string(),
+                                    ident.as_str(),
                                     ident.span().start()
                                 )
                             )

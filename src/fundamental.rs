@@ -207,8 +207,16 @@ impl<T: ToTokens> Cached<T> {
         self.value
     }
 
+    #[doc(hidden)]
+    #[deprecated = "use as_str()"]
+    // TODO: remove before 0.1.0
     /// Gets the cached string representation
     pub fn string(&self) -> &str {
+        &self.string
+    }
+
+    /// Gets the cached string representation
+    pub fn as_str(&self) -> &str {
         &self.string
     }
 }
