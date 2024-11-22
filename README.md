@@ -1,3 +1,5 @@
+[![status-badge](https://ci.pipapo.org/api/badges/4/status.svg?branch=woodpecker_test)](https://ci.pipapo.org/repos/4/branches/woodpecker_test)
+
 unsynn (from german 'unsinn' for nonsense) is a minimalist rust parser library. It achieves
 this by leaving out the actual grammar implementations and compromise on simpler error
 reporting. In exchange it offers simple composeable Parsers and ergonomic Parser
