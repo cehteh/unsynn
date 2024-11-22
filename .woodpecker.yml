@@ -1,0 +1,34 @@
+when:
+  event:
+    - push
+    - pull_request
+
+workspace:
+  base: /rust
+  path: src/unsynn
+
+
+steps:
+  toolchain-setup:
+    image: rust:latest
+    environment: &env
+      - CARGO_HOME=/cargo
+      - CARGO_TARGET_DIR=/target
+    volumes: &vol
+      - /home/woodpecker/woodpecker-agent/rust/cargo:/cargo
+      - /home/woodpecker/woodpecker-agent/rust/target:/target
+    commands:
+      - which rustup
+      - mkdir -p /cargo/bin
+      - cp `which rustup` /cargo/bin
+      - PATH=/cargo/bin:$PATH
+      - rustup update
+      - cargo install cargo-update
+      - cargo install-update -ag
+  test:
+    image: rust:latest
+    environment: *env
+    volumes: *vol
+    commands:
+      - PATH=/cargo/bin:$PATH
+      - cargo test
