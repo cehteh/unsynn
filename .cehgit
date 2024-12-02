@@ -4,7 +4,13 @@
 # shell sanity options
 set -ue
 
-# PLANNED: --private use and install in .git/cehgit.d/ use .git/cehgit.conf load from there too
+# PLANNED: --private use and install in .git/cehgit.d/
+# PLANNED: 00_ for setting up test directories, where to do the cleanup?
+# PLANNED: cehgit-* commands in .cehgit.d/ then public actions path
+# PLANNED: pre-push hook 
+# PLANNED: refactor all variables, prefix with CEHGIT_, CEHGIT_ or CEHGIT_{ACTION}_
+# TODO: naming conventions
+
 
 # The main function dispatches based on how its called and which sub command is given
 function cehgit
@@ -25,6 +31,7 @@ function cehgit
         update)
             shift
             cehgit_init --update
+            cehgit_install_action --update
             ;;
         install-action)
             shift
@@ -32,11 +39,6 @@ function cehgit
             ;;
         update-actions)
             shift
-            cehgit_install_action --update
-            ;;
-        update-all)
-            shift
-            cehgit_init --update
             cehgit_install_action --update
             ;;
         list-actions)
@@ -59,9 +61,20 @@ function cehgit
             shift
             cehgit_list_hooks
             ;;
+        log)
+            shift
+            cehgit_log
+            ;;
         clean)
             shift
             cehgit_clean
+            ;;
+        run)
+            # shellcheck disable=SC2034
+            declare -gr CEHGIT_HOOK="$RUN_HOOK"
+            BACKGROUNDING="false"
+            VERBOSITY_LEVEL=$((VERBOSITY_LEVEL+1))
+            cehgit_runner "$@"
             ;;
         *)
             die "unknown sub-command"
@@ -69,6 +82,8 @@ function cehgit
         ;;
     # called as hook
     *.git/hooks/*)
+        # shellcheck disable=SC2034
+        declare -gr CEHGIT_HOOK="${0##*/}"
         cehgit_runner "$@"
         ;;
     *)
@@ -92,11 +107,12 @@ function cehgit_loadconfig
     declare -gx TEST_LOG="test.log"                      #G The name of the file where all test output will be collected
     declare -gx VERBOSITY_LEVEL="${VERBOSITY_LEVEL:-2}"  #G Default verbosity level
     declare -gx BACKGROUNDING="true"                     #G Enable the background jobs machinery, when not set to 'true' background jobs will be done in foreground
+    declare -gx RUN_HOOK="pre-commit"                    #G Which 'hook' should 'cehgit run' emulate
     declare -gx CEHGIT_HOOKS=(pre-commit pre-merge-commit prepare-commit-msg commit-msg) #G List of hooks to be installed by 'cehgit install-hook --all'
 
     # load config files
     # shellcheck disable=SC2088 # load_existing expands tilde
-    load_existing "~/config/cehgit.conf" "~/.cehgit.conf" ".cehgit.conf"
+    load_existing "~/config/cehgit.conf" "~/.cehgit.conf" ".git/cehgit.conf" ".cehgit.conf"
 
     # validate config
     [[ $KEEP_TESTS -ge 2 ]] || die "KEEP_TESTS must be larger or equal to two"
@@ -151,12 +167,12 @@ function cehgit_install_action
         "--all") # install all actions
             debug "installing all actions"
             # shellcheck disable=SC2086 # $FORCE needs to be split
-            cp -v ${FORCE:--n} "$actions_origin/"[0-9]* "$actions_origin/init_"* "$ACTIONS_DIR/"
+            cp -v ${FORCE:--n} "$actions_origin/"[0-9]* "$actions_origin/mod-"* "$ACTIONS_DIR/"
             return 0
             ;;
         "--update") # install all actions
             debug "updating all actions"
-            cp -v -u "$actions_origin/"[0-9]* "$actions_origin/init_"* "$ACTIONS_DIR/"
+            cp -v -u "$actions_origin/"[0-9]* "$actions_origin/mod-"* "$ACTIONS_DIR/"
             return 0
             ;;
         *)
@@ -187,7 +203,7 @@ function describe_actions
 {
     [[ -d "$1" ]] || die "$1 is not a directory"
 
-    find "$1/" -maxdepth 1 -type f -name '[0-9]*' -or -name 'init_*' | sort |
+    find "$1/" -maxdepth 1 -type f -name '[0-9]*' -or -name 'mod-*' | sort |
         while read -r action; do
             echo "${action##*/}:"
             awk '/^## ?/{sub(/^## ?/,"    "); print}' "$action"
@@ -279,8 +295,6 @@ function load_existing # loads (sources) all files from a list, ignoring when th
 # the main loop that calls all actions
 function cehgit_runner
 {
-    declare -r CEHGIT_BRANCH="$(git branch --show-current)"
-    declare -r CEHGIT_HOOK="${0##*/}"
     declare -gx TREE_HASH
     TREE_HASH="$(git write-tree)"
     readonly TREE_HASH
@@ -310,21 +324,16 @@ function cehgit_runner
     # sequence number incremented for each reuse of the test dir
     state_init .cehgit.log
 
-    for init_script in "$WORKTREE_DIR/$ACTIONS_DIR/init_"* ; do
-        debug "run_init $init_script"
-        # shellcheck disable=SC1090 # dynamic source
-        source "$init_script"
-    done
-
     # foreground loop over all actions
     for ACTION in "$WORKTREE_DIR/$ACTIONS_DIR/"[0-9]* ; do
         [[ -f "$ACTION" ]] || continue
         ACTION="${ACTION##*/}"
 
+        # TODO: can we memo actions instead caching? memo needs persistence then
         # shellcheck disable=SC2155
         local state="$(state_cached)"
         if [[ -z "$state" ]]; then
-            debug "run $ACTION"
+            debug "$ACTION"
             # shellcheck disable=SC1090 # dynamic source
             source "$WORKTREE_DIR/$ACTIONS_DIR/$ACTION" "$@" || exit 1
         elif [[ "$state" == fail ]]; then
@@ -379,6 +388,13 @@ function cehgit_runner
     lock_remove .cehgit.lock
 }
 
+function cehgit_log
+{
+    LAST_TEST_DIR=$(find . -name "${TEST_PREFIX}*" -type d | sort -rn | head -n 1)
+    [[ -z "$LAST_TEST_DIR" ]] && die "no last test dir found"
+    less -R "$LAST_TEST_DIR/$TEST_LOG"
+}
+
 # State log:
 # A statelog records the states of actions in the form of 'SEQ ACTION STATE ...'.
 # We can have multiple state logs that are distinguished by a tag.
@@ -400,7 +416,7 @@ function state_cached # returns the cached ok|fail
     awk '/^[0-9]+ '"$ACTION"' (ok|fail)/{print $3; exit 0;}' "$STATE_FILE" 2>/dev/null
 }
 
-function state_log # {state} - logs action with CEHGIT_STATE
+function state_log # {state} - logs action
 {
     trace "$STATE_SEQ $ACTION $1 >> $STATE_FILE"
     echo "$STATE_SEQ $ACTION $1" >>"$STATE_FILE"
@@ -478,33 +494,9 @@ function lock_remove #api {name} - remove a lockfile, unlock
     fi
 }
 
-function git_branch #afunc [branchpattern..] - checks that the current git branch matches any of the patterns
-{
-    for pat in "$@"; do
-        [[ "$CEHGIT_BRANCH" =~ $pat ]] && {
-            trace "$CEHGIT_BRANCH matches $pat"
-            return 0
-        }
-    done
-    trace "$CEHGIT_BRANCH not matched"
-    return 1
-}
-
-function git_hook #afunc [hookpattern..] - checks that action is called from one of the given githooks
-{
-    for pat in "$@"; do
-        [[ "$CEHGIT_HOOK" =~ $pat ]] && {
-            trace "$CEHGIT_HOOK matched"
-            return 0
-        }
-    done
-    trace "$CEHGIT_HOOK not matched"
-    return 1
-}
-
 function run_test #afunc [program] [args..] - runs a test in a resource limited subshell
 {
-    trace "$*"
+    info "run_test $*"
     if (
         ulimit -S -v "$MEMORY_KB" -t "$TIMEOUT_SECS"
         "$@"
@@ -596,12 +588,9 @@ function show_help
 ABOUT
 
   cehgit is a frontend for githooks that runs bash scripts (actions) in sequence. This acts
-  much like a CI but for your local git repository. Unlike other 'pre-commit' solutions it will
-  not alter your worktree by stashing changes for the test but run tests in dedicated
-  directories which are kept around for later inspection and improving test performance. There
-  are plans to make cehgit running the tests in the background while you are editing the commit
-  message to improve turnaround times even further. It is possible to implement complete release
-  workflows in cehgit.
+  much like a CI but for your local git repository. Unlike some other 'pre-commit' solutions
+  it will not alter your worktree by stashing changes for the test but run tests in dedicated
+  directories which are kept around for later inspection and improving test performance.
 
   cehgit caches the state of the last run tests and reuses the test directories when the git
   tree did not change. This allows for incremental testing and faster turnaround times.
@@ -618,10 +607,7 @@ USAGE
          show this help
 
   cehgit init [-f|--force|--update]
-         initialize or update cehgit
-
-  cehgit update
-         update the local .cehgit
+         initialize or update the local '.cehgit'
 
   cehgit install-action [-f|--force] [--all|actionglob..]
          install actions that are shipped with cehgit
@@ -629,8 +615,8 @@ USAGE
   cehgit update-actions
          update all actions
 
-  cehgit update-all
-         update and update-actions
+  cehgit update
+         update the local '.cehgit', and all installed actions.
 
   cehgit available-actions
          list actions that are shipped with cehgit
@@ -650,6 +636,13 @@ USAGE
   cehgit clean
          remove all test directories
 
+  cehgit log
+         show the log of the last test run
+
+  ./.cehgit run
+         manual run, behaves as from a 'RUN_HOOK' [pre-commit] hook with
+         BACKGROUNDING=false and VERBOSITY_LEVEL+1
+
   ./.cehgit [..]
          same as 'cehgit' above but calling the repo local version
 
@@ -659,21 +652,17 @@ USAGE
 
 SETUP
 
-  To use cehgit in a git repository it has first to be initialized with 'cehgit init'.
-  This copies itself to a repository local '.cehgit' and creates the '.cehgit.d/'
+  To use cehgit in a git repository it has first to be initialized with 'cehgit init'.  This
+  copies itself to a repository local '.cehgit' and creates the '.cehgit.d/'
   directory. 'cehgit init --upgrade' will upgrade an already initialized version.
 
-  Then the desired actions have to be written or installed. 'cehgit install-action --all'
-  will copy all actions shipped with cehgit to '.cehgit.d/'. This should always be safe
-  but may include more than one may want and implement some opinionated workflow. Thus
-  the installed actions are meant to be customized to personal preferences.
+  Then the desired actions have to be written or installed. 'cehgit install-action --all' will
+  copy all actions shipped with cehgit to '.cehgit.d/'. This should always be safe but may
+  include more than one may want and implement some opinionated workflow. The installed
+  actions are meant to be customized to personal preferences.
 
-  By default cehgit does not create a '.cehgit.conf' file. The defaults should be
-  sufficient for most use cases. When not, then one can create the config file and
-  customize it.
-
-  cehgit puts tests in sub-directories starting with '.test-*'. This pattern should be
-  added to '.gitignore'.
+  cehgit puts tests in sub-directories starting with '.test-*'. This pattern should be added
+  to '.gitignore'.
 
   '.cehgit', '.cehgit.d/*' and '.cehgit.conf' are meant to be commited into git and
   versioned.
@@ -688,38 +677,42 @@ SETUP
 HOW CEHGIT WORKS
 
   Cehgit is implemented in bash the test actions are sourced in sorted order. Bash was chosen
-  because of it's wide availability and more addvanced features than standard shells. It relies
-  on some bashisms. To make shell programming a little more safe it calls 'set -ue' which ensures
-  that variables are declared before used and exits on the first failure.
+  because of it's wide availability and more addvanced features than standard shells. We rely
+  on some bashisms. To make shell programming a little more safe it calls 'set -ue' which
+  ensures that variables are declared before used and exits on the first failure.
 
-  Test are run in locally created test directories, the worktree itself is not altered/stashed.
-  This test directories are populated from the currently staged files in the working tree. The
-  '\$TEST_DIR/.git/' directory is symlinked to the original '../.git'.
+  Test are run in locally created test directories, the worktree itself is not
+  altered/stashed.  This test directories are populated from the currently staged files in the
+  working tree. The '\$TEST_DIR/.git/' directory is symlinked to the original '../.git'.
 
-  Test directries are reused when they orginate from the same git tree (hash), cehgit deliberately
-  does not start from a clean/fresh directory to take advantage of incremental compilation and
-  artifacts from former runs to speed tests up. All actions on a tree are logged and this log
-  is used to query cached results.
+  Test directries are reused when they orginate from the same git tree (hash), cehgit
+  deliberately does not start from a clean/fresh directory to take advantage of incremental
+  compilation and artifacts from former runs to speed tests up. All actions on a tree are
+  logged and this log is used to query cached results.
 
   It keeps the last KEEP_TESTS around and removes excess ones.
 
-  When invoked as githook a test directory is created or reused and entered. Then all actions in
-  ACTIONS_DIR are sourced in sorted order. Actions determine by API calls if they should execute,
-  schedule to background or exit early. 'init_' actions can be used to extend the API.
+  When invoked as githook a test directory is created or reused and entered. Then all actions
+  in ACTIONS_DIR are sourced in sorted order. Actions determine by API calls if they should
+  execute, schedule to background or exit early.
+
+  Modules starting with 'mod-' in ACTIONS_DIR can be used to extend the
+  API. actions use 'require' to load.
 
   API calls with also log the progress, ok/fail states will be reused in subsequent runs.
+  Many function results are memoized with the 'memo' helper function.
 
   The test directories left behind can be inspected at later time. There will be a 'test.log'
   where the stdout of all actions that run is collected.
 
   To debug cehgit execution itself one can set VERBOSITY_LEVEL to a number up to
-  4 (0=none, 1=info, 2=error, 3=debug, 4=trace)
+  5 (0=none, 1=error, 2=notice, 3=info,  4=debug, 5=trace)
 
 
 BACKGROUND DETAILS
 
   Schedule actions to background will finish the currently running hook early before
-  this background actions are completed. Background actions will then be scheduled after all
+  this background actions are completed. Background actions will be scheduled after all
   foreground actions completed successful.
 
   Background actions should finish with a conclusive ok or fail. Using 'run_test' will take
@@ -727,8 +720,8 @@ BACKGROUND DETAILS
 
   Example Action:
 
-   # background_schedule will succeed when this action is scheduled and fail when
-   # thus we '&& return 0' to exit when scheduled and fall through on fail
+   # background_schedule will succeed when this action is scheduled and fail when it is already
+   # scheduled and should be executed. We '&& return 0' to exit when scheduled and fall through on fail
    background_schedule && return 0
    # To retrieve the result of the background action use background_wait and background_result
    # this falls through when no background action was scheduled
@@ -743,25 +736,40 @@ BACKGROUND DETAILS
 
 CONFIGURATION
 
-  cehgit can be configured by setting variables in '~/config/cehgit.conf',
-  '~/.cehgit.conf' and './.cehgit.conf'. The later is the repository local configuration which
-  should be under version control.
+  cehgit tries to load the following configuration files in this order:
+    "~/config/cehgit.conf" "~/.cehgit.conf" ".git/cehgit.conf" ".cehgit.conf"
+
+  They are all optional, the defaults should be sufficient for most use cases. When not, then
+  one can create the one config file and customize it. Only '.cehgit.conf' are meant to be
+  versioned and distriubuted. The others adds local configuration that is not versioned.
 
   Following Variables can be configured [=default]:
 
 $(sed 's/ *declare -gx \([^ ]*\)=\([^ ]*\) *#G *\(.*\)/  \1 [\2]\n    \3 \n/p;d' < "$0")
 
 
+WRITING MODULES
+
+  Modules extend the cehgit API. They are loaded with the 'require' function.
+
+  All modules must be prefixed with 'mod-' and be in ACTIONS_DIR. The first word after 'mod-'
+  should be a descriptive name of what the module does.
+
+  Modules should define function to be used by actions. They should not run any code on their
+  own except for initialization tasks. Ideally they use the 'memo'/'memofn' function to cache state.
+
+  Functions they define should contain with the module name and a descriptive name of what the
+  function does. The usual form is 'mod_*' where '*' is a descriptive name of what the
+  function does.  For primary predicates we allow 'if_mod_*' forms too.
+
+
 WRITING ACTIONS
 
-  cehgit sources all actions in order and aborts execution on the first failure.
+  cehgit runs all actions in order and aborts execution on the first failure.
 
-  All actions must be prefixed with 'init_' or a double digit number to ensure proper ordering.
+  Actions must be prefixed with a double digit number to ensure proper ordering.
   It is recommended to follow following guides for the naming:
 
-  - init_ early init/shell functions
-    Define shell function and state variables, this actions are unconditionally sourced at the
-    very begin.
   - 10 configuration and prepopulation
     When some adjustments are to be done to make the test dir compileable this is the place.
   - 20 validate test dir, toolchain versions
@@ -770,7 +778,7 @@ WRITING ACTIONS
   - 30 linters/formatting check
     Testing begins here with resonable cheap checks, running linters and similar things.
   - 40 building
-    This is where compilation happens, we are building the project, tests etc. here. But do
+    This is where compilation happens, we are building the project, tests here. But do
     not run them yet.
   - 50 normal testing
     Runs the standard testsuite. The shipped actions will background these tests.
@@ -786,47 +794,29 @@ WRITING ACTIONS
     Final step for automatic workflows which may build packages and deploy it.
     Also if any final processing/cleanup has to be done.
 
-  The first word after 'init_'  or the double digits should be a descriptive name of what tool
-  the action uses. 'cehgit action-install' accepts globs to install multiple matching actions at
-  once.
-
   Actions should have comments starting with '##' which will be extracted on 'cehgit list-actions'
   and 'cehgit available-actions' giving some info about what an action does.
 
   Actions can do different things:
-  - Unconditionally define functions and variables to be used later. This must be done
-    in 'init_*' actions. We run bash in a strict mode that would exit cehgit on the first fail.
-    Thus if any expected failure must be handled and turned into a successful exitcode.
-    Usually something like 'allowed_to_fail || return 0' is used in this case.
 
-      function run_at_friday
-      {
-          # do whatever the function shall do
-          # may return a exitcode that indicates a failure which must be handled by the caller
-          [[ \$(date +%u) = 5 ]] || {
-             return 1
-          }
-       }
-
-  - Calling functions that check whenever the action should be in effect or not.
-    cehgit calls all actions in order. Some actions should only run under certain conditions.
-    Each action may return early when it should not run. The API provides functions to check
+  - Calling functions that check whenever the action should be in effect or not.  cehgit calls
+    all actions in order. Some actions should only run under certain conditions.  Each action
+    may return early when it should not run. The shopped modules provides functions to check
     the current git branch or the hook that is running and to schedule actions to run in the
-    background and retrieve its results. These functions check for some conditions and return 1
-    when the condition is not met. There are already some of such test functions predefined,
-    others can be be created in init_* actions.
-    This must be handled by the caller otherwise cehgit will exit with a failure:
+    background and retrieve its results. These functions check for some conditions and return
+    1 when the condition is not met. This must be handled by the caller otherwise
+    cehgit will exit with a failure:
 
-      run_at_friday || return 0
-      git_branch master || return 0
-      git_hook pre-commit || return 0
+      git_branch_matches master || return 0
+      git_hook_matches pre-commit || return 0
       background_schedule && return 0
       background_wait && return \$(background_result)
       ...
 
   - Call an actual test. This is usually done by the run_test function that is part of cehgit
-    It takes the command to run as parameters and runs this in a subshell with some (configurable)
-    resource limits applied. On a Makefile based project this may be something like:
+    API. It takes the command to run as parameters and runs this in a subshell with some
+    (configurable) resource limits applied. On a Makefile based project this may be something
+    like:
 
        run_test make check
 
@@ -843,18 +833,18 @@ $($0 available-actions | awk '{print "  " $0}')
 BUILTIN ACTION FUNCTIONS
 
   cehgit provides a minimal set of built-in functions to be used in actions. Most functionality
-  should be implemented in 00* actions itself.
+  should be implemented in modules.
 
-  This functions return 0 on success and 1 on failure. They may set CEHGIT_STATE. A 'return 1'
-  must be handled otherwise cehgit would exit. Ususally this is done by 'some_action_function || return 0'.
-  Using a 'if' or other operators is possible as well.
+  These functions return 0 on success and 1 on failure. A 'return 1' must be handled otherwise
+  cehgit would exit. Ususally this is done by something like 'some_action_function || return
+  0'.  Using a 'if' or other operators is possible as well.
 
 $(sed 's/^\(function \([^ ]*\) *\)\?#afunc \(\([^-]*\) *-\)\? *\(.*\)/  \2 \4\n     \5\n/p;d' < "$0")
 
 
 API FUNCTIONS
 
-  We define a few functions for diagnostics, locking and to record states:
+  We define a few functions for diagnostics, locking, caching and to record states:
 
 $(sed 's/^function \([^ ]*\) *#api \([^-]*\) *- *\(.*\)/  \1 \2\n     \3\n/p;d' < "$0")
 
@@ -921,6 +911,106 @@ EOF
     exit 0
 }
 
+function require () #api [mod..] - loads a module either by path or from MODULE_PATH
+{
+    declare -gA MODULE_LOADED
+    declare -ga MODULE_PATH=(".cehgit.d")
+    declare -g MODULE_PREFIX="mod-"
+
+    for mod in "$@"; do
+        if [[ ${MODULE_LOADED["$mod"]:-false} = false ]]; then
+            if [[ "$mod" = */* && -f "$mod" ]]; then
+                debug "$mod"
+                # shellcheck disable=SC1090 # dynamic source
+                source "$mod"
+                MODULE_LOADED["$mod"]=true
+            else
+                for path in "${MODULE_PATH[@]}"; do
+                    if [[ -f "$path/$MODULE_PREFIX$mod" ]]; then
+                        debug "$path/$MODULE_PREFIX$mod"
+                        # shellcheck disable=SC1090 # dynamic source
+                        source "$path/$MODULE_PREFIX$mod"
+                        MODULE_LOADED["$mod"]=true
+                        break
+                    elif [[ -f "$path/$mod" ]]; then
+                        debug "$path/$mod"
+                        # shellcheck disable=SC1090 # dynamic source
+                        source "$path/$mod"
+                        MODULE_LOADED["$mod"]=true
+                        break
+                    fi
+                done
+            fi
+            if [[ ${MODULE_LOADED["$mod"]:-false} = false ]]; then
+                die "failed to load $mod"
+            fi
+        else
+            trace "already loaded: $mod"
+        fi
+    done
+}
+
+function memo #api [-c|-d] [cmd args..].. - memoize the result/stdout/stderr of commands, will always return the same result again
+{
+    # -c clears the cache completely
+    if [[ $1 == "-c" ]]; then
+        unset MEMO_RC MEMO_STDOUT MEMO_STDERR
+        shift
+    fi
+
+    local delete=false
+    # -d deletes the cache entry
+    if [[ $1 == "-d" ]]; then
+        delete=true
+        shift
+    fi
+
+    declare -gAi MEMO_RC
+    declare -gA MEMO_STDOUT MEMO_STDERR
+
+    # shellcheck disable=SC2155
+    local key="$(sha256sum <<<"$$""$*")"
+    key="${key:0:64}"
+
+    if [[ $delete = true && -v MEMO_RC["$key"] ]]; then
+        unset "MEMO_RC[$key]" "MEMO_STDOUT[$key]" "MEMO_STDERR[$key]"
+    fi
+
+    if [[ -v MEMO_RC["$key"] ]]; then
+        echo -n "${MEMO_STDOUT[$key]}"
+        echo -n "${MEMO_STDERR[$key]}" 1>&2
+        return ${MEMO_RC["$key"]}
+    elif [[ $# -ge 1 ]]; then
+        local errexit=false
+        [[ $- == *e* ]] && errexit=true
+        set +e
+        touch "/tmp/$key.stdout" "/tmp/$key.stderr"
+        eval "$*" > >(tee "/tmp/$key.stdout") 2> >(tee "/tmp/$key.stderr" 1>&2)
+        local rc=$?
+        [[ $errexit = true ]] && set -e
+        MEMO_RC["$key"]=$rc
+        IFS= read -r -d '' MEMO_STDOUT["$key"] < "/tmp/$key.stdout"
+        IFS= read -r -d '' MEMO_STDERR["$key"] < "/tmp/$key.stderr"
+        rm "/tmp/$key.stdout" "/tmp/$key.stderr"
+        return "$rc"
+    fi
+}
+
+function memofn #api <functionnames..> - rewrites a function into a function that uses 'memo'
+{
+    for fn in "$@"; do
+        # rename the original function as nomemo_*
+        eval "nomemo_$(declare -f "$fn")"
+        # create a new function that calls memo with the original function
+        eval "function $fn () { memo nomemo_$fn \"\$@\" ; }"
+    done
+}
+
+function memo_ok #api [cmd args..] - memoize success but die on error
+{
+    memo "$@" || die "'$*' failed with $?"
+}
+
 function source_info # [N] - returns file:line N (or 0) up the bash call stack
 {
     echo "${BASH_SOURCE[$((${1:-0}+1))]}:${BASH_LINENO[$((${1:-0}))]}:${FUNCNAME[$((${1:-0}+1))]:+${FUNCNAME[$((${1:-0}+1))]}:}"
@@ -929,7 +1019,7 @@ function source_info # [N] - returns file:line N (or 0) up the bash call stack
 function die #api [message..] - prints 'message' to stderr and exits with failure
 {
     if [[ $VERBOSITY_LEVEL -gt 0 ]]; then
-        echo "PANIC: $(source_info 1) $*" >&2
+        echo -e "\033[1;91mPANIC:\033[0m $(source_info 1) $*" >&2
     fi
     exit 1
 }
@@ -937,31 +1027,38 @@ function die #api [message..] - prints 'message' to stderr and exits with failur
 function error #api [message..] - may print a error message to stderr
 {
     if [[ $VERBOSITY_LEVEL -gt 0 ]]; then
-        echo "ERROR: $(source_info 1) $*" >&2
+        echo -e "\033[1;31mERROR:\033[0m $(source_info 1) $*" >&2
+    fi
+}
+
+function note #api [message..] - may print an notice to stderr
+{
+    if [[ $VERBOSITY_LEVEL -gt 1 ]]; then
+        echo -e "\033[1;35m NOTE:\033[0m $*" >&2
     fi
 }
 
 function info #api [message..] - may print an informal message to stderr
 {
-    if [[ $VERBOSITY_LEVEL -gt 1 ]]; then
-        echo "INFO: $*" >&2
+    if [[ $VERBOSITY_LEVEL -gt 2 ]]; then
+        echo -e "\033[1;34m INFO:\033[0m $*" >&2
     fi
 }
 
 function debug #api [message..] - may print a debug message to stderr
 {
-    if [[ $VERBOSITY_LEVEL -gt 2 ]]; then
-        echo "DEBUG: $(source_info 1) $*" >&2
+    if [[ $VERBOSITY_LEVEL -gt 3 ]]; then
+        echo -e "\033[1;36mDEBUG:\033[0m $(source_info 1) $*" >&2
     fi
 }
 
 function trace #api [message] - may prints a trace message to stderr
 {
-    if [[ $VERBOSITY_LEVEL -gt 3 ]]; then
-        echo "TRACE: $(source_info 1) $*" >&2
+    if [[ $VERBOSITY_LEVEL -gt 4 ]]; then
+        echo -e "\033[1;96mTRACE:\033[0m $(source_info 1) $*" >&2
     fi
 }
 
-if [[ ! -v SHTEST_TESTSUITE ]]; then
+if [[ ${SHTEST_TESTSUITE:-false} = false ]]; then
     cehgit "$@"
 fi

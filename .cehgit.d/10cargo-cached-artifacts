@@ -1,4 +1,5 @@
-# -*- mode: sh -*-
+#!/bin/bash
+require git git cargo
 is_cargo_project || return 0
 
 ## In a rust/cargo project, when a $LAST_TEST_DIR is present then hardlink the /target

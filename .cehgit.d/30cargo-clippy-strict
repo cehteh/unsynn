@@ -1,8 +1,9 @@
-# -*- mode: sh -*-
+#!/bin/bash
 ## checks 'cargo clippy' for warnings and errors
+require git cargo
 is_cargo_project || return 0
-git_hook "pre-commit" "pre-merge-commit" || return 0
-git_branch "master" "main" || return 0
+git_hook_matches "pre-commit" "pre-merge-commit" || return 0
+git_branch_matches "master" "main" || return 0
 
 function clippy_strict
 {
