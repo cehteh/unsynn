@@ -5,6 +5,8 @@
 
 #![allow(clippy::module_name_repetitions)]
 
+use shadow_counted::IntoShadowCounted;
+
 pub use proc_macro2::Delimiter;
 
 use crate::{
@@ -121,9 +123,10 @@ impl<C> GroupContaining<C> {
 impl<C: Parse> Parser for GroupContaining<C> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let group = Group::parser(tokens)?;
-        let mut c_iter = group.stream().into_iter();
+        let mut c_iter = group.stream().into_iter().nested_shadow_counted(tokens);
         let content = C::parser(&mut c_iter)?;
         EndOfStream::parser(&mut c_iter)?;
+        c_iter.commit();
         Ok(Self {
             delimiter: group.delimiter(),
             content,
@@ -196,9 +199,15 @@ macro_rules! make_group_containing {
                 fn parser(tokens: &mut TokenIter) -> Result<Self> {
                     match tokens.next() {
                         Some(TokenTree::Group(group)) if group.delimiter() == Delimiter::$delimiter => {
-                            Ok(Self{
-                                content: Cons::<C, EndOfStream>::parser(&mut group.stream().into_iter())?.first}
-                            )
+                            let mut counted = group
+                                .stream()
+                                .into_iter()
+                                .nested_shadow_counted(tokens);
+
+                            let content = Cons::<C, EndOfStream>::parser(&mut counted)?;
+                            counted.commit();
+
+                            Ok(Self{content: content.first})
                         }
                         Some(other) => Error::unexpected_token(other),
                         None => Error::unexpected_end(),

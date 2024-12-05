@@ -10,9 +10,11 @@
 #![doc = include_str!("../ROADMAP.md")]
 #![cfg_attr(test, allow(clippy::unwrap_used))]
 
+use shadow_counted::ShadowCountedIter;
+
 /// Type alias for the iterator type we use for parsing. This Iterator is Clone and produces
 /// `&TokenTree`.
-pub type TokenIter = <TokenStream as IntoIterator>::IntoIter;
+pub type TokenIter<'a> = ShadowCountedIter<'a, <TokenStream as IntoIterator>::IntoIter>;
 
 /// The `Parser` trait that must be implemented by anything we want to parse. We are parsing
 /// over a [`TokenIter`] ([`proc_macro2::TokenStream`] iterator).
@@ -153,7 +155,7 @@ pub trait ToTokens {
     /// Convert `&self` into a [`TokenIter`] object.
     // This is mostly used in the test suite to replace the quote! macro
     fn to_token_iter(&self) -> TokenIter {
-        self.to_token_stream().into_iter()
+        self.to_token_stream().into_iter().into()
     }
 
     /// Convert `&self` into a [`String`] object.  This is mostly used in the test suite to
@@ -176,7 +178,7 @@ pub trait IParse: private::Sealed {
     fn parse_all<T: Parse>(self) -> Result<T>;
 }
 
-impl private::Sealed for &mut TokenIter {}
+impl private::Sealed for &mut TokenIter<'_> {}
 
 /// Implements [`IParse`] for [`&mut TokenIter`]. This API is more convenient in cases where the
 /// compiler can infer types because no turbofish notations are required.
@@ -202,7 +204,7 @@ impl private::Sealed for &mut TokenIter {}
 ///     )
 /// }
 /// ```
-impl IParse for &mut TokenIter {
+impl IParse for &mut TokenIter<'_> {
     #[inline]
     fn parse<T: Parse>(self) -> Result<T> {
         T::parse(self)
@@ -233,7 +235,7 @@ pub trait Transaction: Clone {
     }
 }
 
-impl Transaction for TokenIter {}
+impl Transaction for TokenIter<'_> {}
 
 // Result and error type
 mod error;
