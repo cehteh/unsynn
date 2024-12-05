@@ -1,4 +1,6 @@
+//! testing the Error trait impls
 #![allow(clippy::unwrap_used)]
+
 use unsynn::*;
 
 #[test]

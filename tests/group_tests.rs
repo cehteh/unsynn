@@ -1,3 +1,4 @@
+//! testing Group parsing
 #![allow(clippy::unwrap_used)]
 use unsynn::*;
 

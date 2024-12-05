@@ -1,3 +1,4 @@
+//! testing Debug trait impls
 #![allow(clippy::items_after_statements)]
 #![cfg(any(debug_assertions, feature = "impl_debug"))]
 use unsynn::*;

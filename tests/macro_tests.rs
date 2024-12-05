@@ -1,3 +1,4 @@
+//! testing macros
 use unsynn::*;
 
 unsynn! {

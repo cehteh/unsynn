@@ -20,6 +20,7 @@ macro_rules! impl_unsigned_integer {
             #[doc = stringify!(Emit a literal $ty without sign and suffix)]
             impl ToTokens for $ty {
                 fn to_tokens(&self, tokens: &mut TokenStream) {
+                    #[allow(clippy::cast_lossless)]
                     LiteralInteger::new(*self as u128).to_tokens(tokens);
                 }
             }

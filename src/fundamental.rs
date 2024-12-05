@@ -252,7 +252,7 @@ impl<T> Eq for Cached<T> {}
 
 impl<T> std::hash::Hash for Cached<T> {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.as_str().hash(state)
+        self.as_str().hash(state);
     }
 }
 

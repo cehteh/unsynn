@@ -1,3 +1,4 @@
+//! testing literal parsing
 #![allow(clippy::unwrap_used)]
 use unsynn::*;
 

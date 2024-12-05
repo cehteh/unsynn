@@ -1,3 +1,4 @@
+//! testing `TokenTree` parsing
 #![allow(clippy::unwrap_used)]
 use unsynn::*;
 

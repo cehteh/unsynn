@@ -226,9 +226,9 @@ pub trait Transaction: Clone {
     /// is returned.
     fn transaction<R>(&mut self, f: impl FnOnce(&mut Self) -> Result<R>) -> Result<R> {
         let mut ttokens = self.clone();
-        f(&mut ttokens).and_then(|result| {
+        f(&mut ttokens).map(|result| {
             *self = ttokens;
-            Ok(result)
+            result
         })
     }
 }

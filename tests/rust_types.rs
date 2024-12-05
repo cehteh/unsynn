@@ -1,3 +1,4 @@
+//! testing rust type parsing
 #![allow(clippy::unwrap_used)]
 use unsynn::*;
 
