@@ -119,10 +119,12 @@ macro_rules! unsynn{
 
         impl Parser for $name {
             fn parser(tokens: &mut TokenIter) -> Result<Self> {
+                // FIXME store longest error and return that finally
+                let etokens = tokens.clone(); // FIXME: remove this
                 // try to parse each variant
                 $crate::unsynn!{@enum_parse_variant(tokens) $($variants)*}
                 // nothing matched, error out
-                $crate::Error::unexpected_token_or_end(tokens.next())
+                $crate::Error::unexpected_token_or_end(&etokens, tokens.next())
             }
         }
 
@@ -429,11 +431,12 @@ macro_rules! keyword{
             impl $crate::Parser for $name {
                 fn parser(tokens: &mut $crate::TokenIter) -> Result<Self> {
                     use $crate::Parse;
-                    $crate::CachedIdent::parse_with(tokens, |ident| {
+                    $crate::CachedIdent::parse_with(tokens, |ident, tokens| {
                         if ident == $str {
                             Ok($name)
                         } else {
                             $crate::Error::other::<$name>(
+                                tokens,
                                 format!(
                                     "keyword {:?} expected, got {:?} at {:?}",
                                     $str,

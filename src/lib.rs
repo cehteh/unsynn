@@ -88,12 +88,17 @@ where
             .map(|result| result.first)
     }
 
-    /// Parse a value in a transaction, pass it to a `FnOnce(Self) -> Result<T>` closure which
+    /// Parse a value in a transaction, pass it to a
+    /// `FnOnce(Self, &mut TokenIter) -> Result<T>` closure which
     /// creates a new result or returns an Error.
     ///
     /// This method is a very powerful tool as it allows anything from simple validations to
     /// complete transformations into a new type. You may find this useful to implement
     /// parsers for complex types that need some runtime logic.
+    ///
+    /// The closures first argument is the parsed value and the second argument is the
+    /// transactional iterator pointing after parsing `Self`. This can be used to create
+    /// errors or parse further. In many cases it can be ignored with `_`.
     ///
     /// # Example
     ///
@@ -110,7 +115,7 @@ where
     ///     fn parser(tokens: &mut TokenIter) -> Result<Self> {
     ///         // Our input is CommaDelimitedVec<String>, we'll transform that into
     ///         // OrderedStrings.
-    ///         Parse::parse_with(tokens, |this : CommaDelimitedVec<String>| {
+    ///         Parse::parse_with(tokens, |this : CommaDelimitedVec<String>, _| {
     ///             let mut strings: Vec<String> = this.into_iter()
     ///                 .map(|s| s.value)
     ///                 .collect();
@@ -128,10 +133,13 @@ where
     ///
     /// When the parser or the closure returns an error, the transaction is rolled back and
     /// the error is returned.
-    fn parse_with<T>(tokens: &mut TokenIter, f: impl FnOnce(Self) -> Result<T>) -> Result<T> {
+    fn parse_with<T>(
+        tokens: &mut TokenIter,
+        f: impl FnOnce(Self, &mut TokenIter) -> Result<T>,
+    ) -> Result<T> {
         tokens.transaction(|tokens| {
             let result = Self::parser(tokens)?;
-            f(result)
+            f(result, tokens)
         })
     }
 }

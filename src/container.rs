@@ -113,7 +113,10 @@ impl<T: Parse> RangedRepeats for Vec<T> {
         if output.len() >= min {
             Ok(output)
         } else {
-            Error::other(format!("less than {} elements, got {}", min, output.len()))
+            Error::other(
+                tokens,
+                format!("less than {} elements, got {}", min, output.len()),
+            )
         }
     }
 }
@@ -215,12 +218,15 @@ impl<T: Parse, S: Parse> RangedRepeats for LazyVec<T, S> {
                 return if vec.len() >= min {
                     Ok(Self { vec, terminator })
                 } else {
-                    Error::other(format!("less than {} elements, got {}", min, vec.len()))
+                    Error::other(
+                        tokens,
+                        format!("less than {} elements, got {}", min, vec.len()),
+                    )
                 };
             }
             vec.push(T::parse(tokens)?);
         }
-        Error::other(format!("more than {max} elements"))
+        Error::other(tokens, format!("more than {max} elements"))
     }
 }
 
@@ -313,7 +319,10 @@ impl<T: Parse, D: Parse> RangedRepeats for DelimitedVec<T, D> {
         if output.len() >= min {
             Ok(Self(output))
         } else {
-            Error::other(format!("less than {} elements, got {}", min, output.len()))
+            Error::other(
+                tokens,
+                format!("less than {} elements, got {}", min, output.len()),
+            )
         }
     }
 }
@@ -384,12 +393,15 @@ impl<const MIN: usize, const MAX: usize, T: Parse, D: Parse> Parser for Repeats<
         if output.len() >= MIN {
             Ok(Self(output))
         } else {
-            Error::other(format!(
-                "less than MIN Repeats<MIN={MIN}, MAX={MAX}, {}, {}>, got {} repeats",
-                std::any::type_name::<T>(),
-                std::any::type_name::<D>(),
-                output.len()
-            ))
+            Error::other(
+                tokens,
+                format!(
+                    "less than MIN Repeats<MIN={MIN}, MAX={MAX}, {}, {}>, got {} repeats",
+                    std::any::type_name::<T>(),
+                    std::any::type_name::<D>(),
+                    output.len()
+                ),
+            )
         }
     }
 }

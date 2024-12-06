@@ -52,7 +52,10 @@ impl LiteralInteger {
 impl Parser for LiteralInteger {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let literal = Literal::parser(tokens)?;
-        let value = literal.to_string().parse().map_err(Error::boxed)?;
+        let value = literal
+            .to_string()
+            .parse()
+            .map_err(|e| Error::dynamic(tokens, e))?;
         Ok(Self { literal, value })
     }
 }
@@ -137,7 +140,7 @@ impl Parser for LiteralCharacter {
         if let (Some('\''), Some(value)) = (chars.next(), chars.next()) {
             Ok(Self { literal, value })
         } else {
-            Error::unexpected_token(TokenTree::Literal(literal))
+            Error::unexpected_token(tokens, TokenTree::Literal(literal))
         }
     }
 }
@@ -247,7 +250,7 @@ impl Parser for LiteralString {
                 value: string,
             })
         } else {
-            Error::unexpected_token(TokenTree::Literal(literal))
+            Error::unexpected_token(tokens, TokenTree::Literal(literal))
         }
     }
 }

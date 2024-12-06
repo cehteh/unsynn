@@ -13,7 +13,7 @@ macro_rules! impl_unsigned_integer {
             impl Parser for $ty {
                 fn parser(tokens: &mut TokenIter) -> Result<Self> {
                     let lit = crate::Cons::<Option<crate::Plus>, LiteralInteger>::parser(tokens)?;
-                    <$ty>::try_from(lit.second.value()).map_err(Error::boxed)
+                    <$ty>::try_from(lit.second.value()).map_err(|e| Error::dynamic(tokens, e))
                 }
             }
 
@@ -39,7 +39,7 @@ macro_rules! impl_signed_integer {
                 fn parser(tokens: &mut TokenIter) -> Result<Self> {
                     let lit = crate::Cons::<Option<crate::Either<crate::Plus, crate::Minus>>, LiteralInteger>::parser(tokens)?;
                     <$ty>::try_from(lit.second.value())
-                    .map_err(Error::boxed)
+                    .map_err(|e| Error::dynamic(tokens, e))
                     .and_then(|value| {
                         match lit.first {
                             Some(crate::Either::Second(_)) => Ok(-value),
@@ -83,13 +83,13 @@ impl ToTokens for char {
 /// Only `true` and `false` are valid boolean values.
 impl Parser for bool {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        Ident::parse_with(tokens, |ident| {
+        Ident::parse_with(tokens, |ident, tokens| {
             if ident == "true" {
                 Ok(true)
             } else if ident == "false" {
                 Ok(false)
             } else {
-                Error::unexpected_token(ident.into())
+                Error::unexpected_token(tokens, ident.into())
             }
         })
     }
@@ -108,7 +108,7 @@ impl ToTokens for bool {
 /// parser significantly.
 impl Parser for String {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        TokenTree::parse_with(tokens, |token| Ok(token.to_string()))
+        TokenTree::parse_with(tokens, |token, _| Ok(token.to_string()))
     }
 }
 

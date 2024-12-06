@@ -17,8 +17,7 @@ impl<const C: char> Parser for PunctAny<C> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(TokenTree::Punct(punct)) if punct.as_char() == C => Ok(Self),
-            Some(other) => Error::unexpected_token(other),
-            None => Error::unexpected_end(),
+            other => Error::unexpected_token_or_end(tokens, other),
         }
     }
 }
@@ -96,8 +95,7 @@ impl<const C: char> Parser for PunctJoint<C> {
             {
                 Ok(Self)
             }
-            Some(other) => Error::unexpected_token(other),
-            None => Error::unexpected_end(),
+            other => Error::unexpected_token_or_end(tokens, other),
         }
     }
 }
@@ -174,8 +172,7 @@ impl<const C: char> Parser for PunctAlone<C> {
             {
                 Ok(Self)
             }
-            Some(other) => Error::unexpected_token(other),
-            None => Error::unexpected_end(),
+            other => Error::unexpected_token_or_end(tokens, other),
         }
     }
 }
