@@ -53,6 +53,7 @@ impl Error {
     }
 
     /// Upgrade a error to one with greater or equal pos value.
+    #[allow(clippy::missing_errors_doc)]
     pub fn upgrade<T>(&mut self, r: Result<T>) -> Result<T> {
         if let Err(other) = &r {
             if other.pos >= self.pos {
