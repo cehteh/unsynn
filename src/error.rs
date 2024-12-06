@@ -53,10 +53,13 @@ impl Error {
     }
 
     /// Upgrade a error to one with greater or equal pos value.
-    pub fn upgrade(&mut self, other: &Self) {
-        if other.pos >= self.pos {
-            *self = other.clone();
+    pub fn upgrade<T>(&mut self, r: Result<T>) -> Result<T> {
+        if let Err(other) = &r {
+            if other.pos >= self.pos {
+                *self = other.clone();
+            }
         }
+        r
     }
 
     /// Create a `Result<T>::Err(Error{ kind: ErrorKind::UnexpectedToken }` error.

@@ -38,3 +38,14 @@ fn test_either() {
         unreachable!();
     };
 }
+
+// test that the error which made the most progress is returned from either
+#[test]
+fn test_either_error_progress() {
+    let mut token_iter = ": : ()".to_token_iter();
+    let error1 = Either::<Cons<Punct, Ident>, Cons<Punct, Punct, Punct>>::parse(&mut token_iter)
+        .unwrap_err();
+    let error2 = Either::<Cons<Punct, Punct, Punct>, Cons<Punct, Ident>>::parse(&mut token_iter)
+        .unwrap_err();
+    assert_eq!(error1.to_string(), error2.to_string());
+}

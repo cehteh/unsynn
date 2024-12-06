@@ -4,7 +4,7 @@
 //! conjunction of two to four other parsers, while the [`Either`] type is used to define a
 //! parser that is a disjunction of two to four other parsers.
 
-use crate::{Invalid, Nothing, Parse, Parser, Result, ToTokens, TokenIter, TokenStream};
+use crate::{Error, Invalid, Nothing, Parse, Parser, Result, ToTokens, TokenIter, TokenStream};
 
 /// Conjunctive `A` followed by `B` and optional `C` and `D`
 /// When `C` and `D` are not used, they are set to [`Nothing`].
@@ -345,14 +345,18 @@ where
     D: Parse,
 {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        if let Ok(first) = A::parse(tokens) {
+        let mut err = Error::no_error();
+
+        if let Ok(first) = err.upgrade(A::parse(tokens)) {
             Ok(Either::First(first))
-        } else if let Ok(second) = B::parse(tokens) {
+        } else if let Ok(second) = err.upgrade(B::parse(tokens)) {
             Ok(Either::Second(second))
-        } else if let Ok(third) = C::parse(tokens) {
+        } else if let Ok(third) = err.upgrade(C::parse(tokens)) {
             Ok(Either::Third(third))
+        } else if let Ok(fourth) = err.upgrade(D::parse(tokens)) {
+            Ok(Either::Fourth(fourth))
         } else {
-            Ok(Either::Fourth(D::parse(tokens)?))
+            Err(err)
         }
     }
 }
