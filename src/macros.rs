@@ -119,12 +119,11 @@ macro_rules! unsynn{
 
         impl Parser for $name {
             fn parser(tokens: &mut TokenIter) -> Result<Self> {
-                // FIXME store longest error and return that finally
-                let etokens = tokens.clone(); // FIXME: remove this
+                let mut err = Error::no_error();
                 // try to parse each variant
-                $crate::unsynn!{@enum_parse_variant(tokens) $($variants)*}
+                $crate::unsynn!{@enum_parse_variant(tokens, err) $($variants)*}
                 // nothing matched, error out
-                $crate::Error::unexpected_token_or_end(&etokens, tokens.next())
+                Err(err)
             }
         }
 
@@ -303,33 +302,33 @@ macro_rules! unsynn{
     (@enum_write($self:ident, $f:ident) {}) => {};
 
     // Tuple enum variant
-    (@enum_parse_variant($tokens:ident) $(#[$_attrs:meta])* $variant:ident($($tuple:tt)*) $(, $($cont:tt)*)?) => {
+    (@enum_parse_variant($tokens:ident, $err:ident) $(#[$_attrs:meta])* $variant:ident($($tuple:tt)*) $(, $($cont:tt)*)?) => {
         if let Ok(parsed) = (|| -> $crate::Result<_> {
-            $crate::unsynn!{@enum_parse_tuple($tokens) $variant($($tuple)*)}
+            $err.upgrade($crate::unsynn!{@enum_parse_tuple($tokens) $variant($($tuple)*)})
         })() {
             return Ok(parsed);
         }
-        $crate::unsynn!{@enum_parse_variant($tokens) $($($cont)*)?}
+        $crate::unsynn!{@enum_parse_variant($tokens, $err) $($($cont)*)?}
     };
 
     // Struct enum variant
-    (@enum_parse_variant($tokens:ident) $(#[$_attrs:meta])* $variant:ident{$($members:tt)*} $(, $($cont:tt)*)?) => {
+    (@enum_parse_variant($tokens:ident, $err:ident) $(#[$_attrs:meta])* $variant:ident{$($members:tt)*} $(, $($cont:tt)*)?) => {
         if let Ok(parsed) = (|| -> $crate::Result<_> {
-            $crate::unsynn!{@enum_parse_struct($tokens) $variant{$($members)*}}
+            $err.upgrade($crate::unsynn!{@enum_parse_struct($tokens) $variant{$($members)*}})
         })() {
             return Ok(parsed);
         }
-        $crate::unsynn!{@enum_parse_variant($tokens) $($($cont)*)?}
+        $crate::unsynn!{@enum_parse_variant($tokens, $err) $($($cont)*)?}
     };
 
     // Empty enum variant
-    (@enum_parse_variant($tokens:ident) $(#[$_attrs:meta])* $variant:ident $(, $($cont:tt)*)?) => {
+    (@enum_parse_variant($tokens:ident, $err:ident) $(#[$_attrs:meta])* $variant:ident $(, $($cont:tt)*)?) => {
         /* NOP */
-        $crate::unsynn!{@enum_parse_variant($tokens) $($($cont)*)?}
+        $crate::unsynn!{@enum_parse_variant($tokens, $err) $($($cont)*)?}
     };
 
     // end recursion
-    (@enum_parse_variant($tokens:ident)) => {};
+    (@enum_parse_variant($tokens:ident, $err:ident)) => {};
 
     // Parse a tuple variant
     (@enum_parse_tuple($tokens:ident) $variant:ident($($(#[$_attrs:meta])* $parser:ty),* $(,)?)) => {
