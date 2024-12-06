@@ -101,6 +101,7 @@ function cehgit_loadconfig
 
     # defaults overwritten from config files
     declare -gx KEEP_TESTS=5                             #G How many tests are kept must be bigger than 2
+    declare -gx NICE_LEVEL=1                             #G nice level 'run_test' uses
     declare -gx TIMEOUT_SECS=10                          #G Timeout for test actions
     declare -gx MEMORY_KB=16777216                       #G Memory limit for test actions
     declare -gx TEST_PREFIX=".test-"                     #G Prefix for test directories, extended by a timestamp and hookname
@@ -494,10 +495,31 @@ function lock_remove #api {name} - remove a lockfile, unlock
     fi
 }
 
-function run_test #afunc [program] [args..] - runs a test in a resource limited subshell
+function run_test #afunc [-n|--nice LEVEL] [-m|--memory KB] [-t|--timeout SECS] [program] [args..] - runs a test in a resource limited subshell
 {
+    while [[ $# -gt 0 ]]; do
+        case "${1:-}" in
+        -n|--nice)
+            local NICE_LEVEL="$2"
+            shift 2
+            ;;
+        -m|--memory)
+            local MEMORY_KB="$2"
+            shift 2
+            ;;
+        -t|--timeout)
+            local TIMEOUT_SECS="$2"
+            shift 2
+            ;;
+        *)
+            break
+            ;;
+        esac
+    done
+
     info "run_test $*"
     if (
+        renice -n "$NICE_LEVEL" -p $$ >/dev/null
         ulimit -S -v "$MEMORY_KB" -t "$TIMEOUT_SECS"
         "$@"
     ); then
