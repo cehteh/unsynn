@@ -10,6 +10,7 @@ set -ue
 # PLANNED: pre-push hook 
 # PLANNED: refactor all variables, prefix with CEHGIT_, CEHGIT_ or CEHGIT_{ACTION}_
 # TODO: naming conventions
+# PLANNED: do we want cleanup on trap EXIT? or better manual cleanup?
 
 
 # The main function dispatches based on how its called and which sub command is given
@@ -336,7 +337,10 @@ function cehgit_runner
         if [[ -z "$state" ]]; then
             debug "$ACTION"
             # shellcheck disable=SC1090 # dynamic source
-            source "$WORKTREE_DIR/$ACTIONS_DIR/$ACTION" "$@" || exit 1
+            if ! source "$WORKTREE_DIR/$ACTIONS_DIR/$ACTION" "$@"; then
+                lock_remove .cehgit.lock
+                exit 1
+            fi
         elif [[ "$state" == fail ]]; then
             debug "$ACTION cached $state"
             exit 1
@@ -371,14 +375,18 @@ function cehgit_runner
                 if [[ -z "$state" ]]; then
                     debug "bg running $ACTION"
                     # shellcheck disable=SC1090 # dynamic source
-                    source "$WORKTREE_DIR/$ACTIONS_DIR/$ACTION" "$@" || exit 1
-                    [[ "$(state_cached)" =~ ok|fail ]] || die "background_schedule: background job $ACTION must result in ok or fail"
+                    source "$WORKTREE_DIR/$ACTIONS_DIR/$ACTION" "$@" || true
+                    [[ "$(state_cached)" =~ ok|fail ]] || {
+                        lock_remove .cehgit.bg.lock
+                        die "background_schedule: background job $ACTION must result in ok or fail"
+                    }
                 elif [[ "$state" == fail ]]; then
                     debug "bg $ACTION cached $state"
+                    lock_remove .cehgit.bg.lock
                     exit 1
                 fi
                 # needs cat here, don't ask why
-            done |& cat  >>"$TEST_LOG.bg" || true
+            done |& cat >>"$TEST_LOG.bg" || true
 
             lock_remove .cehgit.bg.lock
         ) &
