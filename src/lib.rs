@@ -1,6 +1,6 @@
 #![doc = include_str!("../README.md")]
 //!
-//! # Detailed Introduction
+//! # Detailed Introduction / Cookbook
 //!
 //! For a more detailed introduction about how to use unsynn see the
 //! [Cookbook](Parse#cookbook) section in the `Parse` trait.

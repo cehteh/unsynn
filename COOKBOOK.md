@@ -215,3 +215,23 @@ impl ToTokens for AssignmentList {
 #     assert_eq!(parsed.list[1].1, "d");
 # }
 ```
+
+
+## Errors
+
+Unsynn normally bails on the first error encountered. It does not try to parse any further or
+being smart about what may have caused an error (typos, missing semicolons etc).
+The only exception to this is when parsing disjunct entities where errors are expected to
+happen on the first branches. It then keep the error which shown the most progress in parsing.
+When any branch succeeds the error is dropped and parsing goes on, when all branches fail then
+that error which made the most progress is returned. This is implemented for enums created
+with the `unsynn!` macro as well for the `Either::parser()` method (which is an enum as well).
+This covers all normal cases, only when one for some reason wants to implement disunct parsers
+manually this has to be taken into account.
+
+This is then done by creating an `Error` with `ErrorKind:: NoError` by
+`let mut err = Error::no_error()` within the `Parser` implementaiton of the custom types
+parser. Then any parser that is called subsequently tries to `err.upgrade(Item::parser(..))`
+the error which handles storing the error making the most progress. Eventually a `Ok()` or the
+upgraded `Err(err)` is returned. For details look at the source of [Either::parser].
+
