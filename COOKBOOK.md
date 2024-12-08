@@ -1,9 +1,11 @@
 # Cookbook
 
+
 ## Parsing
 
-Parsing is done over a `<TokenStream as IntoIterator>::IntoIter` which is shortened as
-[`TokenIter`].
+Parsing is done over a `ShadowCountedIter<<TokenStream as IntoIterator>::IntoIter>` which is
+shortened as [`TokenIter`]. `TokenIter` are created with [`ToTokens::to_token_iter()`] or
+[`ToTokens::into_token_iter()`], which should be implemented for for anyhing you need.
 
 The main trait for parsing a [`TokenIter`] is the [`Parse`] trait. This traits methods are all
 default implemented and can be used as is. [`Parse`] is implemented for all types that
@@ -23,6 +25,15 @@ The `Parse::parse_with()` method is used for parsing in more complex situations.
 simplest case it can be used to validate the values of a parsed type. More complex usage will
 fill in `HiddenState` and other not parsed members or construct completely new types from
 parsed entities.
+
+
+## ToTokens
+
+The [`ToTokens`] trait is responsible for emiting tokens to a `TokenStream`. Unlike the trait
+from the quote crate we define `ToTokens` for a lot more types and provide more methods.
+
+Notably it provides the `to_token_iter()` and `into_token_iter()` methods which create the
+entry points for parsing.
 
 
 ## Composition and Type Aliases
@@ -223,6 +234,7 @@ Unsynn normally bails on the first error encountered. It does not try to parse a
 being smart about what may have caused an error (typos, missing semicolons etc).
 The only exception to this is when parsing disjunct entities where errors are expected to
 happen on the first branches. It then keep the error which shown the most progress in parsing.
+Progress is tracked with the `ShadowCountedIter`.
 When any branch succeeds the error is dropped and parsing goes on, when all branches fail then
 that error which made the most progress is returned. This is implemented for enums created
 with the `unsynn!` macro as well for the `Either::parser()` method (which is an enum as well).
@@ -230,7 +242,7 @@ This covers all normal cases, only when one for some reason wants to implement d
 manually this has to be taken into account.
 
 This is then done by creating an `Error` with `ErrorKind:: NoError` by
-`let mut err = Error::no_error()` within the `Parser` implementaiton of the custom types
+`let mut err = Error::no_error()` within the `Parser` implementation of the custom types
 parser. Then any parser that is called subsequently tries to `err.upgrade(Item::parser(..))`
 the error which handles storing the error making the most progress. Eventually a `Ok()` or the
 upgraded `Err(err)` is returned. For details look at the source of [Either::parser].

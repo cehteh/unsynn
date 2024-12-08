@@ -148,10 +148,25 @@ where
 impl<T: Parser> Parse for T {}
 
 /// unsynn defines its own [`ToTokens`] trait to be able to implement it for std container types.
-/// This is pretty much similar to the `ToTokens` from the quote crate.
+/// This is similar to the `ToTokens` from the quote crate but adds some extra methods and is
+/// implemented for more types. Moreover the `to_token_iter()` method is the main entry point
+/// for crating an iterator that can be used for parsing.
 pub trait ToTokens {
     /// Write `&self` to the given [`TokenStream`].
     fn to_tokens(&self, tokens: &mut TokenStream);
+
+    /// Convert `&self` into a [`TokenIter`] object.
+    fn to_token_iter(&self) -> TokenIter {
+        self.to_token_stream().into_iter().into()
+    }
+
+    /// Convert `self` into a [`TokenIter`] object.
+    fn into_token_iter<'a>(self) -> TokenIter<'a>
+    where
+        Self: Sized,
+    {
+        self.into_token_stream().into_iter().into()
+    }
 
     /// Convert `&self` into a [`TokenStream`] object.
     fn to_token_stream(&self) -> TokenStream {
@@ -160,10 +175,12 @@ pub trait ToTokens {
         tokens
     }
 
-    /// Convert `&self` into a [`TokenIter`] object.
-    // This is mostly used in the test suite to replace the quote! macro
-    fn to_token_iter(&self) -> TokenIter {
-        self.to_token_stream().into_iter().into()
+    /// Convert `self` into a [`TokenStream`] object.
+    fn into_token_stream(self) -> TokenStream
+    where
+        Self: Sized,
+    {
+        self.to_token_stream()
     }
 
     /// Convert `&self` into a [`String`] object.  This is mostly used in the test suite to
@@ -171,6 +188,13 @@ pub trait ToTokens {
     /// normalized [`String`].
     fn tokens_to_string(&self) -> String {
         self.to_token_stream().to_string()
+    }
+}
+
+// Full circle
+impl ToTokens for TokenIter<'_> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        tokens.extend(self.clone());
     }
 }
 

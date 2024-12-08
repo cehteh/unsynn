@@ -3,6 +3,24 @@
 use unsynn::*;
 
 #[test]
+fn test_tt_conversion() {
+    // some pointless conversions, just to ensure everything works
+    let token_stream = " ident foo (bar baz)".to_token_iter().to_token_stream();
+    let token_string = token_stream.to_token_iter().tokens_to_string();
+    assert_eq!(token_string, "ident foo (bar baz)");
+}
+
+#[test]
+fn test_tt_selfconvert() {
+    // token iter can convert to itself
+    let token_iter = " ident foo (bar baz)".to_token_iter();
+    let token_iter = token_iter.to_token_iter();
+    let token_iter = token_iter.to_token_iter();
+    // ...
+    assert_eq!(token_iter.tokens_to_string(), "ident foo (bar baz)");
+}
+
+#[test]
 fn test_gen() {
     let mut token_iter = " ident ".to_token_iter();
 
