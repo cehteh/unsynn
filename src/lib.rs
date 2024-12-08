@@ -13,7 +13,8 @@
 use shadow_counted::ShadowCountedIter;
 
 /// Type alias for the iterator type we use for parsing. This Iterator is Clone and produces
-/// `&TokenTree`.
+/// `&TokenTree`. The shadow counter counts tokens in the background to track progress which
+/// is used to keep the error that made the most progress in disjunctive parsers.
 pub type TokenIter<'a> = ShadowCountedIter<'a, <TokenStream as IntoIterator>::IntoIter>;
 
 /// The `Parser` trait that must be implemented by anything we want to parse. We are parsing
