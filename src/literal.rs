@@ -73,6 +73,7 @@ impl PartialEq<u128> for LiteralInteger {
 }
 
 #[cfg(feature = "impl_display")]
+#[mutants::skip]
 impl std::fmt::Display for LiteralInteger {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.value)
@@ -158,6 +159,7 @@ impl PartialEq<char> for LiteralCharacter {
 }
 
 #[cfg(feature = "impl_display")]
+#[mutants::skip]
 impl std::fmt::Display for LiteralCharacter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.value)
@@ -268,6 +270,7 @@ impl PartialEq<&str> for LiteralString {
 }
 
 #[cfg(feature = "impl_display")]
+#[mutants::skip]
 impl std::fmt::Display for LiteralString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.value)

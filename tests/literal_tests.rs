@@ -52,3 +52,85 @@ fn test_string_from_str() {
     let string = LiteralString::from_str("this is a string literal");
     assert_eq!(string.value(), "\"this is a string literal\"");
 }
+
+#[test]
+fn test_integer_set() {
+    let mut integer = LiteralInteger::new(123);
+    assert_eq!(integer.value(), 123);
+
+    integer.set(456);
+    assert_eq!(integer.value(), 456);
+
+    // Test PartialEq implementations
+    assert!(integer == 456);
+    assert!(!(integer == 123));
+}
+
+#[test]
+fn test_character_set() {
+    let mut character = LiteralCharacter::new('a');
+    assert_eq!(character.value(), 'a');
+
+    character.set('b');
+    assert_eq!(character.value(), 'b');
+
+    // Test PartialEq implementations
+    assert!(character == 'b');
+    assert!(!(character == 'a'));
+}
+
+#[test]
+fn test_string_set() {
+    let mut string = LiteralString::from_str("hello");
+    assert_eq!(string.value(), "\"hello\"");
+
+    string.set("\"world\"".to_string());
+    assert_eq!(string.value(), "\"world\"");
+
+    // Test PartialEq implementations
+    assert!(string == "\"world\"");
+    assert!(!(string == "\"hello\""));
+}
+
+#[test]
+fn test_integer_partial_eq() {
+    let integer = LiteralInteger::new(42);
+    assert!(integer == 42u128);
+    assert!(!(integer == 43u128));
+}
+
+#[test]
+fn test_character_partial_eq() {
+    let character = LiteralCharacter::new('a');
+    assert!(character == 'a');
+    assert!(!(character == 'b'));
+}
+
+#[test]
+fn test_string_partial_eq() {
+    let string = LiteralString::from_str("test");
+    assert!(string == "\"test\"");
+    assert!(!(string == "\"other\""));
+}
+
+#[test]
+fn test_integer_set_value() {
+    let mut integer = LiteralInteger::new(100);
+    integer.set(200);
+    assert_eq!(integer.value(), 200);
+}
+
+#[test]
+fn test_character_set_value() {
+    let mut character = LiteralCharacter::new('x');
+    character.set('y');
+    assert_eq!(character.value(), 'y');
+}
+
+#[test]
+fn test_string_set_value() {
+    let mut string = LiteralString::from_str("old");
+    string.set("\"new\"".to_string());
+    assert_eq!(string.value(), "\"new\"");
+    assert_eq!(string.as_str(), "new");
+}
