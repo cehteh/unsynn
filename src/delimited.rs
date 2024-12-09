@@ -36,6 +36,7 @@ impl<T: ToTokens, D: ToTokens> ToTokens for Delimited<T, D> {
 }
 
 #[cfg(any(debug_assertions, feature = "impl_debug"))]
+#[mutants::skip]
 impl<T: std::fmt::Debug, D: std::fmt::Debug> std::fmt::Debug for Delimited<T, D> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         f.debug_struct(&format!(
@@ -50,6 +51,7 @@ impl<T: std::fmt::Debug, D: std::fmt::Debug> std::fmt::Debug for Delimited<T, D>
 }
 
 #[cfg(feature = "impl_display")]
+#[mutants::skip]
 impl<T: std::fmt::Display, D: std::fmt::Display> std::fmt::Display for Delimited<T, D> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(
