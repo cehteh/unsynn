@@ -62,3 +62,21 @@ fn test_parse_string() {
     assert_eq!(String::parse(&mut tokens).unwrap(), "12345");
     assert_eq!(String::parse(&mut tokens).unwrap(), "{ + group }");
 }
+
+#[test]
+fn test_bool_to_tokens() {
+    let mut tokens = TokenStream::new();
+    true.to_tokens(&mut tokens);
+    assert_eq!(tokens.to_string(), "true");
+
+    let mut tokens = TokenStream::new();
+    false.to_tokens(&mut tokens);
+    assert_eq!(tokens.to_string(), "false");
+}
+
+#[test]
+fn test_char_to_tokens() {
+    let mut tokens = TokenStream::new();
+    'x'.to_tokens(&mut tokens);
+    assert_eq!(tokens.to_string(), "'x'");
+}
