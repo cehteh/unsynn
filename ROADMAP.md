@@ -8,7 +8,6 @@ deficiencies in 'unsynn' are found then it is time for a 1.0.0 release.
 
 ## Planned/Ideas
 
-* Eventually make enough tests to pass cargo-mutants (no priority yet).
 * add rust types
   * f32: 32-bit floating point number
   * f64: 64-bit floating point number (default)
