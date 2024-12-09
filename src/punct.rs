@@ -36,6 +36,7 @@ impl<const C: char> From<PunctAny<C>> for TokenTree {
 }
 
 #[cfg(feature = "impl_display")]
+#[mutants::skip]
 impl<const C: char> std::fmt::Display for PunctAny<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{C}")
@@ -43,6 +44,7 @@ impl<const C: char> std::fmt::Display for PunctAny<C> {
 }
 
 #[cfg(any(debug_assertions, feature = "impl_debug"))]
+#[mutants::skip]
 impl<const C: char> std::fmt::Debug for PunctAny<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "PunctAny<{C:?}>")
@@ -107,6 +109,7 @@ impl<const C: char> ToTokens for PunctJoint<C> {
 }
 
 #[cfg(feature = "impl_display")]
+#[mutants::skip]
 impl<const C: char> std::fmt::Display for PunctJoint<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{C}")
@@ -114,6 +117,7 @@ impl<const C: char> std::fmt::Display for PunctJoint<C> {
 }
 
 #[cfg(any(debug_assertions, feature = "impl_debug"))]
+#[mutants::skip]
 impl<const C: char> std::fmt::Debug for PunctJoint<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "PunctJoint<{C:?}>")
@@ -184,6 +188,7 @@ impl<const C: char> ToTokens for PunctAlone<C> {
 }
 
 #[cfg(feature = "impl_display")]
+#[mutants::skip]
 impl<const C: char> std::fmt::Display for PunctAlone<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{C}")
@@ -191,6 +196,7 @@ impl<const C: char> std::fmt::Display for PunctAlone<C> {
 }
 
 #[cfg(any(debug_assertions, feature = "impl_debug"))]
+#[mutants::skip]
 impl<const C: char> std::fmt::Debug for PunctAlone<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "PunctAlone<{C:?}>")
@@ -292,6 +298,7 @@ impl<const C1: char, const C2: char, const C3: char, const C4: char> ToTokens
 }
 
 #[cfg(feature = "impl_display")]
+#[mutants::skip]
 impl<const C1: char, const C2: char, const C3: char, const C4: char> std::fmt::Display
     for Operator<C1, C2, C3, C4>
 {
@@ -309,6 +316,7 @@ impl<const C1: char, const C2: char, const C3: char, const C4: char> std::fmt::D
 }
 
 #[cfg(any(debug_assertions, feature = "impl_debug"))]
+#[mutants::skip]
 impl<const C1: char, const C2: char, const C3: char, const C4: char> std::fmt::Debug
     for Operator<C1, C2, C3, C4>
 {
