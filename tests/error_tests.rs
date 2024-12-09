@@ -12,6 +12,15 @@ fn test_error_unexpected_token() {
 }
 
 #[test]
+fn test_error_set_pos() {
+    let mut err = Error::no_error();
+
+    assert_eq!(err.pos(), 0);
+    err.set_pos(42);
+    assert_eq!(err.pos(), 42);
+}
+
+#[test]
 #[should_panic = "Unexpected end of input:"]
 fn test_error_unexpected_end() {
     let mut token_iter = "".to_token_iter();

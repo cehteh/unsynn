@@ -63,6 +63,20 @@ impl Error {
         r
     }
 
+    /// Set the position of the error.
+    ///
+    /// Sometimes the position of the error is not known at the time of creation. This allows
+    /// to adjust it later.
+    pub fn set_pos(&mut self, pos: impl TokenCount) {
+        self.pos = pos.token_count();
+    }
+
+    /// Get the position of the error.
+    #[must_use]
+    pub const fn pos(&self) -> usize {
+        self.pos
+    }
+
     /// Create a `Result<T>::Err(Error{ kind: ErrorKind::UnexpectedToken }` error.
     #[allow(clippy::missing_errors_doc)]
     pub fn unexpected_token<T>(pos: impl TokenCount, found: TokenTree) -> Result<T> {
