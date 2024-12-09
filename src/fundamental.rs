@@ -212,6 +212,7 @@ impl<T> Cached<T> {
 
     #[doc(hidden)]
     #[deprecated = "use as_str()"]
+    #[mutants::skip]
     // TODO: remove before 0.1.0
     /// Gets the cached string representation
     pub fn string(&self) -> &str {
@@ -265,6 +266,7 @@ impl<T> AsRef<str> for Cached<T> {
 }
 
 #[cfg(any(debug_assertions, feature = "impl_debug"))]
+#[mutants::skip]
 impl<T: std::fmt::Debug> std::fmt::Debug for Cached<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct(&format!("Cached<{}>", std::any::type_name::<T>()))
@@ -275,6 +277,7 @@ impl<T: std::fmt::Debug> std::fmt::Debug for Cached<T> {
 }
 
 #[cfg(feature = "impl_display")]
+#[mutants::skip]
 impl<T: std::fmt::Display> std::fmt::Display for Cached<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.string)
@@ -329,6 +332,7 @@ impl ToTokens for Nothing {
 }
 
 #[cfg(feature = "impl_display")]
+#[mutants::skip]
 impl std::fmt::Display for Nothing {
     fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         Ok(())
@@ -355,6 +359,7 @@ impl ToTokens for Invalid {
 }
 
 #[cfg(feature = "impl_display")]
+#[mutants::skip]
 impl std::fmt::Display for Invalid {
     fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         Ok(())
@@ -392,6 +397,7 @@ impl<T> ToTokens for Except<T> {
 }
 
 #[cfg(any(debug_assertions, feature = "impl_debug"))]
+#[mutants::skip]
 impl<T: std::fmt::Debug> std::fmt::Debug for Except<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct(&format!("Except<{}>", std::any::type_name::<T>()))
@@ -400,6 +406,7 @@ impl<T: std::fmt::Debug> std::fmt::Debug for Except<T> {
 }
 
 #[cfg(feature = "impl_display")]
+#[mutants::skip]
 impl<T> std::fmt::Display for Except<T> {
     fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         Ok(())
@@ -438,6 +445,7 @@ impl<T> ToTokens for Expect<T> {
 }
 
 #[cfg(any(debug_assertions, feature = "impl_debug"))]
+#[mutants::skip]
 impl<T: std::fmt::Debug> std::fmt::Debug for Expect<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct(&format!("Expect<{}>", std::any::type_name::<T>()))
@@ -446,6 +454,7 @@ impl<T: std::fmt::Debug> std::fmt::Debug for Expect<T> {
 }
 
 #[cfg(feature = "impl_display")]
+#[mutants::skip]
 impl<T> std::fmt::Display for Expect<T> {
     fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         Ok(())
@@ -508,6 +517,7 @@ impl<T: Default> DerefMut for HiddenState<T> {
 
 impl<T: Default> Parser for HiddenState<T> {
     #[inline]
+    #[mutants::skip]
     fn parser(_ctokens: &mut TokenIter) -> Result<Self> {
         Ok(Self(T::default()))
     }
@@ -527,6 +537,7 @@ impl<T: Default> Default for HiddenState<T> {
 }
 
 #[cfg(any(debug_assertions, feature = "impl_debug"))]
+#[mutants::skip]
 impl<T: Default + std::fmt::Debug> std::fmt::Debug for HiddenState<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_tuple(&format!("HiddenState<{}>", std::any::type_name::<T>()))
@@ -536,6 +547,7 @@ impl<T: Default + std::fmt::Debug> std::fmt::Debug for HiddenState<T> {
 }
 
 #[cfg(feature = "impl_display")]
+#[mutants::skip]
 impl<T: Default> std::fmt::Display for HiddenState<T> {
     fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         Ok(())
