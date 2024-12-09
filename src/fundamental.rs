@@ -461,6 +461,51 @@ impl<T> std::fmt::Display for Expect<T> {
     }
 }
 
+/// Skips over expected tokens. Will parse and consume the tokens but not store them.
+/// Consequently the `ToTokens` and `Display` implementations will not output any tokens.
+///
+/// # Example
+///
+/// ```
+/// # use unsynn::*;
+/// let mut token_iter = "ident,".to_token_iter();
+///
+/// let _ = Skip::<Cons<Ident, Comma>>::parse_all(&mut token_iter).unwrap();
+/// ```
+#[derive(Clone)]
+pub struct Skip<T>(PhantomData<T>);
+
+impl<T: Parse> Parser for Skip<T> {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        T::parser(tokens)?;
+        Ok(Self(PhantomData))
+    }
+}
+
+impl<T> ToTokens for Skip<T> {
+    #[inline]
+    fn to_tokens(&self, _tokens: &mut TokenStream) {
+        /*NOP*/
+    }
+}
+
+#[cfg(any(debug_assertions, feature = "impl_debug"))]
+#[mutants::skip]
+impl<T: std::fmt::Debug> std::fmt::Debug for Skip<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct(&format!("Skip<{}>", std::any::type_name::<T>()))
+            .finish()
+    }
+}
+
+#[cfg(feature = "impl_display")]
+#[mutants::skip]
+impl<T> std::fmt::Display for Skip<T> {
+    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Ok(())
+    }
+}
+
 /// Matches the end of the stream when no tokens are left.
 ///
 /// # Example
