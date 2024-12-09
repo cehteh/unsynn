@@ -65,13 +65,13 @@ impl Error {
 
     /// Create a `Result<T>::Err(Error{ kind: ErrorKind::UnexpectedToken }` error.
     #[allow(clippy::missing_errors_doc)]
-    pub fn unexpected_token<T>(pos: &TokenIter, found: TokenTree) -> Result<T> {
+    pub fn unexpected_token<T>(pos: impl TokenCount, found: TokenTree) -> Result<T> {
         Err(Error {
             kind: ErrorKind::UnexpectedToken {
                 expected: std::any::type_name::<T>(),
                 found,
             },
-            pos: pos.counter(),
+            pos: pos.count(),
         })
     }
 
@@ -88,7 +88,7 @@ impl Error {
 
     /// Either `UnexpectedToken` or `UnexpectedEnd` depending if token is `Some`.
     #[allow(clippy::missing_errors_doc)]
-    pub fn unexpected_token_or_end<T>(pos: &TokenIter, token: Option<TokenTree>) -> Result<T> {
+    pub fn unexpected_token_or_end<T>(pos: impl TokenCount, token: Option<TokenTree>) -> Result<T> {
         match token {
             Some(token) => Error::unexpected_token(pos, token),
             None => Error::unexpected_end(),
@@ -97,18 +97,18 @@ impl Error {
 
     /// Create a `Result<T>::Err(Error{ kind: ErrorKind::Other }` error.
     #[allow(clippy::missing_errors_doc)]
-    pub fn other<T>(pos: &TokenIter, reason: String) -> Result<T> {
+    pub fn other<T>(pos: impl TokenCount, reason: String) -> Result<T> {
         Err(Error {
             kind: ErrorKind::Other { reason },
-            pos: pos.counter(),
+            pos: pos.count(),
         })
     }
 
     /// Create a `Error::Dynamic` error.
-    pub fn dynamic(pos: &TokenIter, err: impl std::error::Error + 'static) -> Self {
+    pub fn dynamic(pos: impl TokenCount, err: impl std::error::Error + 'static) -> Self {
         Error {
             kind: ErrorKind::Dynamic(Arc::new(err)),
-            pos: pos.counter(),
+            pos: pos.count(),
         }
     }
 }
@@ -165,5 +165,52 @@ impl std::fmt::Display for Error {
                 write!(f, "Error: {err}")
             }
         }
+    }
+}
+
+/// We track the position of the error by counting tokens. This trait is implemented for
+/// references to shadow counted `TokenIter`, and `usize`. The later allows to pass in a
+/// position directly or use `usize::MAX` in case no position data is available (which will
+/// make this error the be the final one when upgrading).
+pub trait TokenCount {
+    /// Get the position of the token iterator.
+    fn count(self) -> usize;
+}
+
+// Allows passing a usize directly.
+impl TokenCount for usize {
+    #[inline]
+    fn count(self) -> usize {
+        self
+    }
+}
+
+impl TokenCount for &TokenIter<'_> {
+    #[inline]
+    fn count(self) -> usize {
+        self.counter()
+    }
+}
+
+// defining for && allows us to pass a &TokenIter by reference when it is still needed
+// later. Otherwise it would need to be reborrowed '&*iter' which is less ergonomic.
+impl TokenCount for &&TokenIter<'_> {
+    #[inline]
+    fn count(self) -> usize {
+        self.counter()
+    }
+}
+
+impl TokenCount for &mut TokenIter<'_> {
+    #[inline]
+    fn count(self) -> usize {
+        self.counter()
+    }
+}
+
+impl TokenCount for &&mut TokenIter<'_> {
+    #[inline]
+    fn count(self) -> usize {
+        self.counter()
     }
 }

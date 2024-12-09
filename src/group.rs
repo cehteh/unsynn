@@ -125,7 +125,10 @@ impl<C: Parse> Parser for GroupContaining<C> {
         let mut c_iter = group.stream().into_iter().nested_shadow_counted(tokens);
         let content = C::parser(&mut c_iter)?;
         EndOfStream::parser(&mut c_iter)?;
-        c_iter.commit();
+        // This panic should never happen
+        c_iter
+            .commit()
+            .expect("Tried to commit a cloned shadow counted iterator more than once");
         Ok(Self {
             delimiter: group.delimiter(),
             content,
@@ -204,7 +207,8 @@ macro_rules! make_group_containing {
                                 .nested_shadow_counted(tokens);
 
                             let content = Cons::<C, EndOfStream>::parser(&mut counted)?;
-                            counted.commit();
+                            // This panic should never happen
+                            counted.commit().expect("Tried to commit a cloned shadow counted iterator more than once");
 
                             Ok(Self{content: content.first})
                         }
