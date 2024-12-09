@@ -1,6 +1,9 @@
 #!/bin/bash
-require git git cargo
+require git cargo
 is_cargo_project || return 0
+
+# don't repopulate on prepare-commit-msg
+git_hook_matches prepare-commit-msg && return 0
 
 ## In a rust/cargo project, when a $LAST_TEST_DIR is present then hardlink the /target
 ## build artifacts to the current test dir this can speed up builds.

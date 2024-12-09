@@ -355,13 +355,14 @@ function cehgit_runner
 
     # start backgrounded jobs
     if state_match _ '*' background; then
-        debug "schedule background jobs"
+        info "schedule background jobs"
         declare -a BACKGROUND_ACTIONS
         mapfile -t BACKGROUND_ACTIONS < <(state_list_actions background)
         trace "bg: ${BACKGROUND_ACTIONS[*]}"
         (
             lock_wait .cehgit.bg.lock
             state_init .cehgit.bg.log
+            touch "$TEST_LOG.bg"
             # shellcheck disable=SC2030
             declare -rgx CEHGIT_BACKGROUND=true
 
@@ -385,8 +386,7 @@ function cehgit_runner
                     lock_remove .cehgit.bg.lock
                     exit 1
                 fi
-                # needs cat here, don't ask why
-            done |& cat >>"$TEST_LOG.bg" || true
+            done &> >(cat >>"$TEST_LOG.bg")
 
             lock_remove .cehgit.bg.lock
         ) &
@@ -394,6 +394,7 @@ function cehgit_runner
         debug "no background jobs"
     fi
 
+    debug "forground runner complete"
     lock_remove .cehgit.lock
 }
 
@@ -470,12 +471,10 @@ function lock_wait #api {name} [cmdpat] - lock a lockfile, waits until we have t
     local lockpid
     # we iterate here because the stealing later can be racy
     while { lockpid=$(head -1 "$1"); [[ $lockpid != "$BASHPID" ]]; }; do
-        # checking if a running process matches what we expect (as best we can do portable)
-        if kill -0 "$lockpid" 2>/dev/null && [[ "$(ps -p "$lockpid" -o cmd=)" =~ ${2:-.} ]] ; then
-            trace "wait: $lockpid to complete"
-            wait "$lockpid" || true
-        fi
-        trace "steal: $1"
+        trace "wait: $lockpid to complete"
+        while kill -0 "$lockpid" 2>/dev/null ; do
+            wait "$lockpid" &>/dev/null || sleep 0.1
+        done
         echo $BASHPID >"$1"
     done
     trace "locked: $1"
@@ -527,7 +526,7 @@ function run_test #afunc [-n|--nice LEVEL] [-m|--memory KB] [-t|--timeout SECS] 
 
     info "run_test $*"
     if (
-        renice -n "$NICE_LEVEL" -p $$ >/dev/null
+        renice -n "$NICE_LEVEL" -p $BASHPID >/dev/null
         ulimit -S -v "$MEMORY_KB" -t "$TIMEOUT_SECS"
         "$@"
     ); then
@@ -561,7 +560,7 @@ function background_schedule #afunc schedules the current action to run in the b
         if state_match _ _ background; then
             info "already scheduled $ACTION"
         else
-            trace "schedule $ACTION"
+            info "schedule $ACTION"
             state_log background
         fi
     fi
