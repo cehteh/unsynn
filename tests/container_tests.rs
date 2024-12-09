@@ -89,3 +89,126 @@ fn test_repeats() {
     assert_eq!(vec[0].value.to_string(), "foo");
     assert_eq!(vec[1].value.to_string(), "bar");
 }
+
+#[test]
+fn test_vec_ranged_repeats() {
+    let mut token_iter = "a b c d e".to_token_iter();
+
+    // Test minimum boundary - will parse up to max elements when available
+    let result = Vec::<Ident>::parse_repeats(&mut token_iter, 3, 5).unwrap();
+    assert_eq!(result.len(), 5);
+
+    // Test error case for too few elements
+    let mut token_iter = "a b".to_token_iter();
+    assert!(Vec::<Ident>::parse_repeats(&mut token_iter, 3, 5).is_err());
+}
+
+#[test]
+fn test_lazy_vec_ranged_repeats() {
+    let mut token_iter = "a b c;".to_token_iter();
+
+    // Test valid case within min/max bounds
+    let result = LazyVec::<Ident, Semicolon>::parse_repeats(&mut token_iter, 2, 5).unwrap();
+    assert_eq!(result.vec.len(), 3);
+
+    // Test error case for too few elements
+    let mut token_iter = "a;".to_token_iter();
+    assert!(LazyVec::<Ident, Semicolon>::parse_repeats(&mut token_iter, 2, 5).is_err());
+}
+
+#[test]
+fn test_delimited_vec_ranged_repeats() {
+    let mut token_iter = "a, b, c".to_token_iter();
+
+    // Test valid case
+    let result = DelimitedVec::<Ident, Comma>::parse_repeats(&mut token_iter, 2, 4).unwrap();
+    assert_eq!(result.0.len(), 3);
+
+    // Test error case for too few elements
+    let mut token_iter = "a,".to_token_iter();
+    assert!(DelimitedVec::<Ident, Comma>::parse_repeats(&mut token_iter, 2, 4).is_err());
+}
+
+#[test]
+fn test_conversions() {
+    // Test Vec conversion from DelimitedVec
+    let mut token_iter = "a, b, c".to_token_iter();
+    let delimited = DelimitedVec::<Ident, Comma>::parse(&mut token_iter).unwrap();
+    let vec: Vec<Ident> = delimited.into();
+    assert_eq!(vec.len(), 3);
+
+    // Test Vec conversion from Repeats
+    let mut token_iter = "a b c".to_token_iter();
+    let repeats = Exactly::<3, Ident>::parse(&mut token_iter).unwrap();
+    let vec: Vec<Ident> = repeats.into();
+    assert_eq!(vec.len(), 3);
+}
+
+#[test]
+fn test_into_iter() {
+    // Test LazyVec IntoIterator
+    let mut token_iter = "a b c;".to_token_iter();
+    let lazy_vec = LazyVec::<Ident, Semicolon>::parse(&mut token_iter).unwrap();
+    let collected: Vec<_> = lazy_vec.into_iter().collect();
+    assert_eq!(collected.len(), 3);
+
+    // Test DelimitedVec IntoIterator
+    let mut token_iter = "a, b, c".to_token_iter();
+    let delimited_vec = DelimitedVec::<Ident, Comma>::parse(&mut token_iter).unwrap();
+    let collected: Vec<_> = delimited_vec.into_iter().collect();
+    assert_eq!(collected.len(), 3);
+
+    // Test Repeats IntoIterator
+    let mut token_iter = "a b c".to_token_iter();
+    let repeats = Exactly::<3, Ident>::parse(&mut token_iter).unwrap();
+    let collected: Vec<_> = repeats.into_iter().collect();
+    assert_eq!(collected.len(), 3);
+}
+
+#[test]
+fn test_to_tokens() {
+    // Test Box to_tokens
+    let mut token_iter = "test".to_token_iter();
+    let boxed = Box::<Ident>::parse(&mut token_iter).unwrap();
+    assert_eq!(boxed.tokens_to_string(), "test");
+
+    // Test Rc to_tokens
+    let mut token_iter = "test".to_token_iter();
+    let rc = std::rc::Rc::<Ident>::parse(&mut token_iter).unwrap();
+    assert_eq!(rc.tokens_to_string(), "test");
+
+    // Test RefCell to_tokens
+    let mut token_iter = "test".to_token_iter();
+    let refcell = std::cell::RefCell::<Ident>::parse(&mut token_iter).unwrap();
+    assert_eq!(refcell.tokens_to_string(), "test");
+}
+
+#[test]
+fn test_repeats_to_tokens() {
+    // Test Repeats to_tokens implementation
+    let mut token_iter = " a b c ".to_token_iter();
+    let repeats = Exactly::<3, Ident>::parse(&mut token_iter).unwrap();
+
+    // Verify that elements are properly converted to tokens
+    let mut tokens = TokenStream::new();
+    repeats.to_tokens(&mut tokens);
+    assert_eq!(tokens.to_string(), "a b c");
+
+    // Also verify tokens_to_string() which uses to_tokens internally
+    assert_eq!(repeats.tokens_to_string(), "a b c");
+}
+
+#[test]
+fn test_lazy_vec_to_tokens() {
+    // Test LazyVec to_tokens implementation
+    let mut token_iter = " a b c ; ".to_token_iter();
+    let lazy_vec = LazyVec::<Ident, Semicolon>::parse(&mut token_iter).unwrap();
+
+    // Verify that elements and terminator are properly converted to tokens
+    let mut tokens = TokenStream::new();
+    lazy_vec.to_tokens(&mut tokens);
+    assert_eq!(tokens.to_string(), "a b c ;");
+
+    // Also verify tokens_to_string() which uses to_tokens internally
+    assert_eq!(lazy_vec.tokens_to_string(), "a b c ;");
+}
