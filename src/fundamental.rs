@@ -490,7 +490,7 @@ impl ToTokens for EndOfStream {
 /// generating a [`TokenStream`]. On parsing it is initialized with a default value. It has
 /// [`Deref`] and [`DerefMut`] implemented to access the inner value.
 #[derive(Clone)]
-pub struct HiddenState<T: Default>(T);
+pub struct HiddenState<T: Default>(pub T);
 
 impl<T: Default> Deref for HiddenState<T> {
     type Target = T;
