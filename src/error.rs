@@ -71,7 +71,7 @@ impl Error {
                 expected: std::any::type_name::<T>(),
                 found,
             },
-            pos: pos.count(),
+            pos: pos.token_count(),
         })
     }
 
@@ -100,7 +100,7 @@ impl Error {
     pub fn other<T>(pos: impl TokenCount, reason: String) -> Result<T> {
         Err(Error {
             kind: ErrorKind::Other { reason },
-            pos: pos.count(),
+            pos: pos.token_count(),
         })
     }
 
@@ -108,7 +108,7 @@ impl Error {
     pub fn dynamic(pos: impl TokenCount, err: impl std::error::Error + 'static) -> Self {
         Error {
             kind: ErrorKind::Dynamic(Arc::new(err)),
-            pos: pos.count(),
+            pos: pos.token_count(),
         }
     }
 }
@@ -174,20 +174,20 @@ impl std::fmt::Display for Error {
 /// make this error the be the final one when upgrading).
 pub trait TokenCount {
     /// Get the position of the token iterator.
-    fn count(self) -> usize;
+    fn token_count(self) -> usize;
 }
 
 // Allows passing a usize directly.
 impl TokenCount for usize {
     #[inline]
-    fn count(self) -> usize {
+    fn token_count(self) -> usize {
         self
     }
 }
 
 impl TokenCount for &TokenIter<'_> {
     #[inline]
-    fn count(self) -> usize {
+    fn token_count(self) -> usize {
         self.counter()
     }
 }
@@ -196,21 +196,21 @@ impl TokenCount for &TokenIter<'_> {
 // later. Otherwise it would need to be reborrowed '&*iter' which is less ergonomic.
 impl TokenCount for &&TokenIter<'_> {
     #[inline]
-    fn count(self) -> usize {
+    fn token_count(self) -> usize {
         self.counter()
     }
 }
 
 impl TokenCount for &mut TokenIter<'_> {
     #[inline]
-    fn count(self) -> usize {
+    fn token_count(self) -> usize {
         self.counter()
     }
 }
 
 impl TokenCount for &&mut TokenIter<'_> {
     #[inline]
-    fn count(self) -> usize {
+    fn token_count(self) -> usize {
         self.counter()
     }
 }
