@@ -85,7 +85,7 @@ fn test_invalid() {
 #[test]
 fn test_invalid_display() {
     let invalid = Invalid;
-    asserteq!(invalid.tostring(), "");
+    assert_eq!(invalid.to_string(), "");
 
     // Test that Display implementation actually does something
     let mut dest = String::new();

@@ -263,6 +263,7 @@ pub trait Transaction: Clone {
     /// is returned.
     fn transaction<R>(&mut self, f: impl FnOnce(&mut Self) -> Result<R>) -> Result<R> {
         let mut ttokens = self.clone();
+        #[allow(clippy::manual_inspect)] // not pre 1.81
         f(&mut ttokens).map(|result| {
             *self = ttokens;
             result
@@ -303,7 +304,8 @@ pub use literal::*;
 pub mod rust_types;
 #[doc(inline)]
 /* is this a bug in the linter when the module only implements traits? */
-#[expect(unused_imports)]
+//#[expect(unused_imports)] // don't want to bump msrv to 1.81 just for this
+#[allow(unused_imports)]
 pub use rust_types::*;
 
 // Delimited sequences
