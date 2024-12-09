@@ -87,6 +87,7 @@ impl<A, B, C, D> From<Cons<A, B, C, D>> for (A, B, C, D) {
 }
 
 #[cfg(any(debug_assertions, feature = "impl_debug"))]
+#[mutants::skip]
 impl<A, B, C, D> std::fmt::Debug for Cons<A, B, C, D>
 where
     A: std::fmt::Debug,
@@ -134,6 +135,7 @@ where
 }
 
 #[cfg(feature = "impl_display")]
+#[mutants::skip]
 impl<A, B, C, D> std::fmt::Display for Cons<A, B, C, D>
 where
     A: std::fmt::Display,
@@ -379,6 +381,7 @@ where
 }
 
 #[cfg(any(debug_assertions, feature = "impl_debug"))]
+#[mutants::skip]
 impl<A, B, C, D> std::fmt::Debug for Either<A, B, C, D>
 where
     A: std::fmt::Debug,
@@ -418,6 +421,7 @@ where
 }
 
 #[cfg(feature = "impl_display")]
+#[mutants::skip]
 impl<A: std::fmt::Display, B: std::fmt::Display> std::fmt::Display for Either<A, B> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
@@ -437,4 +441,43 @@ fn test_either_into_tt() {
 
     let either = Either::<TokenTree, LiteralInteger>::Second(LiteralInteger::new(43));
     let _tt: TokenTree = either.into2();
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::*;
+    #[test]
+    fn test_cons_used_conjunctions() {
+        assert_eq!(Cons::<Punct, Ident>::used_conjunctions(), 2);
+        assert_eq!(Cons::<Punct, Ident, LiteralInteger>::used_conjunctions(), 3);
+        assert_eq!(
+            Cons::<Punct, Ident, LiteralInteger, LiteralCharacter>::used_conjunctions(),
+            4
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "If C is not Nothing then D must be Nothing")]
+    fn test_cons_invalid_nothing() {
+        Cons::<Punct, Ident, Nothing, LiteralInteger>::used_conjunctions();
+    }
+
+    #[test]
+    fn test_either_used_disjunctions() {
+        assert_eq!(Either::<Punct, Ident>::used_disjunctions(), 2);
+        assert_eq!(
+            Either::<Punct, Ident, LiteralInteger>::used_disjunctions(),
+            3
+        );
+        assert_eq!(
+            Either::<Punct, Ident, LiteralInteger, LiteralCharacter>::used_disjunctions(),
+            4
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "If C is not Invalid then D must be Invalid")]
+    fn test_either_invalid_invalid() {
+        Either::<Punct, Ident, Invalid, LiteralInteger>::used_disjunctions();
+    }
 }

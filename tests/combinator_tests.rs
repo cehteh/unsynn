@@ -49,3 +49,17 @@ fn test_either_error_progress() {
         .unwrap_err();
     assert_eq!(error1.to_string(), error2.to_string());
 }
+
+#[test]
+fn test_either_to_tokens() {
+    let mut tokens = TokenStream::new();
+
+    let either: Either<Punct, Ident> = Either::First(Punct::new(':', Spacing::Alone));
+    either.to_tokens(&mut tokens);
+    assert_eq!(tokens.to_string(), ":");
+
+    tokens = TokenStream::new();
+    let either: Either<Punct, Ident> = Either::Second(Ident::new("test", Span::call_site()));
+    either.to_tokens(&mut tokens);
+    assert_eq!(tokens.to_string(), "test");
+}
