@@ -143,6 +143,7 @@ impl<C: ToTokens> ToTokens for GroupContaining<C> {
 }
 
 #[cfg(any(debug_assertions, feature = "impl_debug"))]
+#[mutants::skip]
 impl<C: std::fmt::Debug> std::fmt::Debug for GroupContaining<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         f.debug_struct(&format!("GroupContaining<{}>", std::any::type_name::<C>()))
@@ -153,6 +154,7 @@ impl<C: std::fmt::Debug> std::fmt::Debug for GroupContaining<C> {
 }
 
 #[cfg(feature = "impl_display")]
+#[mutants::skip]
 impl<C: ToTokens> std::fmt::Display for GroupContaining<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{}", self.to_token_stream())
