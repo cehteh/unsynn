@@ -65,24 +65,18 @@ To define keywords and operators we provide the `keyword!` and `operator!` macro
 ```rust
 # use unsynn::*;
 keyword! {
-    pub Calc = "CALC";
+    Calc = "CALC";
 }
 
 operator! {
-    pub Add = "+";
-    pub Substract = "-";
-    pub Multiply = "*";
-    pub Divide = "/";
+    Add = "+";
+    Substract = "-";
+    Multiply = "*";
+    Divide = "/";
 }
 
-// The above can be written within a unsynn! macro as:
-// unsynn! {
-//     pub keyword Calc = "CALC";
-//     pub operator Add = "+";
-//     pub operator Substract = "-";
-//     pub operator Multiply = "*";
-//     pub operator Divide = "/";
-// }
+// The above can be written within a unsynn!
+// See next example about parsing recursive grammars
 
 // looks like BNF, but can't do recursive types
 type Expression = Cons<Calc, AdditiveExpr, Semicolon>;
@@ -92,6 +86,35 @@ type MultiplicativeOp = Either<Multiply, Divide>;
 type MultiplicativeExpr = Either<Cons<LiteralInteger, MultiplicativeOp, LiteralInteger>, LiteralInteger>;
 
 let ast = "CALC 2*3+4/5 ;".to_token_iter()
+    .parse::<Expression>().expect("syntax error");
+```
+
+## Parsing Recursive Grammars
+
+Recursive grammars can be parsed using structs and resolving the recursive parts in a `Box` or
+`Rc`. This looks less BNF like but acts closer to it:
+
+```rust
+# use unsynn::*;
+# use std::rc::Rc;
+unsynn! {
+    keyword Calc = "CALC";
+    operator Add = "+";
+    operator Substract = "-";
+    operator Multiply = "*";
+    operator Divide = "/";
+
+    struct Expression(Calc, AdditiveExpr, Semicolon);
+    // we preserve nested Either and Cons here instead defining new enums and structs because that would be more noisy
+    struct AdditiveOp(Either<Add, Substract>);
+    // with a Rc (or Box) here we can resolve the recursive nature of the grammar
+    struct AdditiveExpr(Either<Cons<MultiplicativeExpr, AdditiveOp, Either<Rc<AdditiveExpr>,MultiplicativeExpr>>, MultiplicativeExpr>);
+    struct MultiplicativeOp(Either<Multiply, Divide>);
+    struct MultiplicativeExpr(Either<Cons<LiteralInteger, MultiplicativeOp, Rc<MultiplicativeExpr>>, LiteralInteger>);
+}
+
+// now we can parse more complex expressions. Adding parenthesis is left as excercise to the reader
+let ast = "CALC 10+1-2*3+4/5*100 ;".to_token_iter()
     .parse::<Expression>().expect("syntax error");
 ```
 

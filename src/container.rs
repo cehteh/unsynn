@@ -123,7 +123,7 @@ impl<T: Parse> RangedRepeats for Vec<T> {
 
 /// Box a parseable entity. In a enum it may happen that most variants are rather small while
 /// few variants are large. In this case it may be beneficial to box the large variants to
-/// keep the enum lean.
+/// keep the enum lean. `Box` or `Rc` are required for parsing recursive grammars.
 impl<T: Parse> Parser for Box<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         Ok(Box::new(T::parser(tokens)?))
@@ -137,7 +137,7 @@ impl<T: ToTokens> ToTokens for Box<T> {
 }
 
 /// Rc a parseable entity. Just because we can. Sometimes when a value is shared between
-/// multiple entities it may be beneficial to use Rc.
+/// multiple entities it may be beneficial to use Rc. `Box` or `Rc` are required for parsing recursive grammars.
 impl<T: Parse> Parser for Rc<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         Ok(Rc::new(T::parser(tokens)?))
