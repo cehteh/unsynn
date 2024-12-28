@@ -420,54 +420,54 @@ macro_rules! unsynn{
 /// ```
 #[macro_export]
 macro_rules! keyword{
-    ($($(#[$attribute:meta])* $pub:vis $name:ident = $str:literal);*$(;)?) => {
-        $(
-            $(#[$attribute])*
-            #[cfg_attr(any(debug_assertions, feature = "impl_debug"), derive(Debug))]
-            #[derive(Default, Clone, Copy, PartialEq, Eq)]
-            $pub struct $name;
+    ($(#[$attribute:meta])* $pub:vis $name:ident = $str:literal $(;$($cont:tt)*)?) => {
+        $(#[$attribute])*
+        #[cfg_attr(any(debug_assertions, feature = "impl_debug"), derive(Debug))]
+        #[derive(Default, Clone, Copy, PartialEq, Eq)]
+        $pub struct $name;
 
-            impl $crate::Parser for $name {
-                fn parser(tokens: &mut $crate::TokenIter) -> Result<Self> {
-                    use $crate::Parse;
-                    $crate::CachedIdent::parse_with(tokens, |ident, tokens| {
-                        if ident == $str {
-                            Ok($name)
-                        } else {
-                            $crate::Error::other::<$name>(
-                                tokens,
-                                format!(
-                                    "keyword {:?} expected, got {:?} at {:?}",
-                                    $str,
-                                    ident.as_str(),
-                                    ident.span().start()
-                                )
+        impl $crate::Parser for $name {
+            fn parser(tokens: &mut $crate::TokenIter) -> Result<Self> {
+                use $crate::Parse;
+                $crate::CachedIdent::parse_with(tokens, |ident, tokens| {
+                    if ident == $str {
+                        Ok($name)
+                    } else {
+                        $crate::Error::other::<$name>(
+                            tokens,
+                            format!(
+                                "keyword {:?} expected, got {:?} at {:?}",
+                                $str,
+                                ident.as_str(),
+                                ident.span().start()
                             )
-                        }
-                    })
-                }
+                        )
+                    }
+                })
             }
+        }
 
-            impl $crate::ToTokens for $name {
-                fn to_tokens(&self, tokens: &mut TokenStream) {
-                    $crate::Ident::new($str, $crate::Span::call_site()).to_tokens(tokens);
-                }
+        impl $crate::ToTokens for $name {
+            fn to_tokens(&self, tokens: &mut TokenStream) {
+                $crate::Ident::new($str, $crate::Span::call_site()).to_tokens(tokens);
             }
+        }
 
-            impl AsRef<str> for $name {
-                fn as_ref(&self) -> &str {
-                    &$str
-                }
+        impl AsRef<str> for $name {
+            fn as_ref(&self) -> &str {
+                &$str
             }
+        }
 
-            #[cfg(feature = "impl_display")]
-            impl std::fmt::Display for $name {
-                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                    write!(f, "{} ", $str)
-                }
+        #[cfg(feature = "impl_display")]
+        impl std::fmt::Display for $name {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "{} ", $str)
             }
-        )*
-    }
+        }
+        $crate::keyword!{$($($cont)*)?}
+    };
+    () => {};
 }
 
 /// Define types matching operators (punctuation sequences).
