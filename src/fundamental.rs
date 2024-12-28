@@ -171,7 +171,7 @@ impl ToTokens for Literal {
 /// assert!(cached_ident == "ident");
 /// ```
 #[derive(Clone)]
-pub struct Cached<T> {
+pub struct Cached<T: Parse> {
     value: T,
     string: String,
 }
@@ -184,14 +184,14 @@ impl<T: Parse + ToTokens> Parser for Cached<T> {
     }
 }
 
-impl<T: ToTokens> ToTokens for Cached<T> {
+impl<T: Parse + ToTokens> ToTokens for Cached<T> {
     #[inline]
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.value.to_tokens(tokens);
     }
 }
 
-impl<T: ToTokens> Cached<T> {
+impl<T: Parse + ToTokens> Cached<T> {
     /// Sets the value and updates the string representation.
     pub fn set(&mut self, value: T) {
         self.value = value;
@@ -199,7 +199,7 @@ impl<T: ToTokens> Cached<T> {
     }
 }
 
-impl<T> Cached<T> {
+impl<T: Parse> Cached<T> {
     /// Deconstructs self and returns the inner value.
     pub fn into_inner(self) -> T {
         self.value
@@ -225,7 +225,7 @@ impl<T> Cached<T> {
     }
 }
 
-impl<T> Deref for Cached<T> {
+impl<T: Parse> Deref for Cached<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -233,33 +233,33 @@ impl<T> Deref for Cached<T> {
     }
 }
 
-impl<T> PartialEq<&str> for Cached<T> {
+impl<T: Parse> PartialEq<&str> for Cached<T> {
     fn eq(&self, other: &&str) -> bool {
         self.as_str() == *other
     }
 }
 
-impl<T> PartialEq for Cached<T> {
+impl<T: Parse> PartialEq for Cached<T> {
     fn eq(&self, other: &Self) -> bool {
         self.as_str() == other.as_str()
     }
 }
 
-impl<T> Eq for Cached<T> {}
+impl<T: Parse> Eq for Cached<T> {}
 
-impl<T> std::hash::Hash for Cached<T> {
+impl<T: Parse> std::hash::Hash for Cached<T> {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.as_str().hash(state);
     }
 }
 
-impl<T> AsRef<T> for Cached<T> {
+impl<T: Parse> AsRef<T> for Cached<T> {
     fn as_ref(&self) -> &T {
         &self.value
     }
 }
 
-impl<T> AsRef<str> for Cached<T> {
+impl<T: Parse> AsRef<str> for Cached<T> {
     fn as_ref(&self) -> &str {
         self.as_str()
     }
@@ -267,7 +267,7 @@ impl<T> AsRef<str> for Cached<T> {
 
 #[cfg(any(debug_assertions, feature = "impl_debug"))]
 #[mutants::skip]
-impl<T: std::fmt::Debug> std::fmt::Debug for Cached<T> {
+impl<T: Parse + std::fmt::Debug> std::fmt::Debug for Cached<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct(&format!("Cached<{}>", std::any::type_name::<T>()))
             .field("value", &self.value)
@@ -278,16 +278,37 @@ impl<T: std::fmt::Debug> std::fmt::Debug for Cached<T> {
 
 #[cfg(feature = "impl_display")]
 #[mutants::skip]
-impl<T: std::fmt::Display> std::fmt::Display for Cached<T> {
+impl<T: Parse + std::fmt::Display> std::fmt::Display for Cached<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.string)
     }
 }
 
 /// Convert a `Cached<T: Into<TokenTree>>` object into a `TokenTree`.
-impl<T: std::fmt::Display + Into<TokenTree>> From<Cached<T>> for TokenTree {
+impl<T: Parse + std::fmt::Display + Into<TokenTree>> From<Cached<T>> for TokenTree {
     fn from(cached: Cached<T>) -> Self {
         cached.value.into()
+    }
+}
+
+impl<T: Parse> TryFrom<String> for Cached<T> {
+    type Error = Error;
+
+    fn try_from(value: String) -> Result<Self> {
+        let mut token_iter = value.into_token_iter();
+        let t = T::parser(&mut token_iter)?;
+        Ok(Self {
+            value: t,
+            string: value,
+        })
+    }
+}
+
+impl<T: Parse> TryFrom<&str> for Cached<T> {
+    type Error = Error;
+
+    fn try_from(value: &str) -> Result<Self> {
+        Self::try_from(value.to_string())
     }
 }
 
