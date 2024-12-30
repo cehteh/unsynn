@@ -1,3 +1,4 @@
+//! This module contains macros and helper functions to define and parse custom types.
 #[cfg(doc)]
 use crate::*;
 

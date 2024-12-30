@@ -44,10 +44,9 @@ impl<T: ToTokens> ToTokens for Vec<T> {
     }
 }
 
-/// A trait for parsing a vector of `T` with a minimum and maximum number of elements.
+/// A trait for parsing a repeating `T` with a minimum and maximum limit.
 /// Sometimes the number of elements to be parsed is determined at runtime eg. a number of
-/// header items needs a matching number of values. This trait is implemented for `Vec<T:
-/// Parse>` and can be implemented by the user.
+/// header items needs a matching number of values.
 ///
 /// # Example
 ///

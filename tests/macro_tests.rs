@@ -7,7 +7,7 @@ unsynn! {
         One(Plus, Dot),
         TwoS{ a: Minus, b: Minus, c: Dot},
         OneS{ a: Minus, b: Dot},
-        // the Expect<Dollar> shows a rust-analyzer error here, which is probably a bug
+        // the Expect<Dollar> shows a rust-analyzer error here, which is probably a bug in r-a
         PunctBreak(Punct, Expect<Dollar>),
     }
 }
