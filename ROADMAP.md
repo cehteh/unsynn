@@ -8,15 +8,29 @@ deficiencies in 'unsynn' are found then it is time for a 1.0.0 release.
 
 ## Planned/Ideas
 
+* Merge Repeats and LazyVec -> LazyRepeats<MIN, MAX, T, D=Nothing, S=Invalid>
+  type Repeats<MIN, MAX, T, D=Nothing> = LazyRepeats<MIN, MAX, T, D=Nothing, Invaild>
+  type LazyVec<T, S> = LazyRepeats<0, usize::MAX, T, Nothing, S>
+* Count<MIN, MAX, T, D=Nothing, S=Invalid>(usize)
+  like Repeats/LazyVec but counting items instead storing them
+* keyword! {
+      // we have:
+      Match = "match";
+      // list alternative keywords, alias existing ones
+      MatchMore = ["match", OtherKeyword];
+      // negative matches
+      DontMatchMore != ["Dont", "Match", OtherKeyword];
+  }
 * add rust types
   * f32: 32-bit floating point number
   * f64: 64-bit floating point number (default)
 
+
 # Development
 
 unsynn is meant to evolve opportunistically. When you spot a problem or need a new feature
-feel free to open an [issue](https://git.pipapo.org/cehteh/unsynn/issues) or send a
-[PR](https://git.pipapo.org/cehteh/unsynn/pulls).
+feel free to open an [issue](https://git.pipapo.org/cehteh/unsynn/issues) or (prefered!) send
+a [PR](https://git.pipapo.org/cehteh/unsynn/pulls).
 
 Commits and other git operations are augmented and validated with
 [cehgit](https://git.pipapo.org/cehteh/cehgit). For contributors it is recommened to enable
