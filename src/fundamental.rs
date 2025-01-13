@@ -200,6 +200,28 @@ impl<T: Parse + ToTokens> Cached<T> {
 }
 
 impl<T: Parse> Cached<T> {
+    /// Creates a new `Cached<T>` from a (literal) string.
+    ///
+    /// # Panics
+    ///
+    /// Panics when `s` can't be parsed.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use unsynn::*;
+    /// let cached_ident = Cached::<Ident>::new("ident");
+    /// assert!(cached_ident == "ident");
+    /// ```
+    #[must_use]
+    pub fn new(s: &str) -> Self {
+        let value = s.into_token_iter().parse().expect("Valid token");
+        Self {
+            value,
+            string: s.to_string(),
+        }
+    }
+
     /// Deconstructs self and returns the inner value.
     pub fn into_inner(self) -> T {
         self.value
