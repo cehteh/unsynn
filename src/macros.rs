@@ -4,12 +4,10 @@ use crate::*;
 
 /// This macro supports the definition of enums, tuple structs and normal structs and
 /// generates [`Parser`] and [`ToTokens`] implementations for them. It will implement `Debug`
-/// in debug builds and `Debug` and `Display` when the `impl_debug` and `impl_display`
-/// features are enabled. Generics/Lifetimes are not supported (yet) on the primary
-/// type. Note: eventually a derive macro for `Parser` and `ToTokens` will become supported by
+/// and `Display`. Generics/Lifetimes are not supported (yet) on the primary type.
+/// Note: eventually a derive macro for `Parser` and `ToTokens` will become supported by
 /// a 'unsynn-derive' crate to give finer control over the expansion. `#[derive(Copy, Clone)]`
-/// have to be manually defined. `Debug` and `Display` are automatically implemented when the
-/// respective features are enabled.  Keyword and operator definitions can also be defined,
+/// have to be manually defined. Keyword and operator definitions can also be defined,
 /// they delegate to the `keyword!` and `operator!` macro described below. All entities can be
 /// prefixed by `pub` to make them public.
 ///
@@ -113,7 +111,7 @@ macro_rules! unsynn{
         $($variants:tt)*
     } $($cont:tt)*) => {
         // The actual enum definition is written as given
-        #[cfg_attr(any(debug_assertions, feature = "impl_debug"), derive(Debug))]
+        #[derive(Debug)]
         $(#[$attribute])* $pub enum $name {
             $($variants)*
         }
@@ -134,7 +132,6 @@ macro_rules! unsynn{
             }
         }
 
-        #[cfg(feature = "impl_display")]
         impl std::fmt::Display for $name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 $crate::unsynn!{@enum_write(self, f) {$($variants)*}}
@@ -150,7 +147,7 @@ macro_rules! unsynn{
     ($(#[$attribute:meta])* $pub:vis struct $name:ident {
         $($(#[$mattr:meta])* $mpub:vis $member:ident: $parser:ty),* $(,)?
     } $($cont:tt)*) => {
-        #[cfg_attr(any(debug_assertions, feature = "impl_debug"), derive(Debug))]
+        #[derive(Debug)]
         $(#[$attribute])* $pub struct $name {
             $($(#[$mattr])* $mpub $member : $parser),*
         }
@@ -167,7 +164,6 @@ macro_rules! unsynn{
             }
         }
 
-        #[cfg(feature = "impl_display")]
         impl std::fmt::Display for $name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 $(write!(f, "{} ", &self.$member)?;)*
@@ -183,7 +179,7 @@ macro_rules! unsynn{
     ($(#[$attribute:meta])* $pub:vis struct $name:ident (
         $($(#[$mattr:meta])* $mpub:vis $parser:ty),* $(,)?
     ); $($cont:tt)*) => {
-        #[cfg_attr(any(debug_assertions, feature = "impl_debug"), derive(Debug))]
+        #[derive(Debug)]
         $(#[$attribute])* $pub struct $name (
             $($(#[$mattr])* $mpub $parser),*
         );
@@ -202,7 +198,6 @@ macro_rules! unsynn{
             }
         }
 
-        #[cfg(feature = "impl_display")]
         impl std::fmt::Display for $name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 unsynn! {@tuple_for_each item in self : Self($($parser),*) {
@@ -396,8 +391,7 @@ macro_rules! unsynn{
 /// * `"identifier"` is the case sensitive keyword
 ///
 /// `Name::parse()` will then only match the defined identifier.  It will implement `Debug`
-/// and `Display` if the `impl_debug` and `impl_display` features are enabled. `Clone` is
-/// always implemented for keywords. Additionally `AsRef<str>` is implemented for each Keyword
+/// and `Display` and `Clone` for keywords. Additionally `AsRef<str>` is implemented for each Keyword
 /// to access the identifier string from rust code.
 ///
 /// The `unsynn!` macro supports defining keywords by using `keyword Name = "ident";`, the
@@ -423,8 +417,7 @@ macro_rules! unsynn{
 macro_rules! keyword{
     ($(#[$attribute:meta])* $pub:vis $name:ident = $str:literal $(;$($cont:tt)*)?) => {
         $(#[$attribute])*
-        #[cfg_attr(any(debug_assertions, feature = "impl_debug"), derive(Debug))]
-        #[derive(Default, Clone, Copy, PartialEq, Eq)]
+        #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
         $pub struct $name;
 
         impl $crate::Parser for $name {
@@ -460,7 +453,6 @@ macro_rules! keyword{
             }
         }
 
-        #[cfg(feature = "impl_display")]
         impl std::fmt::Display for $name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 write!(f, "{} ", $str)
@@ -479,9 +471,8 @@ macro_rules! keyword{
 /// * `Op` is the name for the struct to be generated
 /// * `"punct"` is up to 4 ASCII punctuation characters
 ///
-/// `Op::parse()` will match the defined operator. It will implement `Debug` and `Display` if
-/// the `impl_debug` and `impl_display` features are enabled. `Clone` is always implemented
-/// for operators.
+/// `Op::parse()` will match the defined operator. It will implement `Debug` and `Display`
+/// and `Clone` for operators.
 ///
 /// The `unsynn!` macro supports defining operators by using `operator Op = "chars";`, the
 /// `pub` specification has to come before `operator` then.

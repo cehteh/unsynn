@@ -57,16 +57,15 @@ fn test_nothing() {
     assert!(output.is_empty());
 }
 
-#[cfg(feature = "impl_display")]
 #[test]
 fn test_nothing_display() {
+    use std::fmt::Write;
     let nothing = Nothing;
     assert_eq!(nothing.to_string(), "");
 
     // Test that Display implementation actually does something
     let mut dest = String::new();
-    use std::fmt::Write;
-    write!(dest, "{}", nothing).unwrap();
+    write!(dest, "{nothing}").unwrap();
     assert_eq!(dest, "");
 }
 
@@ -81,16 +80,15 @@ fn test_invalid() {
     assert!(output.is_empty());
 }
 
-#[cfg(feature = "impl_display")]
 #[test]
 fn test_invalid_display() {
+    use std::fmt::Write;
     let invalid = Invalid;
     assert_eq!(invalid.to_string(), "");
 
     // Test that Display implementation actually does something
     let mut dest = String::new();
-    use std::fmt::Write;
-    write!(dest, "{}", invalid).unwrap();
+    write!(dest, "{invalid}").unwrap();
     assert_eq!(dest, "");
 }
 
@@ -311,7 +309,6 @@ fn test_cached_hash_identity() {
     assert!(set.insert(cached3));
 }
 
-#[cfg(any(debug_assertions, feature = "impl_debug"))]
 #[test]
 fn test_debug_impls() {
     let mut tokens = "test".to_token_iter();

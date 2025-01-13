@@ -265,7 +265,6 @@ impl<T: Parse> AsRef<str> for Cached<T> {
     }
 }
 
-#[cfg(any(debug_assertions, feature = "impl_debug"))]
 #[mutants::skip]
 impl<T: Parse + std::fmt::Debug> std::fmt::Debug for Cached<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -276,7 +275,6 @@ impl<T: Parse + std::fmt::Debug> std::fmt::Debug for Cached<T> {
     }
 }
 
-#[cfg(feature = "impl_display")]
 #[mutants::skip]
 impl<T: Parse + std::fmt::Display> std::fmt::Display for Cached<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -334,8 +332,7 @@ pub type CachedLiteral = Cached<Literal>;
 /// to parse a [`Repeats`] without a delimiter.  Note that using [`Nothing`] as primary entity
 /// in a [`Vec`], [`LazyVec`], [`DelimitedVec`] or [`Repeats`] will result in an infinite
 /// loop.
-#[cfg_attr(any(debug_assertions, feature = "impl_debug"), derive(Debug))]
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Nothing;
 
 impl Parser for Nothing {
@@ -352,7 +349,6 @@ impl ToTokens for Nothing {
     }
 }
 
-#[cfg(feature = "impl_display")]
 #[mutants::skip]
 impl std::fmt::Display for Nothing {
     fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -362,8 +358,7 @@ impl std::fmt::Display for Nothing {
 
 /// A unit that always fails to match. This is useful as default for generics.
 /// See how [`Either<A, B, C, D>`] uses this for unused alternatives.
-#[cfg_attr(any(debug_assertions, feature = "impl_debug"), derive(Debug))]
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Invalid;
 
 impl Parser for Invalid {
@@ -379,7 +374,6 @@ impl ToTokens for Invalid {
     }
 }
 
-#[cfg(feature = "impl_display")]
 #[mutants::skip]
 impl std::fmt::Display for Invalid {
     fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -417,7 +411,6 @@ impl<T> ToTokens for Except<T> {
     }
 }
 
-#[cfg(any(debug_assertions, feature = "impl_debug"))]
 #[mutants::skip]
 impl<T: std::fmt::Debug> std::fmt::Debug for Except<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -426,7 +419,6 @@ impl<T: std::fmt::Debug> std::fmt::Debug for Except<T> {
     }
 }
 
-#[cfg(feature = "impl_display")]
 #[mutants::skip]
 impl<T> std::fmt::Display for Except<T> {
     fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -465,7 +457,6 @@ impl<T> ToTokens for Expect<T> {
     }
 }
 
-#[cfg(any(debug_assertions, feature = "impl_debug"))]
 #[mutants::skip]
 impl<T: std::fmt::Debug> std::fmt::Debug for Expect<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -474,7 +465,6 @@ impl<T: std::fmt::Debug> std::fmt::Debug for Expect<T> {
     }
 }
 
-#[cfg(feature = "impl_display")]
 #[mutants::skip]
 impl<T> std::fmt::Display for Expect<T> {
     fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -510,7 +500,6 @@ impl<T> ToTokens for Skip<T> {
     }
 }
 
-#[cfg(any(debug_assertions, feature = "impl_debug"))]
 #[mutants::skip]
 impl<T: std::fmt::Debug> std::fmt::Debug for Skip<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -519,7 +508,6 @@ impl<T: std::fmt::Debug> std::fmt::Debug for Skip<T> {
     }
 }
 
-#[cfg(feature = "impl_display")]
 #[mutants::skip]
 impl<T> std::fmt::Display for Skip<T> {
     fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -537,8 +525,7 @@ impl<T> std::fmt::Display for Skip<T> {
 ///
 /// let _end_ = EndOfStream::parser(&mut token_iter).unwrap();
 /// ```
-#[cfg_attr(any(debug_assertions, feature = "impl_debug"), derive(Debug))]
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct EndOfStream;
 
 impl Parser for EndOfStream {
@@ -602,7 +589,6 @@ impl<T: Default> Default for HiddenState<T> {
     }
 }
 
-#[cfg(any(debug_assertions, feature = "impl_debug"))]
 #[mutants::skip]
 impl<T: Default + std::fmt::Debug> std::fmt::Debug for HiddenState<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -612,7 +598,6 @@ impl<T: Default + std::fmt::Debug> std::fmt::Debug for HiddenState<T> {
     }
 }
 
-#[cfg(feature = "impl_display")]
 #[mutants::skip]
 impl<T: Default> std::fmt::Display for HiddenState<T> {
     fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

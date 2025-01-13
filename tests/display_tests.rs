@@ -1,6 +1,5 @@
 //! testing Display trait impls
 #![allow(clippy::items_after_statements)]
-#![cfg(feature = "impl_display")]
 
 use unsynn::*;
 

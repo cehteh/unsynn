@@ -18,8 +18,7 @@ macro_rules! make_group {
     ($($name:ident: $delimiter:ident);* $(;)?) => {
         $(
             #[doc = stringify!(A opaque group of tokens within a $delimiter)]
-            #[cfg_attr(any(debug_assertions, feature = "impl_debug"), derive(Debug))]
-            #[derive(Clone)]
+            #[derive(Debug, Clone)]
             pub struct $name(pub Group);
 
             impl From<$name> for Group {
@@ -53,7 +52,6 @@ macro_rules! make_group {
                 }
             }
 
-            #[cfg(feature = "impl_display")]
             impl std::fmt::Display for $name {
                 fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
                     write!(f, "{}", self.0)
@@ -111,7 +109,6 @@ impl<C> GroupContaining<C> {
     ///     Delimiter::Parenthesis,
     ///     Literal::i32_unsuffixed(123),
     /// );
-    /// # #[cfg(feature = "impl_display")]
     /// # assert_eq!(group.to_string(), "(123)");
     /// ```
     pub const fn new(delimiter: Delimiter, content: C) -> Self {
@@ -142,7 +139,6 @@ impl<C: ToTokens> ToTokens for GroupContaining<C> {
     }
 }
 
-#[cfg(any(debug_assertions, feature = "impl_debug"))]
 #[mutants::skip]
 impl<C: std::fmt::Debug> std::fmt::Debug for GroupContaining<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -153,7 +149,6 @@ impl<C: std::fmt::Debug> std::fmt::Debug for GroupContaining<C> {
     }
 }
 
-#[cfg(feature = "impl_display")]
 #[mutants::skip]
 impl<C: ToTokens> std::fmt::Display for GroupContaining<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -225,7 +220,6 @@ macro_rules! make_group_containing {
                 }
             }
 
-            #[cfg(any(debug_assertions, feature = "impl_debug"))]
             impl<C: std::fmt::Debug> std::fmt::Debug
                 for $name<C>
             {
@@ -239,7 +233,6 @@ macro_rules! make_group_containing {
                 }
             }
 
-            #[cfg(feature = "impl_display")]
             impl<C: ToTokens> std::fmt::Display for $name<C> {
                 fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
                     write!(f, "{}", self.to_token_stream())

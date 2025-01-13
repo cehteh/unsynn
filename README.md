@@ -122,19 +122,9 @@ let ast = "CALC 10+1-2*3+4/5*100 ;".to_token_iter()
 # Feature Flags
 
 By default unsynn is very lean and does not include extra features. The only thing that are
-always present are the [`Parser`], [`Parse`] and [`ToTokens`] traits.  The following features
-enable extra traits:
+always present are the [`Parser`], [`Parse`], [`ToTokens`] and [`Debug`] traits.
 
-- **impl_debug**  
-  Unsynn generates Debug impls only in debug builds (`debug_assertions` is set). This flag
-  adds [`Debug`](std::fmt::Debug) implementations to generic unsynn types in release builds as
-  well.
-
-- **impl_display**  
-  Adds [`Display`](std::fmt::Display) implementations to generic unsynn types.
-  `ToTokens::tokens_to_string() -> String` may be preferable in many cases.
-
-Note that `Display` can't be implemented for all types (eg. [`Option`]). Further `Display` may
+The `Display` can't be implemented for all types (eg. [`Option`]). Further `Display` may
 sometimes be surprising since we do not have good rules how to pretty-print tokens (eg. spaces
 around Delimiters). Display then often inserts surplus spaces to ensure that tokens are
 properly delimited.

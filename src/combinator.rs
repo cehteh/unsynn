@@ -86,7 +86,6 @@ impl<A, B, C, D> From<Cons<A, B, C, D>> for (A, B, C, D) {
     }
 }
 
-#[cfg(any(debug_assertions, feature = "impl_debug"))]
 #[mutants::skip]
 impl<A, B, C, D> std::fmt::Debug for Cons<A, B, C, D>
 where
@@ -134,7 +133,6 @@ where
     }
 }
 
-#[cfg(feature = "impl_display")]
 #[mutants::skip]
 impl<A, B, C, D> std::fmt::Display for Cons<A, B, C, D>
 where
@@ -380,7 +378,6 @@ where
     }
 }
 
-#[cfg(any(debug_assertions, feature = "impl_debug"))]
 #[mutants::skip]
 impl<A, B, C, D> std::fmt::Debug for Either<A, B, C, D>
 where
@@ -420,7 +417,6 @@ where
     }
 }
 
-#[cfg(feature = "impl_display")]
 #[mutants::skip]
 impl<A: std::fmt::Display, B: std::fmt::Display> std::fmt::Display for Either<A, B> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {

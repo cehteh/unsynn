@@ -11,8 +11,7 @@ use crate::{Error, Literal, Parser, Result, ToTokens, TokenIter, TokenStream, To
 /// A simple unsigned 128 bit integer. This is the most simple form to parse integers. Note
 /// that only decimal integers without any other characters, signs or suffixes are supported,
 /// this is *not* full rust syntax.
-#[cfg_attr(any(debug_assertions, feature = "impl_debug"), derive(Debug))]
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct LiteralInteger {
     /// Literal representing an integer
     literal: Literal,
@@ -72,7 +71,6 @@ impl PartialEq<u128> for LiteralInteger {
     }
 }
 
-#[cfg(feature = "impl_display")]
 #[mutants::skip]
 impl std::fmt::Display for LiteralInteger {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -93,8 +91,7 @@ fn test_literalinteger_into_tt() {
 }
 
 /// A single quoted character literal (`'x'`).
-#[cfg_attr(any(debug_assertions, feature = "impl_debug"), derive(Debug))]
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct LiteralCharacter {
     /// Literal representing a single quoted character
     literal: Literal,
@@ -158,7 +155,6 @@ impl PartialEq<char> for LiteralCharacter {
     }
 }
 
-#[cfg(feature = "impl_display")]
 #[mutants::skip]
 impl std::fmt::Display for LiteralCharacter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -181,8 +177,7 @@ fn test_literalcharacter_into_tt() {
 /// A double quoted string literal (`"hello"`). The quotes are included in the value.  Note
 /// that this is a simplified string literal, and only double quoted strings are supported,
 /// this is *not* full rust syntax, eg. byte and C string literals are not supported.
-#[cfg_attr(any(debug_assertions, feature = "impl_debug"), derive(Debug))]
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct LiteralString {
     /// Literal representing a double quoted string
     literal: Literal,
@@ -269,7 +264,6 @@ impl PartialEq<&str> for LiteralString {
     }
 }
 
-#[cfg(feature = "impl_display")]
 #[mutants::skip]
 impl std::fmt::Display for LiteralString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

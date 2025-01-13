@@ -13,13 +13,6 @@ readme = "README.md"
 rust-version = "1.79.0"
 include = ["src/**/*", "LICENSE-*", "README.md", "ROADMAP.md", "COOKBOOK.md"]
 
-[features]
-default = []
-#default = ["impl_debug", "impl_display"]
-
-impl_debug = []
-impl_display = []
-
 [dependencies]
 mutants = "0.0.3"
 proc-macro2 = { version = "1.0.81", features = ["proc-macro", "span-locations"]}
