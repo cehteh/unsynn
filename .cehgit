@@ -461,7 +461,6 @@ function cehgit_runner
             debug "$ACTION"
             # shellcheck disable=SC1090 # dynamic source
             if ! source "$WORKTREE_DIR/$ACTIONS_DIR/$ACTION" "$@"; then
-                lock_remove .cehgit.lock
                 exit 1
             fi
         elif [[ "$state" == fail ]]; then
@@ -501,15 +500,13 @@ function cehgit_runner
                     # shellcheck disable=SC1090 # dynamic source
                     source "$WORKTREE_DIR/$ACTIONS_DIR/$ACTION" "$@" || true
                     [[ "$(state_cached)" =~ ok|fail ]] || {
-                        lock_remove .cehgit.bg.lock
                         die "background_schedule: background job $ACTION must result in ok or fail"
                     }
                 elif [[ "$state" == fail ]]; then
                     debug "bg $ACTION cached $state"
-                    lock_remove .cehgit.bg.lock
                     exit 1
                 fi
-            done &> >(cat >>"$TEST_LOG.bg")
+            done |& cat >>"$TEST_LOG.bg"
 
             lock_remove .cehgit.bg.lock
         ) &

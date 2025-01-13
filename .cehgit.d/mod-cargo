@@ -59,10 +59,10 @@ function cargo_has_unsafe_code
     # this does only a coarse check, but depends not on external tools
     if cargo rustc -- --emit=metadata -Funsafe-code &>/dev/null; then
         debug "no unsafe used"
-        return 0
+        return 1
     else
         debug "unsafe used"
-        return 1
+        return 0
     fi
 }
 

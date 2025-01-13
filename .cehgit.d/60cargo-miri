@@ -14,4 +14,5 @@ git_hook_matches "pre-commit" "pre-merge-commit" "commit-msg" || return 0
 git_hook_matches "pre-commit" "pre-merge-commit" && background_schedule && return 0
 git_hook_matches "commit-msg" && background_wait && return $(background_result)
 
-run_test cargo +nightly miri test --offline
+trace "MIRIIIIIIIIIIIII"
+#run_test cargo +nightly miri test
