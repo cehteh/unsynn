@@ -13,4 +13,4 @@ git_hook_matches "pre-commit" "pre-merge-commit" && background_schedule && retur
 git_hook_matches "commit-msg" && background_wait && return $(background_result)
 
 export RUSTDOCFLAGS="-D rustdoc::broken_intra_doc_links"
-run_test cargo doc
+run_test cargo doc --offline

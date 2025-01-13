@@ -7,7 +7,7 @@ git_branch_matches "master" "main" || return 0
 
 function clippy_strict
 {
-    cargo clippy 2>&1 | tee /dev/stderr | awk '/(warning|error).*: /{exit 1}'
+    cargo clippy --offline 2>&1 | tee /dev/stderr | awk '/(warning|error).*: /{exit 1}'
 }
 
 run_test clippy_strict

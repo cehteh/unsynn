@@ -8,7 +8,7 @@ git_branch_matches "devel" || return 0
 
 function clippy_errors
 {
-    cargo clippy 2>&1 | tee /dev/stderr | awk '/error.*: /{exit 1}'
+    cargo clippy --offline 2>&1 | tee /dev/stderr | awk '/error.*: /{exit 1}'
 }
 
 run_test clippy_errors

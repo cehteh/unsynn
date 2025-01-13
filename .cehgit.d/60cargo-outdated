@@ -12,4 +12,5 @@ git_hook_matches "pre-commit" "pre-merge-commit" && background_schedule && retur
 git_hook_matches "commit-msg" && background_wait && return $(background_result)
 
 # TODO: customize --features
+# NOTE: intentionally not --offline --locked --frozen here
 run_test cargo outdated --color never --exit-code 1

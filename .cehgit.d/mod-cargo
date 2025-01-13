@@ -66,5 +66,4 @@ function cargo_has_unsafe_code
     fi
 }
 
-memofn is_cargo_project
-#cargo_toolchain_available cargo_tool_installed cargo_has_unsafe_code
+memofn is_cargo_project cargo_toolchain_available cargo_tool_installed

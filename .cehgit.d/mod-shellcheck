@@ -3,7 +3,9 @@
 
 require git
 
-function shellcheck_installed {
+## * shellcheck_installed - check if shellcheck is installed
+function shellcheck_installed
+{
     if command -v shellcheck >/dev/null; then
         debug "shellcheck is installed"
         return 0
@@ -13,10 +15,12 @@ function shellcheck_installed {
     fi
 }
 
+## * shellcheck_is_shscript - check if a file is a shell script
 function shellcheck_is_shscript {
     [[ -f "$1" ]] && { head -1 "$1" | grep -q "^#!.*sh" ; }
 }
 
+## * shellcheck_list_shscripts - list all shell scripts in the repository
 function shellcheck_list_shscripts
 {
     for file in $(git ls-files); do
@@ -26,6 +30,7 @@ function shellcheck_list_shscripts
     done
 }
 
+## * shellcheck_lint - lint all shell scripts in the repository
 function shellcheck_lint
 {
     # shellcheck disable=SC2046

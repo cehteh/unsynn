@@ -6,12 +6,11 @@ set -ue
 
 # PLANNED: --private use and install in .git/cehgit.d/
 # PLANNED: 00_ for setting up test directories, where to do the cleanup?
-# PLANNED: cehgit-* commands in .cehgit.d/ then public actions path
 # PLANNED: pre-push hook 
 # PLANNED: refactor all variables, prefix with CEHGIT_, CEHGIT_ or CEHGIT_{ACTION}_
 # TODO: naming conventions
 # PLANNED: do we want cleanup on trap EXIT? or better manual cleanup?
-
+# PLANNED: cehgit status , show installed actions, hooks, etc
 
 # The main function dispatches based on how its called and which sub command is given
 function cehgit
@@ -26,6 +25,7 @@ function cehgit
             show_help
             ;;
         init)
+            # PLANNED: --all (bells&whistles)
             shift
             cehgit_init "$@"
             ;;
@@ -33,14 +33,18 @@ function cehgit
             shift
             cehgit_init --update
             cehgit_install_action --update
+            cehgit_install_command --update
+            cehgit_install_modules
             ;;
         install-action)
             shift
             cehgit_install_action "$@"
+            cehgit_install_modules
             ;;
         update-actions)
             shift
             cehgit_install_action --update
+            cehgit_install_modules
             ;;
         list-actions)
             shift
@@ -49,6 +53,27 @@ function cehgit
         available-actions)
             shift
             cehgit_available_actions
+            ;;
+        list-modules)
+            shift
+            cehgit_list_modules
+            ;;
+        available-modules)
+            shift
+            cehgit_available_modules
+            ;;
+        list-commands)
+            shift
+            cehgit_list_commands
+            ;;
+        available-commands)
+            shift
+            cehgit_available_commands
+            ;;
+        install-command)
+            shift
+            cehgit_install_command "$@"
+            cehgit_install_modules
             ;;
         install-hook)
             shift
@@ -78,7 +103,14 @@ function cehgit
             cehgit_runner "$@"
             ;;
         *)
-            die "unknown sub-command"
+            if [[ -e "$ACTIONS_DIR/cehgit-$1" ]]; then
+                local cmd="$1"
+                shift
+                # shellcheck disable=SC1090 # dynamic source
+                source "$ACTIONS_DIR/cehgit-$cmd" "$@"
+            else
+                die "unknown sub-command"
+            fi
         esac
         ;;
     # called as hook
@@ -163,18 +195,18 @@ function cehgit_install_action
     while [[ $# -ne 0 ]]; do
         case "${1:-}" in
         "-f"|"--force") # force installation/update over existing files
-            FORCE="-f -u"
+            local FORCE="-f -u"
             shift
             ;;
         "--all") # install all actions
             debug "installing all actions"
             # shellcheck disable=SC2086 # $FORCE needs to be split
-            cp -v ${FORCE:--n} "$actions_origin/"[0-9]* "$actions_origin/mod-"* "$ACTIONS_DIR/"
+            cp -v ${FORCE:--n} "$actions_origin/"[0-9]* "$ACTIONS_DIR/"
             return 0
             ;;
         "--update") # install all actions
             debug "updating all actions"
-            cp -v -u "$actions_origin/"[0-9]* "$actions_origin/mod-"* "$ACTIONS_DIR/"
+            cp -v -u "$actions_origin/"[0-9]* "$ACTIONS_DIR/"
             return 0
             ;;
         *)
@@ -185,32 +217,122 @@ function cehgit_install_action
 
     for action in "$@"; do
         # shellcheck disable=SC2086 # $FORCE needs to be split
-        cp -v ${FORCE:--n} "$actions_origin/"$action "$ACTIONS_DIR/"
+        cp -v ${FORCE:--n} "$actions_origin/$action" "$ACTIONS_DIR/"
     done
 }
 
 function cehgit_available_actions
 {
     # shellcheck disable=SC2088 # first_dir expands tilde
-    describe_actions "$(first_dir "~/.local/share/cehgit/actions" "/usr/share/cehgit/actions" || die "no origin actions dir found" )"
+    cehgit_describe "$(first_dir "~/.local/share/cehgit/actions" "/usr/share/cehgit/actions" || die "no origin actions dir found" )" '[0-9]*'
 }
 
 function cehgit_list_actions
 {
     [[ -d "$ACTIONS_DIR" ]] || die "cehgit not initialized"
-    describe_actions "$ACTIONS_DIR"
+    cehgit_describe "$ACTIONS_DIR" '[0-9]*'
 }
 
-function describe_actions
+function cehgit_available_modules
+{
+    # shellcheck disable=SC2088 # first_dir expands tilde
+    cehgit_describe "$(first_dir "~/.local/share/cehgit/actions" "/usr/share/cehgit/actions" || die "no origin actions dir found" )" 'mod-*'
+}
+
+function cehgit_list_modules
+{
+    [[ -d "$ACTIONS_DIR" ]] || die "cehgit not initialized"
+    cehgit_describe "$ACTIONS_DIR" 'mod-*'
+}
+
+function cehgit_available_commands
+{
+    # shellcheck disable=SC2088 # first_dir expands tilde
+    cehgit_describe "$(first_dir "~/.local/share/cehgit/actions" "/usr/share/cehgit/actions" || die "no origin actions dir found" )" 'cehgit-*'
+}
+
+function cehgit_list_commands
+{
+    [[ -d "$ACTIONS_DIR" ]] || die "cehgit not initialized"
+    cehgit_describe "$ACTIONS_DIR" 'cehgit-*'
+}
+
+function any_matching_file
+{
+    compgen -G "$1" >/dev/null
+}
+
+# install commands from the ones shipped with cehgit
+function cehgit_install_command
+{
+    [[ -d "$ACTIONS_DIR" ]] || die "cehgit not initialized"
+    # find system installed commands dir
+    local actions_origin
+    # shellcheck disable=SC2088 # first_dir expands tilde
+    actions_origin=$(first_dir "~/.local/share/cehgit/actions" "/usr/share/cehgit/actions")
+    [[ -n "$actions_origin" ]] || die "no origin actions dir found"
+
+    while [[ $# -ne 0 ]]; do
+        case "${1:-}" in
+        "-f"|"--force") # force installation/update over existing files
+            local FORCE="-f -u"
+            shift
+            ;;
+        "--all") # install all commands
+            debug "installing all commands"
+            # shellcheck disable=SC2086 # $FORCE needs to be split
+            any_matching_file "$actions_origin/cehgit-*" && cp -v ${FORCE:--n} "$actions_origin/cehgit-"* "$ACTIONS_DIR/"
+            return 0
+            ;;
+        "--update") # install all commands
+            debug "updating all commands"
+            any_matching_file "$actions_origin/cehgit-*" && cp -v -u "$actions_origin/cehgit-"* "$ACTIONS_DIR/"
+            return 0
+            ;;
+        *)
+            break
+            ;;
+        esac
+    done
+
+    for command in "$@"; do
+        # shellcheck disable=SC2086 # $FORCE needs to be split
+        cp -v ${FORCE:--n} "$actions_origin/cehgit-$command" "$ACTIONS_DIR/"
+    done
+}
+
+function cehgit_describe
 {
     [[ -d "$1" ]] || die "$1 is not a directory"
-
-    find "$1/" -maxdepth 1 -type f -name '[0-9]*' -or -name 'mod-*' | sort |
+    find "$1/" -maxdepth 1 -type f -name "$2" | sort |
         while read -r action; do
             echo "${action##*/}:"
             awk '/^## ?/{sub(/^## ?/,"    "); print}' "$action"
             echo
         done
+}
+
+# autoinstall required modules
+function cehgit_install_modules
+{
+    [[ -d "$ACTIONS_DIR" ]] || die "cehgit not initialized"
+    # find system installed modules dir
+    local modules_origin
+    # shellcheck disable=SC2088 # first_dir expands tilde
+    modules_origin=$(first_dir "~/.local/share/cehgit/actions" "/usr/share/cehgit/actions")
+    [[ -n "$modules_origin" ]] || die "no original modules dir found"
+
+    if any_matching_file ""$ACTIONS_DIR/"*"; then 
+        # shellcheck disable=SC2013
+        for module in $(awk '/^require/ {for (i=2; i<=NF; i++) print $i}' "$ACTIONS_DIR/"* | sort -u ); do
+            if [[ -e "$modules_origin/mod-$module" ]]; then
+                debug "installing $module"
+                cp -v -u "$modules_origin/mod-$module" "$ACTIONS_DIR/"
+            else
+                error "module $module not found"
+            fi
+        done
+    fi
 }
 
 function cehgit_install_hook
@@ -316,6 +438,7 @@ function cehgit_runner
 
     # populate the test dir
     git archive "$TREE_HASH" --prefix="$TEST_DIR/" | tar xf -
+    # TODO: git action? 10git-link
     ln -sf ../.git "$TEST_DIR/"
     # and enter it
     cd "$TEST_DIR"
@@ -467,37 +590,37 @@ function state_list_actions # {state} - lists all actions with a given state wit
 
 function lock_wait #api {name} [cmdpat] - lock a lockfile, waits until we have the lock
 {
-    echo $BASHPID >>"$1"
+    echo $$ >>"$1"
     local lockpid
     # we iterate here because the stealing later can be racy
-    while { lockpid=$(head -1 "$1"); [[ $lockpid != "$BASHPID" ]]; }; do
+    while { lockpid=$(head -1 "$1"); [[ $lockpid != "$$" ]]; }; do
         trace "wait: $lockpid to complete"
         while kill -0 "$lockpid" 2>/dev/null ; do
             wait "$lockpid" &>/dev/null || sleep 0.1
         done
-        echo $BASHPID >"$1"
+        echo $$ >"$1"
     done
-    trace "locked: $1"
+    trace "locked: $1 as $$"
 }
 
 # function lock_try #api {name} - try to lock a lockfile
 # {
-#     echo $BASHPID >>"$1"
+#     echo $$ >>"$1"
 #     # shellcheck disable=SC2155 # want to ignore errors here
 #     local lockpid=$(head -1 "$1" 2>/dev/null)
-#     [[ $lockpid == "$BASHPID" ]]
+#     [[ $lockpid == "$$" ]]
 # }
 
 function lock_remove #api {name} - remove a lockfile, unlock
 {
     # shellcheck disable=SC2155 # want to ignore errors here
     local lock=$(head -1 "$1" 2>/dev/null)
-    if [[ "$lock" = "$BASHPID" ]]; then
+    if [[ "$lock" = "$$" ]]; then
         trace "unlock $1"
         rm -f "$1"
         return 0
     else
-        error "$1 is not ours"
+        error "$1 is not ours (we are $$, owned by $lock)"
         return 1
     fi
 }
@@ -626,6 +749,9 @@ ABOUT
   It schedule tests to run in background. This means tests may run while you type a commit
   message.
 
+  It is also possible to extend cehgit with new subcommands. Unlike actions these are not
+  run in a dedicated test directory but in the current worktree.
+
   When you read this because you seen '.cehgit' used in a repository then you may look at
   INITIAL INSTALLATION below.
 
@@ -652,6 +778,18 @@ USAGE
 
   cehgit list-actions
          list actions that are active in the current repository
+
+  cehgit available-modules
+         list actions that are shipped with cehgit
+
+  cehgit list-modules
+         list modules that are installed in the current repository
+
+  cehgit available-commands
+         list commands that are shipped with cehgit
+
+  cehgit list-commands
+         list commands that are installed in the current repository
 
   cehgit install-hook [-f|--force] [--all|hooks..]
          install a githook to use cehgit
@@ -777,6 +915,15 @@ CONFIGURATION
 $(sed 's/ *declare -gx \([^ ]*\)=\([^ ]*\) *#G *\(.*\)/  \1 [\2]\n    \3 \n/p;d' < "$0")
 
 
+EXTEND CEHGIT WITH SUBCOMMANDS
+
+  Bash scripts in the ACTIONS_DIR whose name starts with 'cehgit-' can be called as subcommand
+  for example a '.cehgit.d/cehgit-foo' script can be called with 'cehgit foo'. These scripts
+  are run in the current worktree and not in a test directory but have all cehgit apis
+  available and may load modules with 'require'. They can be used to implement custom
+  workflows or implement other tasks.
+
+
 WRITING MODULES
 
   Modules extend the cehgit API. They are loaded with the 'require' function.
@@ -790,6 +937,8 @@ WRITING MODULES
   Functions they define should contain with the module name and a descriptive name of what the
   function does. The usual form is 'mod_*' where '*' is a descriptive name of what the
   function does.  For primary predicates we allow 'if_mod_*' forms too.
+
+  Modules are automatically installed to ACTIONS_DIR when required.
 
 
 WRITING ACTIONS
