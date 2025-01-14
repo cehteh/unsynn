@@ -32,8 +32,11 @@ parsed entities.
 The [`ToTokens`] trait is responsible for emiting tokens to a `TokenStream`. Unlike the trait
 from the quote crate we define `ToTokens` for a lot more types and provide more methods.
 
-Notably it provides the `to_token_iter()` and `into_token_iter()` methods which create the
-entry points for parsing.
+Notably it provides the [`ToTokens::to_token_iter()`] and [`ToTokens::into_token_iter()`]
+methods which create the entry points for parsing.
+
+Moreover since unsynn types do not implement `Display`. When textual representation of a
+parsed entity is required then [`ToTokens::tokens_to_string`] can be used.
 
 
 ## Composition and Type Aliases

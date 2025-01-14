@@ -49,22 +49,6 @@ impl<T: std::fmt::Debug, D: std::fmt::Debug> std::fmt::Debug for Delimited<T, D>
     }
 }
 
-#[mutants::skip]
-impl<T: std::fmt::Display, D: std::fmt::Display> std::fmt::Display for Delimited<T, D> {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(
-            f,
-            "{}{}",
-            self.value,
-            self.delimiter
-                .as_ref()
-                // use a space when there is no delimiter otherwise tokens it would be
-                // indistinguishable where one token ends and the next begins.
-                .map_or(String::from(" "), ToString::to_string)
-        )
-    }
-}
-
 /// `T` followed by an optional `,`
 pub type CommaDelimited<T> = Delimited<T, Comma>;
 /// `T` followed by an optional `:`

@@ -58,18 +58,6 @@ fn test_nothing() {
 }
 
 #[test]
-fn test_nothing_display() {
-    use std::fmt::Write;
-    let nothing = Nothing;
-    assert_eq!(nothing.to_string(), "");
-
-    // Test that Display implementation actually does something
-    let mut dest = String::new();
-    write!(dest, "{nothing}").unwrap();
-    assert_eq!(dest, "");
-}
-
-#[test]
 fn test_invalid() {
     let mut tokens = "test".to_token_iter();
     assert!(Invalid::parse(&mut tokens).is_err());
@@ -78,18 +66,6 @@ fn test_invalid() {
     let mut output = TokenStream::new();
     Invalid.to_tokens(&mut output);
     assert!(output.is_empty());
-}
-
-#[test]
-fn test_invalid_display() {
-    use std::fmt::Write;
-    let invalid = Invalid;
-    assert_eq!(invalid.to_string(), "");
-
-    // Test that Display implementation actually does something
-    let mut dest = String::new();
-    write!(dest, "{invalid}").unwrap();
-    assert_eq!(dest, "");
 }
 
 #[test]

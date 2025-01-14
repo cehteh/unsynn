@@ -36,13 +36,6 @@ impl<const C: char> From<PunctAny<C>> for TokenTree {
 }
 
 #[mutants::skip]
-impl<const C: char> std::fmt::Display for PunctAny<C> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{C}")
-    }
-}
-
-#[mutants::skip]
 impl<const C: char> std::fmt::Debug for PunctAny<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "PunctAny<{C:?}>")
@@ -103,13 +96,6 @@ impl<const C: char> Parser for PunctJoint<C> {
 impl<const C: char> ToTokens for PunctJoint<C> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         Punct::new(C, Spacing::Joint).to_tokens(tokens);
-    }
-}
-
-#[mutants::skip]
-impl<const C: char> std::fmt::Display for PunctJoint<C> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{C}")
     }
 }
 
@@ -180,13 +166,6 @@ impl<const C: char> Parser for PunctAlone<C> {
 impl<const C: char> ToTokens for PunctAlone<C> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         Punct::new(C, Spacing::Alone).to_tokens(tokens);
-    }
-}
-
-#[mutants::skip]
-impl<const C: char> std::fmt::Display for PunctAlone<C> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{C}")
     }
 }
 
@@ -288,23 +267,6 @@ impl<const C1: char, const C2: char, const C3: char, const C4: char> ToTokens
                 }
             }
         };
-    }
-}
-
-#[mutants::skip]
-impl<const C1: char, const C2: char, const C3: char, const C4: char> std::fmt::Display
-    for Operator<C1, C2, C3, C4>
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if C4 != '\0' {
-            write!(f, "{C1}{C2}{C3}{C4}")
-        } else if C3 != '\0' {
-            write!(f, "{C1}{C2}{C3}")
-        } else if C2 != '\0' {
-            write!(f, "{C1}{C2}")
-        } else {
-            write!(f, "{C1}")
-        }
     }
 }
 

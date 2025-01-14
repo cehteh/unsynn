@@ -118,13 +118,3 @@ let ast = "CALC 10+1-2*3+4/5*100 ;".to_token_iter()
     .parse::<Expression>().expect("syntax error");
 ```
 
-
-# Feature Flags
-
-By default unsynn is very lean and does not include extra features. The only thing that are
-always present are the [`Parser`], [`Parse`], [`ToTokens`] and [`Debug`] traits.
-
-The `Display` can't be implemented for all types (eg. [`Option`]). Further `Display` may
-sometimes be surprising since we do not have good rules how to pretty-print tokens (eg. spaces
-around Delimiters). Display then often inserts surplus spaces to ensure that tokens are
-properly delimited.

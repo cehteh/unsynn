@@ -52,12 +52,6 @@ macro_rules! make_group {
                 }
             }
 
-            impl std::fmt::Display for $name {
-                fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                    write!(f, "{}", self.0)
-                }
-            }
-
             impl From<$name> for TokenTree {
                 fn from(group: $name) -> Self {
                     group.0.into()
@@ -109,7 +103,7 @@ impl<C> GroupContaining<C> {
     ///     Delimiter::Parenthesis,
     ///     Literal::i32_unsuffixed(123),
     /// );
-    /// # assert_eq!(group.to_string(), "(123)");
+    /// # assert_eq!(group.tokens_to_string(), "(123)");
     /// ```
     pub const fn new(delimiter: Delimiter, content: C) -> Self {
         Self { delimiter, content }
@@ -146,13 +140,6 @@ impl<C: std::fmt::Debug> std::fmt::Debug for GroupContaining<C> {
             .field("delimiter", &self.delimiter)
             .field("content", &self.content)
             .finish()
-    }
-}
-
-#[mutants::skip]
-impl<C: ToTokens> std::fmt::Display for GroupContaining<C> {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.to_token_stream())
     }
 }
 
@@ -230,12 +217,6 @@ macro_rules! make_group_containing {
                     ))
                      .field(&self.content)
                      .finish()
-                }
-            }
-
-            impl<C: ToTokens> std::fmt::Display for $name<C> {
-                fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                    write!(f, "{}", self.to_token_stream())
                 }
             }
 

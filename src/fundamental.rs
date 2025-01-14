@@ -297,15 +297,8 @@ impl<T: Parse + std::fmt::Debug> std::fmt::Debug for Cached<T> {
     }
 }
 
-#[mutants::skip]
-impl<T: Parse + std::fmt::Display> std::fmt::Display for Cached<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.string)
-    }
-}
-
 /// Convert a `Cached<T: Into<TokenTree>>` object into a `TokenTree`.
-impl<T: Parse + std::fmt::Display + Into<TokenTree>> From<Cached<T>> for TokenTree {
+impl<T: Parse + Into<TokenTree>> From<Cached<T>> for TokenTree {
     fn from(cached: Cached<T>) -> Self {
         cached.value.into()
     }
@@ -371,13 +364,6 @@ impl ToTokens for Nothing {
     }
 }
 
-#[mutants::skip]
-impl std::fmt::Display for Nothing {
-    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        Ok(())
-    }
-}
-
 /// A unit that always fails to match. This is useful as default for generics.
 /// See how [`Either<A, B, C, D>`] uses this for unused alternatives.
 #[derive(Debug, Clone)]
@@ -393,13 +379,6 @@ impl ToTokens for Invalid {
     #[inline]
     fn to_tokens(&self, _tokens: &mut TokenStream) {
         /*NOP*/
-    }
-}
-
-#[mutants::skip]
-impl std::fmt::Display for Invalid {
-    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        Ok(())
     }
 }
 
@@ -438,13 +417,6 @@ impl<T: std::fmt::Debug> std::fmt::Debug for Except<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct(&format!("Except<{}>", std::any::type_name::<T>()))
             .finish()
-    }
-}
-
-#[mutants::skip]
-impl<T> std::fmt::Display for Except<T> {
-    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        Ok(())
     }
 }
 
@@ -487,15 +459,8 @@ impl<T: std::fmt::Debug> std::fmt::Debug for Expect<T> {
     }
 }
 
-#[mutants::skip]
-impl<T> std::fmt::Display for Expect<T> {
-    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        Ok(())
-    }
-}
-
 /// Skips over expected tokens. Will parse and consume the tokens but not store them.
-/// Consequently the `ToTokens` and `Display` implementations will not output any tokens.
+/// Consequently the `ToTokens` implementations will not output any tokens.
 ///
 /// # Example
 ///
@@ -527,13 +492,6 @@ impl<T: std::fmt::Debug> std::fmt::Debug for Skip<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct(&format!("Skip<{}>", std::any::type_name::<T>()))
             .finish()
-    }
-}
-
-#[mutants::skip]
-impl<T> std::fmt::Display for Skip<T> {
-    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        Ok(())
     }
 }
 
@@ -617,12 +575,5 @@ impl<T: Default + std::fmt::Debug> std::fmt::Debug for HiddenState<T> {
         f.debug_tuple(&format!("HiddenState<{}>", std::any::type_name::<T>()))
             .field(&self.0)
             .finish()
-    }
-}
-
-#[mutants::skip]
-impl<T: Default> std::fmt::Display for HiddenState<T> {
-    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        Ok(())
     }
 }

@@ -201,6 +201,13 @@ impl ToTokens for TokenIter<'_> {
     }
 }
 
+/// implement `Display` using `ToTokens::tokens_to_string()` for all types that implement `ToTokens`
+impl std::fmt::Display for dyn ToTokens {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.tokens_to_string())
+    }
+}
+
 /// Extension trait for [`TokenIter`] that calls [`Parse::parse()`].
 #[allow(clippy::missing_errors_doc)]
 pub trait IParse: private::Sealed {

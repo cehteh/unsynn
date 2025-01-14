@@ -71,13 +71,6 @@ impl PartialEq<u128> for LiteralInteger {
     }
 }
 
-#[mutants::skip]
-impl std::fmt::Display for LiteralInteger {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.value)
-    }
-}
-
 impl From<LiteralInteger> for TokenTree {
     fn from(lit: LiteralInteger) -> Self {
         TokenTree::Literal(lit.into_inner())
@@ -152,13 +145,6 @@ impl ToTokens for LiteralCharacter {
 impl PartialEq<char> for LiteralCharacter {
     fn eq(&self, other: &char) -> bool {
         &self.value == other
-    }
-}
-
-#[mutants::skip]
-impl std::fmt::Display for LiteralCharacter {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.value)
     }
 }
 
@@ -261,13 +247,6 @@ impl ToTokens for LiteralString {
 impl PartialEq<&str> for LiteralString {
     fn eq(&self, other: &&str) -> bool {
         &self.value == other
-    }
-}
-
-#[mutants::skip]
-impl std::fmt::Display for LiteralString {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.value)
     }
 }
 

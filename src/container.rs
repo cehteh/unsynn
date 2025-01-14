@@ -252,16 +252,6 @@ impl<T: std::fmt::Debug, S: std::fmt::Debug> std::fmt::Debug for LazyVec<T, S> {
     }
 }
 
-#[mutants::skip]
-impl<T: std::fmt::Display, S: std::fmt::Display> std::fmt::Display for LazyVec<T, S> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for value in &self.vec {
-            write!(f, "{value} ",)?;
-        }
-        write!(f, "{}", self.terminator)
-    }
-}
-
 /// Since the delimiter in [`Delimited<T,D>`] is optional a [`Vec<Delimited<T,D>>`] would parse
 /// consecutive values even without delimiters. [`DelimitedVec<T,D>`] will stop parsing after
 /// the first value without a delimiter.
@@ -345,16 +335,6 @@ impl<T: std::fmt::Debug, D: std::fmt::Debug> std::fmt::Debug for DelimitedVec<T,
         ))
         .field(&self.0)
         .finish()
-    }
-}
-
-#[mutants::skip]
-impl<T: std::fmt::Display, D: std::fmt::Display> std::fmt::Display for DelimitedVec<T, D> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for value in &self.0 {
-            write!(f, "{}", &value)?;
-        }
-        Ok(())
     }
 }
 
@@ -449,23 +429,11 @@ impl<const MIN: usize, const MAX: usize, T: std::fmt::Debug, D: std::fmt::Debug>
     }
 }
 
-#[mutants::skip]
-impl<const MIN: usize, const MAX: usize, T: std::fmt::Display, D: std::fmt::Display>
-    std::fmt::Display for Repeats<MIN, MAX, T, D>
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for value in &self.0 {
-            write!(f, "{}", &value)?;
-        }
-        Ok(())
-    }
-}
-
 /// Any number of T delimited by D or [`Nothing`]
 pub type Any<T, D = Nothing> = Repeats<0, { usize::MAX }, T, D>;
 /// One or more of T delimited by D or [`Nothing`]
 pub type Many<T, D = Nothing> = Repeats<1, { usize::MAX }, T, D>;
-/// Zero or one of T delimited by D or [`Nothing`], similar to [`Option`] but implements [`std::fmt::Display`]
+/// Zero or one of T delimited by D or [`Nothing`]
 pub type Optional<T, D = Nothing> = Repeats<0, 1, T, D>;
 /// Exactly N of T delimited by D or [`Nothing`]
 pub type Exactly<const N: usize, T, D = Nothing> = Repeats<N, N, T, D>;

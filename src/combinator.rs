@@ -27,8 +27,6 @@ impl<A, B, C: 'static, D: 'static> Cons<A, B, C, D> {
     ///
     /// Asserts that the `Cons` is not sparse, if `C` is not `Nothing` then `D` must not be
     /// `Nothing` either.
-    // only used in Debug/Display
-    #[allow(dead_code)]
     fn used_conjunctions() -> usize {
         let mut len = 2;
         // PLANNED: static NOTHING: TypeId once stable
@@ -129,27 +127,6 @@ where
                 .field("third", &self.third)
                 .field("fourth", &self.fourth)
                 .finish(),
-        }
-    }
-}
-
-#[mutants::skip]
-impl<A, B, C, D> std::fmt::Display for Cons<A, B, C, D>
-where
-    A: std::fmt::Display,
-    B: std::fmt::Display,
-    C: std::fmt::Display + 'static,
-    D: std::fmt::Display + 'static,
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match Self::used_conjunctions() {
-            1 | 2 => write!(f, "{} {}", self.first, self.second),
-            3 => write!(f, "{} {} {}", self.first, self.second, self.third),
-            _ => write!(
-                f,
-                "{} {} {} {}",
-                self.first, self.second, self.third, self.fourth
-            ),
         }
     }
 }
@@ -413,18 +390,6 @@ where
             Either::Second(b) => f.debug_tuple(&typename).field(b).finish(),
             Either::Third(c) => f.debug_tuple(&typename).field(c).finish(),
             Either::Fourth(d) => f.debug_tuple(&typename).field(d).finish(),
-        }
-    }
-}
-
-#[mutants::skip]
-impl<A: std::fmt::Display, B: std::fmt::Display> std::fmt::Display for Either<A, B> {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            Either::First(a) => write!(f, "{a}"),
-            Either::Second(b) => write!(f, "{b}"),
-            Either::Third(c) => write!(f, "{c}"),
-            Either::Fourth(d) => write!(f, "{d}"),
         }
     }
 }

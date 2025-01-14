@@ -132,13 +132,6 @@ macro_rules! unsynn{
             }
         }
 
-        impl std::fmt::Display for $name {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                $crate::unsynn!{@enum_write(self, f) {$($variants)*}}
-                Ok(())
-            }
-        }
-
         // next item
         $crate::unsynn!{$($cont)*}
     };
@@ -161,13 +154,6 @@ macro_rules! unsynn{
         impl $crate::ToTokens for $name {
             fn to_tokens(&self, tokens: &mut TokenStream) {
                 $(self.$member.to_tokens(tokens);)*
-            }
-        }
-
-        impl std::fmt::Display for $name {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                $(write!(f, "{} ", &self.$member)?;)*
-                Ok(())
             }
         }
 
@@ -195,15 +181,6 @@ macro_rules! unsynn{
                 unsynn! {@tuple_for_each item in self : Self($($parser),*) {
                     item.to_tokens(tokens);
                 }}
-            }
-        }
-
-        impl std::fmt::Display for $name {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                unsynn! {@tuple_for_each item in self : Self($($parser),*) {
-                    write!(f, "{} " , &item)?;
-                }}
-                Ok(())
             }
         }
 
@@ -391,7 +368,7 @@ macro_rules! unsynn{
 /// * `"identifier"` is the case sensitive keyword
 ///
 /// `Name::parse()` will then only match the defined identifier.  It will implement `Debug`
-/// and `Display` and `Clone` for keywords. Additionally `AsRef<str>` is implemented for each Keyword
+/// and `Clone` for keywords. Additionally `AsRef<str>` is implemented for each Keyword
 /// to access the identifier string from rust code.
 ///
 /// The `unsynn!` macro supports defining keywords by using `keyword Name = "ident";`, the
@@ -453,11 +430,6 @@ macro_rules! keyword{
             }
         }
 
-        impl std::fmt::Display for $name {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(f, "{} ", $str)
-            }
-        }
         $crate::keyword!{$($($cont)*)?}
     };
     () => {};
@@ -471,8 +443,8 @@ macro_rules! keyword{
 /// * `Op` is the name for the struct to be generated
 /// * `"punct"` is up to 4 ASCII punctuation characters
 ///
-/// `Op::parse()` will match the defined operator. It will implement `Debug` and `Display`
-/// and `Clone` for operators.
+/// `Op::parse()` will match the defined operator. It will implement `Debug` and `Clone`
+/// for operators.
 ///
 /// The `unsynn!` macro supports defining operators by using `operator Op = "chars";`, the
 /// `pub` specification has to come before `operator` then.
