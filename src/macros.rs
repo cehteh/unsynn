@@ -3,8 +3,8 @@
 use crate::*;
 
 /// This macro supports the definition of enums, tuple structs and normal structs and
-/// generates [`Parser`] and [`ToTokens`] implementations for them. It will implement `Debug`
-/// and `Display`. Generics/Lifetimes are not supported (yet) on the primary type.
+/// generates [`Parser`] and [`ToTokens`] implementations for them. It will derive `Debug`.
+/// Generics/Lifetimes are not supported on the primary type.
 /// Note: eventually a derive macro for `Parser` and `ToTokens` will become supported by
 /// a 'unsynn-derive' crate to give finer control over the expansion. `#[derive(Copy, Clone)]`
 /// have to be manually defined. Keyword and operator definitions can also be defined,

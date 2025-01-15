@@ -9,7 +9,7 @@ use crate::{
 
 use std::{cell::RefCell, rc::Rc};
 
-/// Zero or One of T
+/// Zero or One of T.
 impl<T: Parse> Parser for Option<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match T::parse(tokens) {
