@@ -459,6 +459,45 @@ impl<T: std::fmt::Debug> std::fmt::Debug for Expect<T> {
     }
 }
 
+/// Succeeds when the next token matches `T`. The token will be removed from the stream but not stored.
+/// Consequently the `ToTokens` implementations will panic with a message that it can not be emitted.
+/// This can only be used when a token should be present but not stored and never emitted.
+///
+/// # Example
+///
+/// ```
+/// # use unsynn::*;
+/// let mut token_iter = "ident ()".to_token_iter();
+///
+/// let _ = Discard::<Ident>::parser(&mut token_iter).unwrap();
+/// ```
+#[derive(Clone)]
+pub struct Discard<T>(PhantomData<T>);
+
+impl<T: Parse> Parser for Discard<T> {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        match T::parser(tokens) {
+            Ok(_) => Ok(Self(PhantomData)),
+            Err(e) => Err(e),
+        }
+    }
+}
+
+impl<T> ToTokens for Discard<T> {
+    #[inline]
+    fn to_tokens(&self, _tokens: &mut TokenStream) {
+        unimplemented!("Can not emit tokens for Discard<T>")
+    }
+}
+
+#[mutants::skip]
+impl<T: std::fmt::Debug> std::fmt::Debug for Discard<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct(&format!("Discard<{}>", std::any::type_name::<T>()))
+            .finish()
+    }
+}
+
 /// Skips over expected tokens. Will parse and consume the tokens but not store them.
 /// Consequently the `ToTokens` implementations will not output any tokens.
 ///
