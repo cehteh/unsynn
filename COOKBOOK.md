@@ -35,8 +35,9 @@ from the quote crate we define `ToTokens` for a lot more types and provide more 
 Notably it provides the [`ToTokens::to_token_iter()`] and [`ToTokens::into_token_iter()`]
 methods which create the entry points for parsing.
 
-Moreover since unsynn types do not implement `Display`. When textual representation of a
-parsed entity is required then [`ToTokens::tokens_to_string`] can be used.
+When textual representation of a parsed entity is required then [`ToTokens::tokens_to_string`]
+can be used.  The standard `Display` trait is implemented on top of that, as such every type
+that has [`ToTokens`] implented can be printed as text.
 
 
 ## Composition and Type Aliases

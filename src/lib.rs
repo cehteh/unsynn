@@ -8,7 +8,6 @@
 //! # Roadmap
 //!
 #![doc = include_str!("../ROADMAP.md")]
-#![cfg_attr(test, allow(clippy::unwrap_used))]
 
 use shadow_counted::ShadowCountedIter;
 
