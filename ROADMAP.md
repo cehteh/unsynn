@@ -8,9 +8,6 @@ deficiencies in 'unsynn' are found then it is time for a 1.0.0 release.
 
 ## Planned/Ideas
 
-* Merge Repeats and LazyVec -> LazyRepeats<MIN, MAX, T, D=Nothing, S=Invalid>
-  type Repeats<MIN, MAX, T, D=Nothing> = LazyRepeats<MIN, MAX, T, D=Nothing, Invaild>
-  type LazyVec<T, S> = LazyRepeats<0, usize::MAX, T, Nothing, S>
 * can we add prettyprint for tokens_to_string?
   this needs a threadlocal storing some context (indent level, indent by (str of spaces), prettyprint flag)
 * keyword! {
