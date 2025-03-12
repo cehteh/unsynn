@@ -77,7 +77,7 @@ impl Error {
         self.pos
     }
 
-    /// Create a `Result<T>::Err(Error{ kind: ErrorKind::UnexpectedToken }` error.
+    /// Create a `Result<T>::Err(Error{ kind: ErrorKind::UnexpectedToken })` error.
     #[allow(clippy::missing_errors_doc)]
     pub fn unexpected_token<T>(pos: impl TokenCount, found: TokenTree) -> Result<T> {
         Err(Error {
@@ -89,7 +89,7 @@ impl Error {
         })
     }
 
-    /// Create a `Result<T>::Err(Error{ kind: ErrorKind::UnexpectedEnd }` error.
+    /// Create a `Result<T>::Err(Error{ kind: ErrorKind::UnexpectedEnd })` error.
     #[allow(clippy::missing_errors_doc)]
     pub fn unexpected_end<T>() -> Result<T> {
         Err(Error {
@@ -109,7 +109,7 @@ impl Error {
         }
     }
 
-    /// Create a `Result<T>::Err(Error{ kind: ErrorKind::Other }` error.
+    /// Create a `Result<T>::Err(Error{ kind: ErrorKind::Other })` error.
     #[allow(clippy::missing_errors_doc)]
     pub fn other<T>(pos: impl TokenCount, reason: String) -> Result<T> {
         Err(Error {
