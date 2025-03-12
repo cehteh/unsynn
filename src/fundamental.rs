@@ -485,6 +485,7 @@ impl<T: Parse> Parser for Discard<T> {
 
 impl<T> ToTokens for Discard<T> {
     #[inline]
+    #[mutants::skip]
     fn to_tokens(&self, _tokens: &mut TokenStream) {
         unimplemented!("Can not emit tokens for Discard<T>")
     }

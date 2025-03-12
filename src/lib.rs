@@ -202,6 +202,7 @@ impl ToTokens for TokenIter<'_> {
 
 /// implement `Display` using `ToTokens::tokens_to_string()` for all types that implement `ToTokens`
 impl std::fmt::Display for dyn ToTokens {
+    #[mutants::skip]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.tokens_to_string())
     }
