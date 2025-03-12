@@ -6,10 +6,13 @@ construction. Grammars will be implemented in their own crates (see unsynn-rust)
 It is primarily intended use is when one wants to create proc macros for rust that define their
 own grammar or need only sparse rust parsers.
 
+Other uses can be building parsers for gramars outside a rust/proc-macro context. Unsynn can
+parse any `&str` data (The tokenizer step relies on proc_macro2).
+
 
 # Examples
 
-## Custom Types
+## Creating and Parsing Custom Types
 
 The [`unsynn!{}`] macro will generate the [`Parser`] and [`ToTokens`] impls (and more).  This
 is optional, the impls could be written by hand when necessary.
