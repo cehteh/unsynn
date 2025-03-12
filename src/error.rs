@@ -206,15 +206,6 @@ impl TokenCount for &TokenIter<'_> {
     }
 }
 
-// defining for && allows us to pass a &TokenIter by reference when it is still needed
-// later. Otherwise it would need to be reborrowed '&*iter' which is less ergonomic.
-impl TokenCount for &&TokenIter<'_> {
-    #[inline]
-    fn token_count(self) -> usize {
-        self.counter()
-    }
-}
-
 impl TokenCount for &mut TokenIter<'_> {
     #[inline]
     fn token_count(self) -> usize {
@@ -222,6 +213,8 @@ impl TokenCount for &mut TokenIter<'_> {
     }
 }
 
+// implementing for &&mut allows us to pass a &mut TokenIter by reference when it is still needed
+// later. Otherwise it would need to be reborrow '&mut *iter' which is less ergonomic.
 impl TokenCount for &&mut TokenIter<'_> {
     #[inline]
     fn token_count(self) -> usize {
