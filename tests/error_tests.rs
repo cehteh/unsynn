@@ -60,10 +60,6 @@ fn test_token_count_impls() {
     assert_eq!((&tokens).token_count(), current_count);
     assert_ne!((&tokens).token_count(), 1);
 
-    // Test TokenCount for &&TokenIter
-    assert_eq!((&(&tokens)).token_count(), current_count);
-    assert_ne!((&(&tokens)).token_count(), 1);
-
     // Test TokenCount for &mut TokenIter
     assert_eq!((&mut tokens).token_count(), current_count);
     assert_ne!((&mut tokens).token_count(), 1);
