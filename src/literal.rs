@@ -131,7 +131,7 @@ impl Parser for LiteralCharacter {
         if let (Some('\''), Some(value)) = (chars.next(), chars.next()) {
             Ok(Self { literal, value })
         } else {
-            Error::unexpected_token(tokens, TokenTree::Literal(literal))
+            Error::unexpected_token(tokens)
         }
     }
 }
@@ -233,7 +233,7 @@ impl Parser for LiteralString {
                 value: string,
             })
         } else {
-            Error::unexpected_token(tokens, TokenTree::Literal(literal))
+            Error::unexpected_token(tokens)
         }
     }
 }

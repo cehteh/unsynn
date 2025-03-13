@@ -112,7 +112,7 @@ fn test_delimited_undelimited() {
 }
 
 #[test]
-#[should_panic = "Unexpected token: expected unsynn::fundamental::EndOfStream, found Ident"]
+#[should_panic = "Unexpected token: expected unsynn::fundamental::EndOfStream"]
 fn test_parse_all() {
     let mut token_iter = " foo bar ".to_token_iter();
 

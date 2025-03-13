@@ -96,7 +96,7 @@ impl Parser for Group {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(TokenTree::Group(group)) => Ok(group),
-            other => Error::unexpected_token_or_end(tokens, other),
+            _ => Error::unexpected_token(tokens),
         }
     }
 }
@@ -112,7 +112,7 @@ impl Parser for Ident {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(TokenTree::Ident(ident)) => Ok(ident),
-            other => Error::unexpected_token_or_end(tokens, other),
+            _ => Error::unexpected_token(tokens),
         }
     }
 }
@@ -128,7 +128,7 @@ impl Parser for Punct {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(TokenTree::Punct(punct)) => Ok(punct),
-            other => Error::unexpected_token_or_end(tokens, other),
+            _ => Error::unexpected_token(tokens),
         }
     }
 }
@@ -144,7 +144,7 @@ impl Parser for Literal {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(TokenTree::Literal(literal)) => Ok(literal),
-            other => Error::unexpected_token_or_end(tokens, other),
+            _ => Error::unexpected_token(tokens),
         }
     }
 }
@@ -371,7 +371,7 @@ pub struct Invalid;
 
 impl Parser for Invalid {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        Error::unexpected_token_or_end(&tokens, tokens.clone().next())
+        Error::unexpected_token(tokens)
     }
 }
 
@@ -399,7 +399,7 @@ impl<T: Parse> Parser for Except<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let mut ptokens = tokens.clone();
         match T::parser(&mut ptokens) {
-            Ok(_) => Error::unexpected_token_or_end(&tokens, tokens.clone().next()),
+            Ok(_) => Error::unexpected_token(tokens),
             Err(_) => Ok(Self(PhantomData)),
         }
     }
@@ -552,7 +552,7 @@ impl Parser for EndOfStream {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             None => Ok(Self),
-            Some(next) => Error::unexpected_token(tokens, next),
+            _ => Error::unexpected_token(tokens),
         }
     }
 }

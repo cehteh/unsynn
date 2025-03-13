@@ -89,7 +89,7 @@ impl Parser for bool {
             } else if ident == "false" {
                 Ok(false)
             } else {
-                Error::unexpected_token(tokens, ident.into())
+                Error::unexpected_token(tokens)
             }
         })
     }

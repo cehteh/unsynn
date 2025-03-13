@@ -22,7 +22,7 @@ fn test_group_contains_empty() {
 }
 
 #[test]
-#[should_panic = "Unexpected token: expected unsynn::fundamental::EndOfStream, found Ident"]
+#[should_panic = "Unexpected token: expected unsynn::fundamental::EndOfStream"]
 fn test_group_contains_leftover_tokens() {
     let mut token_iter = " { leftover } ".to_token_iter();
 

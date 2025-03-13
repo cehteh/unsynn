@@ -1,4 +1,4 @@
-use crate::{TokenIter, TokenTree};
+use crate::{TokenIter, TokenStream};
 use std::sync::Arc;
 
 /// Result type for parsing.
@@ -8,20 +8,15 @@ pub type Result<T> = std::result::Result<T, Error>;
 // common cases plus adding the generic case as dyn boxed error.
 /// Actual kind of an error.
 #[derive(Clone)]
-enum ErrorKind {
+pub enum ErrorKind {
     /// A no error state that can be upgraded by later errors.
     NoError,
-    /// Trying to parse `expected` but found `found`.
+    /// Trying to parse `expected`.
     UnexpectedToken {
         /// type name of what was expected
         expected: &'static str,
-        /// the token that was found
-        found: TokenTree,
-    },
-    /// Trying to parse `expected` but found the end of the input.
-    UnexpectedEnd {
-        /// type name of what was expected
-        expected: &'static str,
+        /// Iterator starting at the error
+        at: <TokenStream as IntoIterator>::IntoIter,
     },
     /// Something else failed which can be fully formatted as `String`.
     Other {
@@ -36,7 +31,8 @@ enum ErrorKind {
 #[must_use]
 #[derive(Clone)]
 pub struct Error {
-    kind: ErrorKind,
+    /// Kind of the error.
+    pub kind: ErrorKind,
     // ShadowCountedIter position where it happened
     // on disjunct parsers we use this to determine which error to keep
     pos: usize,
@@ -77,15 +73,15 @@ impl Error {
         self.pos
     }
 
-    /// Create a `Result<T>::Err(Error{ kind: ErrorKind::UnexpectedToken })` error.
+    /// Create a `Result<T>::Err(Error{ kind: ErrorKind::Unexpected })` error.
     #[allow(clippy::missing_errors_doc)]
-    pub fn unexpected_token<T>(pos: impl TokenCount, found: TokenTree) -> Result<T> {
+    pub fn unexpected_token<T>(at: &TokenIter) -> Result<T> {
         Err(Error {
             kind: ErrorKind::UnexpectedToken {
                 expected: std::any::type_name::<T>(),
-                found,
+                at: at.clone().into_inner_iter(),
             },
-            pos: pos.token_count(),
+            pos: at.token_count(),
         })
     }
 
@@ -93,20 +89,12 @@ impl Error {
     #[allow(clippy::missing_errors_doc)]
     pub fn unexpected_end<T>() -> Result<T> {
         Err(Error {
-            kind: ErrorKind::UnexpectedEnd {
+            kind: ErrorKind::UnexpectedToken {
                 expected: std::any::type_name::<T>(),
+                at: TokenStream::new().into_iter(),
             },
             pos: usize::MAX,
         })
-    }
-
-    /// Either `UnexpectedToken` or `UnexpectedEnd` depending if token is `Some`.
-    #[allow(clippy::missing_errors_doc)]
-    pub fn unexpected_token_or_end<T>(pos: impl TokenCount, token: Option<TokenTree>) -> Result<T> {
-        match token {
-            Some(token) => Error::unexpected_token(pos, token),
-            None => Error::unexpected_end(),
-        }
     }
 
     /// Create a `Result<T>::Err(Error{ kind: ErrorKind::Other })` error.
@@ -135,15 +123,12 @@ impl std::fmt::Debug for Error {
             ErrorKind::NoError => {
                 write!(f, "NoError")
             }
-            ErrorKind::UnexpectedToken { expected, found } => {
+            ErrorKind::UnexpectedToken { expected, at } => {
                 write!(
                     f,
-                    "Unexpected token: expected {expected}, found {found:?} at {:?}",
-                    found.span().start()
+                    "Unexpected token: expected {expected}, found {at:?} at {:?}",
+                    at.clone().next().map(|s| s.span().start())
                 )
-            }
-            ErrorKind::UnexpectedEnd { expected } => {
-                write!(f, "Unexpected end of input: expected {expected}")
             }
             ErrorKind::Other { reason } => {
                 write!(f, "{reason}")
@@ -162,15 +147,12 @@ impl std::fmt::Display for Error {
             ErrorKind::NoError => {
                 write!(f, "NoError")
             }
-            ErrorKind::UnexpectedToken { expected, found } => {
+            ErrorKind::UnexpectedToken { expected, at } => {
                 write!(
                     f,
-                    "Unexpected token: expected {expected}, found {found:?} at {:?}",
-                    found.span().start()
+                    "Unexpected token: expected {expected}, found {at:?} at {:?}",
+                    at.clone().next().map(|s| s.span().start())
                 )
-            }
-            ErrorKind::UnexpectedEnd { expected } => {
-                write!(f, "Unexpected end of input: expected {expected}")
             }
             ErrorKind::Other { reason } => {
                 write!(f, "{reason}")
