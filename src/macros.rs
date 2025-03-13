@@ -95,11 +95,11 @@ use crate::*;
 #[cfg(doc)]
 #[macro_export]
 macro_rules! unsynn {
-    (enum $name:ident { $( $variant:ident... ),* }) => {};
-    (struct $name:ident { $( $member:ident: $parser:ty ),* }) => {};
-    (struct $name:ident ( $( $parser:ty ),*);) => {};
-    (keyword $name:ident = "name";) => {};
-    (operator $name:ident = "punct";) => {};
+    ($(#[$attribute:meta])* $pub:vis enum $name:ident { $( $variant:ident... ),* }) => {};
+    ($(#[$attribute:meta])* $pub:vis struct $name:ident { $( $member:ident: $parser:ty ),* }) => {};
+    ($(#[$attribute:meta])* $pub:vis struct $name:ident ( $( $parser:ty ),*);) => {};
+    ($(#[$attribute:meta])* $pub:vis keyword $name:ident = "name";) => {};
+    ($(#[$attribute:meta])* $pub:vis operator $name:ident = "punct";) => {};
 }
 
 #[doc(hidden)]

@@ -469,7 +469,8 @@ impl<T: std::fmt::Debug> std::fmt::Debug for Expect<T> {
 /// # use unsynn::*;
 /// let mut token_iter = "ident ()".to_token_iter();
 ///
-/// let _ = Discard::<Ident>::parser(&mut token_iter).unwrap();
+/// let _ = Discard::<Ident>::parse(&mut token_iter).unwrap();
+/// assert!(ParenthesisGroup::parse(&mut token_iter).is_ok());
 /// ```
 #[derive(Clone)]
 pub struct Discard<T>(PhantomData<T>);
