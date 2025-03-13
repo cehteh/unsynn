@@ -18,6 +18,22 @@ deficiencies in 'unsynn' are found then it is time for a 1.0.0 release.
       // negative matches
       DontMatchMore != ["Dont", "Match", OtherKeyword];
   }
+* make proc_macro2 optional with a feature flag  
+  this would disable parsing &str and related API's and most of the test suite. But should be
+  sufficient for writiung lean proc_macro parsers.
+* improve error handing
+   - document how errors are reported and what the user can do to handle them
+   - User can/should write forgiving grammars that are error tolerant
+   - add tests error/span handling
+* Brainfart: Dynamic parser construction  
+  instead parse::<UnsynnType>()
+  create a parse function dynamically from a str parsed by unsynn itself
+  "Either<This, That>".to_parser().parse()
+  this will need a `trait DynUnsynn` implementing the common/dynamic parts of these
+  and a registry where all entities supporting dynamic construction are registered.
+  This will likely be factored out into a unsynn-dyn crate
+  Add some scanf like DSL to generate these parsers.
+  xmacro may use it like $(foo@Ident: values)
 * add rust types
   * f32: 32-bit floating point number
   * f64: 64-bit floating point number (default)
