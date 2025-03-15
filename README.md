@@ -1,5 +1,7 @@
 unsynn (from german 'unsinn' for nonsense) is a minimalist rust parser library. It achieves
-this by leaving out the actual grammar implementations and compromise on simpler error
+this by leaving out the actual grammar implementations and doing only minimal
+[error](Parse#errors) handling.
+
 reporting. In exchange it offers simple composeable Parsers and ergonomic Parser
 construction. Grammars will be implemented in their own crates (see unsynn-rust).
 

@@ -234,20 +234,41 @@ impl ToTokens for AssignmentList {
 
 ## Errors
 
-Unsynn normally bails on the first error encountered. It does not try to parse any further or
-being smart about what may have caused an error (typos, missing semicolons etc).
-The only exception to this is when parsing disjunct entities where errors are expected to
-happen on the first branches. It then keep the error which shown the most progress in parsing.
-Progress is tracked with the `ShadowCountedIter`.
-When any branch succeeds the error is dropped and parsing goes on, when all branches fail then
-that error which made the most progress is returned. This is implemented for enums created
-with the `unsynn!` macro as well for the `Either::parser()` method (which is an enum as well).
-This covers all normal cases, only when one for some reason wants to implement disunct parsers
-manually this has to be taken into account.
+Unsynn parsers return the first error encountered. It does not try error recovery on its own
+or being smart about what may have caused an error (typos, missing semicolons etc).  The only
+exception to this is when parsing disjunct entities (`Either` or other enums) where errors are
+expected to happen on the first branches.  When any branch succeeds the error is dropped and
+parsing goes on, when all branches fail then that error which made the most progress is
+returned. Progress is tracked with the `ShadowCountedIter`.  This is implemented for enums
+created with the `unsynn!` macro as well for the `Either::parser()` method.  This covers all
+normal cases.
 
-This is then done by creating an `Error` with `ErrorKind:: NoError` by
-`let mut err = Error::no_error()` within the `Parser` implementation of the custom types
-parser. Then any parser that is called subsequently tries to `err.upgrade(Item::parser(..))`
-the error which handles storing the error making the most progress. Eventually a `Ok()` or the
-upgraded `Err(err)` is returned. For details look at the source of [Either::parser].
+When one needs to implement disunct parsers manually this has to be taken into account.
+This is then done by creating an [`Error`] with [`ErrorKind::NoError`] by
+`let mut err = Error::no_error()` within the `Parser::parse` implementation. Then any parser
+that is called subsequently tries to `err.upgrade(Item::parser(..))` which handles storing the
+error which made the most progress. Eventually a `Ok(...)` or the upgraded `Err(err)` is
+returned. For details look at the source of [`Either::parser`].
 
+Errors carry a iterator starting at the location where the error happened. This can be used
+for further inspection.
+
+Some parser types in unsynn are ZST's this means they don't carry the token they parsed and
+consequently the have no `Span` thus the location of an error will be unavailable for them.
+If that poses to be a problem this might be revised in future unsynn versions.
+
+In other cases where spans are wrong this is considered a happy accident, please fill a Bug or
+send a PR fixing this issue.
+
+
+### Error Recovery
+
+Trying to recover from syntax errors is usually not required/advised for compiled
+languages. When there is a syntax error, report it to the user and let them fix the source
+code.
+
+Recoverable parsing would need knowledge of the grammar (or even context) being parsed. This
+can not be supported by unsynn itself as it does not define any grammars. When one needs
+recoverable parsers then this has to implemented into the grammar definition. Future versions
+of unsynn may provide some tools to assist with this. The actual approach is still in
+discussion.
