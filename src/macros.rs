@@ -481,7 +481,7 @@ macro_rules! operator{
     // match a single operator! defs with len 1-4
     (@operator $(#[$attribute:meta])* $pub:vis $name:ident = $op:literal) => {
         $(#[$attribute])*
-        $pub type $name = Operator<
+        $pub type $name = $crate::Operator<
         {
                 assert!(
                     $op.len() >= 1 && $op.len() <= 4,

@@ -297,10 +297,15 @@ pub mod group;
 #[doc(inline)]
 pub use group::*;
 
-// Punctuation, delimiters and operators
+// Punctuation, delimiters
 pub mod punct;
 #[doc(inline)]
 pub use punct::*;
+
+// operators
+pub mod operator;
+#[doc(inline)]
+pub use operator::{names::*, *};
 
 // Literals
 pub mod literal;
