@@ -587,37 +587,84 @@ function state_list_actions # {state} - lists all actions with a given state wit
 
 function lock_wait #api {name} [cmdpat] - lock a lockfile, waits until we have the lock
 {
-    echo $$ >>"$1"
-    local lockpid
-    # we iterate here because the stealing later can be racy
-    while { lockpid=$(head -1 "$1"); [[ $lockpid != "$$" ]]; }; do
-        trace "wait: $lockpid to complete"
-        while kill -0 "$lockpid" 2>/dev/null ; do
-            wait "$lockpid" &>/dev/null || sleep 0.1
-        done
-        echo $$ >"$1"
+    # Create a temporary lockfile specific to this process
+    local tmp_lockfile="${1}.$$"
+
+    # Put our PID in the temporary file
+    echo $$ > "$tmp_lockfile"
+
+    # Try to atomically acquire the lock
+    while ! ln -s "$tmp_lockfile" "$1" 2>/dev/null; do
+        # Lock exists, check if it's stale
+        if [[ -L "$1" ]]; then
+            # shellcheck disable=SC2155 # want to ignore errors here
+            local lockfile_target=$(readlink "$1")
+            local lockpid="${lockfile_target##*.}"
+
+            # Check if the process still exists
+            if ! kill -0 "$lockpid" 2>/dev/null; then
+                # Process is gone, remove the stale lock
+                rm -f "$1"
+                trace "removed stale lock from process $lockpid"
+                continue
+            fi
+
+            trace "wait: $lockpid to complete"
+            # Wait for the process to exit
+            while kill -0 "$lockpid" 2>/dev/null; do
+                wait "$lockpid" 2>/dev/null || sleep 0.1
+            done
+
+            # Remove the stale lock
+            rm -f "$1"
+        fi
     done
+
     trace "locked: $1 as $$"
 }
 
-# function lock_try #api {name} - try to lock a lockfile
-# {
-#     echo $$ >>"$1"
-#     # shellcheck disable=SC2155 # want to ignore errors here
-#     local lockpid=$(head -1 "$1" 2>/dev/null)
-#     [[ $lockpid == "$$" ]]
-# }
+function lock_try #api {name} - try to lock a lockfile, returns 0 if successful, 1 if already locked
+{
+    # Create a temporary lockfile specific to this process
+    local tmp_lockfile="${1}.$$"
+
+    # Put our PID in the temporary file
+    echo $$ > "$tmp_lockfile"
+
+    # Try to atomically acquire the lock
+    if ln -s "$tmp_lockfile" "$1" 2>/dev/null; then
+        trace "locked: $1 as $$"
+        return 0
+    else
+        # Clean up our temp file since we're not waiting
+        rm -f "$tmp_lockfile"
+        trace "failed to lock $1, already locked"
+        return 1
+    fi
+}
 
 function lock_remove #api {name} - remove a lockfile, unlock
 {
-    # shellcheck disable=SC2155 # want to ignore errors here
-    local lock=$(head -1 "$1" 2>/dev/null)
-    if [[ "$lock" = "$$" ]]; then
-        trace "unlock $1"
-        rm -f "$1"
-        return 0
+    if [[ -L "$1" ]]; then
+        # shellcheck disable=SC2155 # want to ignore errors here
+        local lockfile_target=$(readlink "$1")
+        local lockpid="${lockfile_target##*.}"
+
+        if [[ "$lockpid" = "$$" ]]; then
+            trace "unlock $1"
+            # Remove both the lock and the temporary file
+            rm -f "$1"
+            rm -f "$lockfile_target"
+            return 0
+        else
+            error "$1 is not ours (we are $$, owned by $lockpid)"
+            return 1
+        fi
+    elif [[ -f "$1" ]]; then
+        error "$1 is not a symbolic link lockfile"
+        return 1
     else
-        error "$1 is not ours (we are $$, owned by $lock)"
+        error "$1 does not exist"
         return 1
     fi
 }
