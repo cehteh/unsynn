@@ -10,12 +10,6 @@ deficiencies in 'unsynn' are found then it is time for a 1.0.0 release.
 
 * can we add prettyprint for tokens_to_string?
   this needs a threadlocal storing some context (indent level, indent by (str of spaces), prettyprint flag)
-* keyword! {
-      // we have:
-      Match = "match";
-      // negative matches
-      DontMatchMore != ["Dont", "Match", OtherKeyword];
-  }
 * make proc_macro2 optional with a feature flag  
   this would disable parsing &str and related API's and most of the test suite. But should be
   sufficient for writiung lean proc_macro parsers.

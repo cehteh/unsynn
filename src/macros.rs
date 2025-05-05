@@ -1,5 +1,8 @@
 //! This module contains macros and helper functions to define and parse custom types.
 
+#[cfg(doc)]
+use crate::*;
+
 /// This macro supports the definition of enums, tuple structs and normal structs and
 /// generates [`Parser`] and [`ToTokens`] implementations for them. It will derive `Debug`.
 /// Generics/Lifetimes are not supported on the primary type.
@@ -359,13 +362,12 @@ macro_rules! unsynn{
 
 /// Define types matching keywords.
 ///
-/// `keyword!{ pub Name = "identifier", ...}`
-/// `keyword!{ pub Name = [group, ...], ...}`
-///
 /// * A optional `pub` defines the keyword public, default is private.
 /// * `Name` is the name for the struct to be generated.
 /// * `"identifier"` is the case sensitive keyword.
 /// * `group` can be a non empty list of `"identifier"` or any other keyword definition.
+/// * By using `=` the keyword must match the given definition while `!=` negates the output
+///   and matches any identifier that is not in the definition.
 ///
 /// `Name::parse()` will then only match the defined identifier.  It will implement `Debug`
 /// and `Clone` for keywords. Additionally `AsRef<str>` is implemented for each Keyword
@@ -387,40 +389,81 @@ macro_rules! unsynn{
 /// # use unsynn::*;
 /// keyword!{
 ///     /// Optional documentation for `If`
-///     If = "if";
-///     Else = "else";
+///     pub If = "if";
+///     pub Else = "else";
 ///     // keywords can be grouped from existing keywords
 ///     IfElse = [If, Else];
 ///     // or contain identifiers in double quotes
 ///     IfElseThen = [IfElse, "then"];
+///     // matching can be negated with `!=`
+///     NotIfElseThen != [IfElse, "then"];
 /// }
 ///
 /// let mut tokens = "if".to_token_iter();
 /// let if_kw = If::parse(&mut tokens).unwrap();
 /// assert_eq!(if_kw.as_str(), "if");
-/// # let mut tokens = "else if then".to_token_iter();
+/// # let mut tokens = "else if then something".to_token_iter();
 /// # let else_kw = Else::parse(&mut tokens).unwrap();
 /// # assert_eq!(else_kw.as_str(), "else");
 /// # let ifelse_kw = IfElse::parse(&mut tokens).unwrap();
 /// # assert_eq!(ifelse_kw.as_str(), "if");
 /// # let ifelsethen_kw = IfElseThen::parse(&mut tokens).unwrap();
 /// # assert_eq!(ifelsethen_kw.as_str(), "then");
+/// # let notifelsethen_kw = NotIfElseThen::parse(&mut tokens).unwrap();
+/// # assert_eq!(notifelsethen_kw.as_str(), "something");
 /// ```
+#[cfg(doc)]
+#[macro_export]
+macro_rules! keyword {
+    ($name:ident = $str:literal; ...) => {};
+    ($name:ident = $group:path; ...) => {};
+    ($name:ident = [$($keywords:tt),+]; ...) => {};
+    ($name:ident != $str:literal; ...) => {};
+    ($name:ident != $group:path; ...) => {};
+    ($name:ident != [$($keywords:tt),+]; ...) => {};
+}
+
+#[doc(hidden)]
+#[cfg(not(doc))]
 #[macro_export]
 macro_rules! keyword{
     ($(#[$attribute:meta])* $pub:vis $name:ident = $str:literal $(;$($cont:tt)*)?) => {
         $crate::keyword!{
-            $(#[$attribute])* $pub $name = [$str]
+            @{} $(#[$attribute])* $pub $name [$str]
+        }
+        $crate::keyword!{$($($cont)*)?}
+    };
+    ($(#[$attribute:meta])* $pub:vis $name:ident != $str:literal $(;$($cont:tt)*)?) => {
+        $crate::keyword!{
+            @{!} $(#[$attribute])* $pub $name [$str]
         }
         $crate::keyword!{$($($cont)*)?}
     };
     ($(#[$attribute:meta])* $pub:vis $name:ident = $group:path $(;$($cont:tt)*)?) => {
         $crate::keyword!{
-            $(#[$attribute])* $pub $name = [$group]
+            @{} $(#[$attribute])* $pub $name [$group]
+        }
+        $crate::keyword!{$($($cont)*)?}
+    };
+    ($(#[$attribute:meta])* $pub:vis $name:ident != $group:path $(;$($cont:tt)*)?) => {
+        $crate::keyword!{
+            @{!} $(#[$attribute])* $pub $name [$group]
         }
         $crate::keyword!{$($($cont)*)?}
     };
     ($(#[$attribute:meta])* $pub:vis $name:ident = [$($keywords:tt),+] $(;$($cont:tt)*)?) => {
+        $crate::keyword!{
+            @{} $(#[$attribute])* $pub $name [$($keywords),+]
+        }
+        $crate::keyword!{$($($cont)*)?}
+    };
+    ($(#[$attribute:meta])* $pub:vis $name:ident != [$($keywords:tt),+] $(;$($cont:tt)*)?) => {
+        $crate::keyword!{
+            @{!} $(#[$attribute])* $pub $name [$($keywords),+]
+        }
+        $crate::keyword!{$($($cont)*)?}
+    };
+    (@{$($not:tt)?} $(#[$attribute:meta])* $pub:vis $name:ident [$($keywords:tt),+] $(;$($cont:tt)*)?) => {
         $(#[$attribute])*
         #[derive(Debug, Clone, PartialEq, Eq)]
         $pub struct $name(CachedIdent);
@@ -429,7 +472,7 @@ macro_rules! keyword{
             fn parser(tokens: &mut $crate::TokenIter) -> Result<Self> {
                 use $crate::Parse;
                 $crate::CachedIdent::parse_with(tokens, |ident, tokens| {
-                    if Self::matches(ident.as_str()) {
+                    if $($not)? Self::matches(ident.as_str()) {
                         Ok($name(ident))
                     } else {
                         $crate::Error::other::<$name>(
