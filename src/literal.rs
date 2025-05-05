@@ -197,6 +197,7 @@ impl LiteralString {
 
     /// Get the `&str` including the surrounding quotes.
     #[must_use]
+    #[allow(clippy::missing_const_for_fn)] // bug in clippy
     pub fn value(&self) -> &str {
         &self.value
     }

@@ -242,6 +242,7 @@ impl<T: Parse> Cached<T> {
     }
 
     /// Gets the cached string representation
+    #[allow(clippy::missing_const_for_fn)] // bug in clippy
     pub fn as_str(&self) -> &str {
         &self.string
     }

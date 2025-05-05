@@ -80,7 +80,7 @@ impl<const C1: char, const C2: char, const C3: char, const C4: char> ToTokens
                     Punct::new(C4, Spacing::Alone).to_tokens(tokens);
                 }
             }
-        };
+        }
     }
 }
 
@@ -102,7 +102,7 @@ impl<const C1: char, const C2: char, const C3: char, const C4: char> std::fmt::D
 }
 
 /// Unsynn does not implement rust grammar, for common Operators we make an exception because
-/// they are mostly universal and already partial lexed (Spacing::Alone/Joint) it would add a
+/// they are mostly universal and already partial lexed (`Spacing::Alone/Joint`) it would add a
 /// lot confusion when every user has to redefine common operator types.  These operator names
 /// have their own module and are reexported at the crate root.  This allows one to import
 /// only the named operators.
