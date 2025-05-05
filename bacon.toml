@@ -94,7 +94,7 @@ allow_warnings = true
 
 # runs cargo mutants
 [jobs.mutants]
-command = ["cargo", "mutants", "-j", "4", "--all-features", "--no-shuffle", "--colors", "always"]
+command = ["cargo", "+nightly", "mutants", "-j", "8", "--all-features", "--no-shuffle", "--colors", "always"]
 need_stdout = true
 allow_warnings = true
 
