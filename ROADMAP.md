@@ -13,8 +13,6 @@ deficiencies in 'unsynn' are found then it is time for a 1.0.0 release.
 * keyword! {
       // we have:
       Match = "match";
-      // list alternative keywords, alias existing ones
-      MatchMore = ["match", OtherKeyword];
       // negative matches
       DontMatchMore != ["Dont", "Match", OtherKeyword];
   }

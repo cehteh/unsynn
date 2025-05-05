@@ -123,3 +123,12 @@ let ast = "CALC 10+1-2*3+4/5*100 ;".to_token_iter()
     .parse::<Expression>().expect("syntax error");
 ```
 
+# Feature Flags
+
+* `hash_keywords`  
+  This enables hash tables for larger keyword groups.  This is **enabled by default** since it
+  guarantees fast lookup in all use-cases and the extra dependency it introduces is very
+  small. Nevertheless this feature can be disabled when keyword grouping is not or rarely used
+  to remove the dependency on `fxhash`. Keyword lookups then fall back to a binary search
+  implementation. Note that the implementation already optimizes the cases where only one or
+  only a few keywords are in a group.

@@ -31,7 +31,7 @@ fn test_error_unexpected_end() {
 keyword! {Frob = "frob"}
 
 #[test]
-#[should_panic = r#"keyword "frob" expected, got "nofrob""#]
+#[should_panic = r#"keyword for "Frob" expected, got "nofrob""#]
 fn test_error_keyword() {
     let mut token_iter = "nofrob".to_token_iter();
 

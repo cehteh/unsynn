@@ -1,6 +1,4 @@
 //! This module contains macros and helper functions to define and parse custom types.
-#[cfg(doc)]
-use crate::*;
 
 /// This macro supports the definition of enums, tuple structs and normal structs and
 /// generates [`Parser`] and [`ToTokens`] implementations for them. It will derive `Debug`.
@@ -362,10 +360,12 @@ macro_rules! unsynn{
 /// Define types matching keywords.
 ///
 /// `keyword!{ pub Name = "identifier", ...}`
+/// `keyword!{ pub Name = [group, ...], ...}`
 ///
-/// * A optional `pub` defines the keyword public, default is private
-/// * `Name` is the name for the struct to be generated
-/// * `"identifier"` is the case sensitive keyword
+/// * A optional `pub` defines the keyword public, default is private.
+/// * `Name` is the name for the struct to be generated.
+/// * `"identifier"` is the case sensitive keyword.
+/// * `group` can be a non empty list of `"identifier"` or any other keyword definition.
 ///
 /// `Name::parse()` will then only match the defined identifier.  It will implement `Debug`
 /// and `Clone` for keywords. Additionally `AsRef<str>` is implemented for each Keyword
@@ -373,6 +373,13 @@ macro_rules! unsynn{
 ///
 /// The `unsynn!` macro supports defining keywords by using `keyword Name = "ident";`, the
 /// `pub` specification has to come before `keyword` then.
+///
+/// In case a invalid keyword is defined (not an identifier) the compilation will panic. But
+/// because the actual matching function is optimized and lazy evaluated this will only happen
+/// on the first use of the invalid keyword definition.
+///
+/// Keywords implement `AsRef<str>`, `AsRef<Ident>` and `Keyword::as_str(&self) -> &str`.
+///
 ///
 /// # Example
 ///
@@ -382,33 +389,54 @@ macro_rules! unsynn{
 ///     /// Optional documentation for `If`
 ///     If = "if";
 ///     Else = "else";
+///     // keywords can be grouped from existing keywords
+///     IfElse = [If, Else];
+///     // or contain identifiers in double quotes
+///     IfElseThen = [IfElse, "then"];
 /// }
 ///
-/// let mut tokens = "if else".to_token_iter();
+/// let mut tokens = "if".to_token_iter();
 /// let if_kw = If::parse(&mut tokens).unwrap();
-/// assert_eq!(if_kw.as_ref(), "if");
-/// let else_kw = Else::parse(&mut tokens).unwrap();
-/// assert_eq!(else_kw.as_ref(), "else");
+/// assert_eq!(if_kw.as_str(), "if");
+/// # let mut tokens = "else if then".to_token_iter();
+/// # let else_kw = Else::parse(&mut tokens).unwrap();
+/// # assert_eq!(else_kw.as_str(), "else");
+/// # let ifelse_kw = IfElse::parse(&mut tokens).unwrap();
+/// # assert_eq!(ifelse_kw.as_str(), "if");
+/// # let ifelsethen_kw = IfElseThen::parse(&mut tokens).unwrap();
+/// # assert_eq!(ifelsethen_kw.as_str(), "then");
 /// ```
 #[macro_export]
 macro_rules! keyword{
     ($(#[$attribute:meta])* $pub:vis $name:ident = $str:literal $(;$($cont:tt)*)?) => {
+        $crate::keyword!{
+            $(#[$attribute])* $pub $name = [$str]
+        }
+        $crate::keyword!{$($($cont)*)?}
+    };
+    ($(#[$attribute:meta])* $pub:vis $name:ident = $group:path $(;$($cont:tt)*)?) => {
+        $crate::keyword!{
+            $(#[$attribute])* $pub $name = [$group]
+        }
+        $crate::keyword!{$($($cont)*)?}
+    };
+    ($(#[$attribute:meta])* $pub:vis $name:ident = [$($keywords:tt),+] $(;$($cont:tt)*)?) => {
         $(#[$attribute])*
-        #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
-        $pub struct $name;
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        $pub struct $name(CachedIdent);
 
         impl $crate::Parser for $name {
             fn parser(tokens: &mut $crate::TokenIter) -> Result<Self> {
                 use $crate::Parse;
                 $crate::CachedIdent::parse_with(tokens, |ident, tokens| {
-                    if ident == $str {
-                        Ok($name)
+                    if Self::matches(ident.as_str()) {
+                        Ok($name(ident))
                     } else {
                         $crate::Error::other::<$name>(
                             tokens,
                             format!(
-                                "keyword {:?} expected, got {:?} at {:?}",
-                                $str,
+                                "keyword for {:?} expected, got {:?} at {:?}",
+                                stringify!($name),
                                 ident.as_str(),
                                 ident.span().start()
                             )
@@ -420,19 +448,57 @@ macro_rules! keyword{
 
         impl $crate::ToTokens for $name {
             fn to_tokens(&self, tokens: &mut TokenStream) {
-                $crate::Ident::new($str, $crate::Span::call_site()).to_tokens(tokens);
+                self.0.to_tokens(tokens);
             }
         }
 
         impl AsRef<str> for $name {
             fn as_ref(&self) -> &str {
-                &$str
+                self.0.as_str()
+            }
+        }
+
+        impl AsRef<Ident> for $name {
+            fn as_ref(&self) -> &Ident {
+                &*self.0
+            }
+        }
+
+        impl $name {
+            #[allow(dead_code)]
+            pub fn as_str(&self) -> &str {
+                self.0.as_str()
+            }
+
+            #[inline]
+            const fn keywords() -> &'static KeywordGroup {
+                static KEYWORDS: KeywordGroup = keyword! {@group $($keywords),+};
+                &KEYWORDS
+            }
+
+            fn matches(this: &str) -> bool {
+                static MATCHFN: std::sync::LazyLock<Box<dyn Fn(&str) -> bool + Send + Sync>> =
+                    std::sync::LazyLock::new(|| create_matchfn($name::keywords()));
+                MATCHFN(this)
             }
         }
 
         $crate::keyword!{$($($cont)*)?}
     };
     () => {};
+
+    // keyword group creation
+    (@group $($entry:tt),+) => {
+        $crate::KeywordGroup::List(
+            &[$(&$crate::keyword!{@entry $entry}),+]
+        )
+    };
+    (@entry $kw:literal) => {
+        $crate::KeywordGroup::Keyword($kw)
+    };
+    (@entry $sub:path) => {
+        *<$sub>::keywords()
+    };
 }
 
 /// Define types matching operators (punctuation sequences).
