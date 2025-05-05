@@ -2,8 +2,8 @@ unsynn (from german 'unsinn' for nonsense) is a minimalist rust parser library. 
 this by leaving out the actual grammar implementations and doing only minimal
 [error](Parse#errors) handling.
 
-reporting. In exchange it offers simple composeable Parsers and ergonomic Parser
-construction. Grammars will be implemented in their own crates (see unsynn-rust).
+In exchange it offers simple composeable Parsers and ergonomic Parser construction. Grammars
+will be implemented in their own crates (see unsynn-rust).
 
 It is primarily intended use is when one wants to create proc macros for rust that define their
 own grammar or need only sparse rust parsers.
