@@ -232,15 +232,6 @@ impl<T: Parse> Cached<T> {
         self.string
     }
 
-    #[doc(hidden)]
-    #[deprecated = "use as_str()"]
-    #[mutants::skip]
-    // TODO: remove before 0.1.0
-    /// Gets the cached string representation
-    pub fn string(&self) -> &str {
-        &self.string
-    }
-
     /// Gets the cached string representation
     #[allow(clippy::missing_const_for_fn)] // bug in clippy
     pub fn as_str(&self) -> &str {
