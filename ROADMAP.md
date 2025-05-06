@@ -90,8 +90,10 @@ Chances to get contributions merged increase when you:
 ### Git Branches
 
  * `main`  
-   Will be updated on releases. When you plan to make a small contribution that should be
+   Will be updated on new releases. When you plan to make a small contribution that should be
    merged soon then you can work on top of `main`.
+ * `release-*`  
+   stable release may get their own branch for fixes and backported features.
  * `devel`  
    Development branch which will eventually be merged into `main`. Non-trivial contributions that
    may take some time to develop should use `devel` as starting point. But be prepared to
