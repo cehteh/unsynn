@@ -499,10 +499,10 @@ macro_rules! keyword{
     };
     (@{$($not:tt)?} $(#[$attribute:meta])* $pub:vis $name:ident [$($keywords:tt),+] $(;$($cont:tt)*)?) => {
         $(#[$attribute])*
-        #[cfg_attr(feature = "docgen", doc = concat!(
-            $crate::keyword!{@docnot $($not)?},
-            $($crate::keyword!{@doc $keywords}),+
-        ))]
+        #[doc = concat!(
+             $crate::docgen!{@keyword_header $($not)?},
+             $($crate::docgen!{@keyword_doc $keywords}),+
+        )]
         #[derive(Debug, Clone, PartialEq, Eq)]
         $pub struct $name($crate::CachedIdent);
 
@@ -582,20 +582,6 @@ macro_rules! keyword{
     (@entry $sub:path) => {
         *<$sub>::keywords()
     };
-
-    // doc generator
-    (@doc $kw:literal) => {
-        concat!("`", $kw, "`, ")
-    };
-    (@doc $sub:path) => {
-        concat!("[`",stringify!($sub),"`], ")
-    };
-    (@docnot) => {
-        "Matches: "
-    };
-    (@docnot !) => {
-        "Matches any `Ident` but: "
-    };
 }
 
 /// Define types matching operators (punctuation sequences).
@@ -644,9 +630,7 @@ macro_rules! operator{
     // match a single operator! defs with len 1-4
     (@operator $(#[$attribute:meta])* $pub:vis $name:ident = $op:literal) => {
         $(#[$attribute])*
-        #[cfg_attr(feature = "docgen", doc = concat!(
-            "`", $op, "`"
-        ))]
+        #[doc = $crate::docgen!{@operator_doc $op}]
         $pub type $name = $crate::Operator<
         {
                 assert!(
@@ -681,4 +665,36 @@ macro_rules! operator{
            concat!($op, "\0\0\0").as_bytes()[$at] as char
        }
     }
+}
+
+// The documentation generator
+#[cfg(not(feature = "docgen"))]
+#[doc(hidden)]
+#[macro_export]
+macro_rules! docgen {
+    // just dispose anything
+    ($($_:tt)*) => {
+        ""
+    };
+}
+
+#[cfg(feature = "docgen")]
+#[doc(hidden)]
+#[macro_export]
+macro_rules! docgen {
+    (@keyword_header) => {
+        "Matches: "
+    };
+    (@keyword_header !) => {
+        "Matches any `Ident` but: "
+    };
+    (@keyword_doc $kw:literal) => {
+        concat!("`", $kw, "`, ")
+    };
+    (@keyword_doc $sub:path) => {
+        concat!("[`", stringify!($sub), "`], ")
+    };
+    (@operator_doc $op:literal) => {
+        concat!("`", $op, "`")
+    };
 }
