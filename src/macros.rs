@@ -103,7 +103,8 @@ macro_rules! unsynn {
     ($(#[$attribute:meta])* $pub:vis enum $name:ident { $( $variant:ident... ),* }) => {};
     ($(#[$attribute:meta])* $pub:vis struct $name:ident { $( $member:ident: $parser:ty ),* }) => {};
     ($(#[$attribute:meta])* $pub:vis struct $name:ident ( $( $parser:ty ),*);) => {};
-    ($(#[$attribute:meta])* $pub:vis keyword $name:ident = "name";) => {};
+    ($(#[$attribute:meta])* $pub:vis keyword $name:ident = "see below";) => {};
+    ($(#[$attribute:meta])* $pub:vis keyword $name:ident != "see below";) => {};
     ($(#[$attribute:meta])* $pub:vis operator $name:ident = "punct";) => {};
 }
 
@@ -428,12 +429,12 @@ macro_rules! unsynn{
 #[cfg(doc)]
 #[macro_export]
 macro_rules! keyword {
-    ($name:ident = $str:literal; ...) => {};
-    ($name:ident = $group:path; ...) => {};
-    ($name:ident = [$($keywords:tt),+]; ...) => {};
-    ($name:ident != $str:literal; ...) => {};
-    ($name:ident != $group:path; ...) => {};
-    ($name:ident != [$($keywords:tt),+]; ...) => {};
+    ($(#[$attribute:meta])* $pub:vis $name:ident = $str:literal; ...) => {};
+    ($(#[$attribute:meta])* $pub:vis $name:ident = $group:path; ...) => {};
+    ($(#[$attribute:meta])* $pub:vis $name:ident = [$($keywords:tt),+]; ...) => {};
+    ($(#[$attribute:meta])* $pub:vis $name:ident != $str:literal; ...) => {};
+    ($(#[$attribute:meta])* $pub:vis $name:ident != $group:path; ...) => {};
+    ($(#[$attribute:meta])* $pub:vis $name:ident != [$($keywords:tt),+]; ...) => {};
 }
 
 #[doc(hidden)]
