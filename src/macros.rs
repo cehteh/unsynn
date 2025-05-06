@@ -117,8 +117,8 @@ macro_rules! unsynn{
             $($variants)*
         }
 
-        impl Parser for $name {
-            fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        impl $crate::Parser for $name {
+            fn parser(tokens: &mut TokenIter) -> $crate::Result<Self> {
                 let mut err = Error::no_error();
                 // try to parse each variant
                 $crate::unsynn!{@enum_parse_variant(tokens, err) $($variants)*}
@@ -127,8 +127,8 @@ macro_rules! unsynn{
             }
         }
 
-        impl ToTokens for $name {
-            fn to_tokens(&self, tokens: &mut TokenStream) {
+        impl $crate::ToTokens for $name {
+            fn to_tokens(&self, tokens: &mut $crate::TokenStream) {
                 $crate::unsynn!{@enum_to_tokens(self, tokens) {$($variants)*}}
             }
         }
@@ -147,13 +147,13 @@ macro_rules! unsynn{
         }
 
         impl $crate::Parser for $name {
-            fn parser(tokens: &mut TokenIter) -> Result<Self> {
+            fn parser(tokens: &mut TokenIter) -> $crate::Result<Self> {
                 Ok(Self{$($member: <$parser>::parser(tokens)?),*})
             }
         }
 
         impl $crate::ToTokens for $name {
-            fn to_tokens(&self, tokens: &mut TokenStream) {
+            fn to_tokens(&self, tokens: &mut $crate::TokenStream) {
                 $(self.$member.to_tokens(tokens);)*
             }
         }
@@ -172,13 +172,13 @@ macro_rules! unsynn{
         );
 
         impl $crate::Parser for $name {
-            fn parser(tokens: &mut TokenIter) -> Result<Self> {
+            fn parser(tokens: &mut TokenIter) -> $crate::Result<Self> {
                 Ok(Self($(<$parser>::parser(tokens)?),*))
             }
         }
 
         impl $crate::ToTokens for $name {
-            fn to_tokens(&self, tokens: &mut TokenStream) {
+            fn to_tokens(&self, tokens: &mut $crate::TokenStream) {
                 unsynn! {@tuple_for_each item in self : Self($($parser),*) {
                     item.to_tokens(tokens);
                 }}
@@ -466,10 +466,10 @@ macro_rules! keyword{
     (@{$($not:tt)?} $(#[$attribute:meta])* $pub:vis $name:ident [$($keywords:tt),+] $(;$($cont:tt)*)?) => {
         $(#[$attribute])*
         #[derive(Debug, Clone, PartialEq, Eq)]
-        $pub struct $name(CachedIdent);
+        $pub struct $name($crate::CachedIdent);
 
         impl $crate::Parser for $name {
-            fn parser(tokens: &mut $crate::TokenIter) -> Result<Self> {
+            fn parser(tokens: &mut $crate::TokenIter) -> $crate::Result<Self> {
                 use $crate::Parse;
                 $crate::CachedIdent::parse_with(tokens, |ident, tokens| {
                     if $($not)? Self::matches(ident.as_str()) {
@@ -490,7 +490,7 @@ macro_rules! keyword{
         }
 
         impl $crate::ToTokens for $name {
-            fn to_tokens(&self, tokens: &mut TokenStream) {
+            fn to_tokens(&self, tokens: &mut $crate::TokenStream) {
                 self.0.to_tokens(tokens);
             }
         }
@@ -501,8 +501,8 @@ macro_rules! keyword{
             }
         }
 
-        impl AsRef<Ident> for $name {
-            fn as_ref(&self) -> &Ident {
+        impl AsRef<$crate::Ident> for $name {
+            fn as_ref(&self) -> &$crate::Ident {
                 &*self.0
             }
         }
@@ -514,14 +514,14 @@ macro_rules! keyword{
             }
 
             #[inline]
-            const fn keywords() -> &'static KeywordGroup {
-                static KEYWORDS: KeywordGroup = keyword! {@group $($keywords),+};
+            const fn keywords() -> &'static $crate::KeywordGroup {
+                static KEYWORDS: $crate::KeywordGroup = $crate::keyword! {@group $($keywords),+};
                 &KEYWORDS
             }
 
             fn matches(this: &str) -> bool {
                 static MATCHFN: std::sync::LazyLock<Box<dyn Fn(&str) -> bool + Send + Sync>> =
-                    std::sync::LazyLock::new(|| create_matchfn($name::keywords()));
+                    std::sync::LazyLock::new(|| $crate::create_matchfn($name::keywords()));
                 MATCHFN(this)
             }
         }
