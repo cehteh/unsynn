@@ -5,12 +5,13 @@ use crate::*;
 
 /// This macro supports the definition of enums, tuple structs and normal structs and
 /// generates [`Parser`] and [`ToTokens`] implementations for them. It will derive `Debug`.
-/// Generics/Lifetimes are not supported on the primary type.
-/// Note: eventually a derive macro for `Parser` and `ToTokens` will become supported by
-/// a 'unsynn-derive' crate to give finer control over the expansion. `#[derive(Copy, Clone)]`
-/// have to be manually defined. Keyword and operator definitions can also be defined,
-/// they delegate to the `keyword!` and `operator!` macro described below. All entities can be
-/// prefixed by `pub` to make them public.
+/// Generics/Lifetimes are not supported on the primary type.  Note: eventually a derive macro
+/// for `Parser` and `ToTokens` will become supported by a 'unsynn-derive' crate to give finer
+/// control over the expansion. `#[derive(Copy, Clone)]` have to be manually defined. Keyword
+/// and operator definitions can also be defined, they delegate to the `keyword!` and
+/// `operator!` macro described below. All entities can be prefixed by `pub` to make them
+/// public. Type aliases are supported and are just pass-through. This makes thing easier
+/// readable when you define larger unsynn macro blocks.
 ///
 /// Common for all variants is that entries are tried in order. Disjunctive for enums and
 /// conjunctive in structures. This makes the order important, e.g. for enums, in case some
@@ -59,6 +60,9 @@ use crate::*;
 ///     }
 ///
 ///     struct MyTupleStruct(Ident, LiteralString);
+///
+///     // type definitions are pass-through.
+///     pub type Alias = MyStruct;
 /// }
 ///
 /// // Create an iterator over the things we want to parse
@@ -88,7 +92,7 @@ use crate::*;
 /// // consume the ()
 /// <ParenthesisGroup>::parse(&mut token_iter).unwrap();
 ///
-/// let my_struct =  MyStruct::parse(&mut token_iter).unwrap();
+/// let my_struct =  Alias::parse(&mut token_iter).unwrap();
 /// let my_tuple_struct =  MyTupleStruct::parse(&mut token_iter).unwrap();
 /// let my_keyword =  MyKeyword::parse(&mut token_iter).unwrap();
 /// let my_operator =  MyOperator::parse(&mut token_iter).unwrap();
@@ -185,6 +189,13 @@ macro_rules! unsynn{
             }
         }
 
+        // next item
+        $crate::unsynn!{$($cont)*}
+    };
+
+    // type passthough
+    ($(#[$attribute:meta])* $pub:vis type $name:ident = $orig:path; $($cont:tt)*) => {
+        $(#[$attribute])* $pub type $name = $orig;
         // next item
         $crate::unsynn!{$($cont)*}
     };

@@ -4,7 +4,7 @@
 ## * is_git_project - checks whenever a '.git' exists
 function is_git_project
 {
-    [[ -d "$WORKTREE_DIR/.git" ]]
+    [[ -e "$WORKTREE_DIR/.git" ]]
 }
 
 is_git_project || die "not a git project (cehgit requires git)"
