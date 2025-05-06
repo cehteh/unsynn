@@ -272,3 +272,54 @@ can not be supported by unsynn itself as it does not define any grammars. When o
 recoverable parsers then this has to implemented into the grammar definition. Future versions
 of unsynn may provide some tools to assist with this. The actual approach is still in
 discussion.
+
+
+## Implementation/Performance Notes
+
+Unsynn is (as of now) implemented as recursive descent PEG with backtracking.  This has
+worst-case exponential complexity, there is a plan to fix that in future releases. Currently
+to avoid these cases it is recommended to formulate disjunctive parsers so that they fail early
+and don't share long prefixes.
+
+For example things like
+`Either<Cons<LongValidCode, OneThing>, Cons<LongValidCode, OtherThing>>` should be
+rewritten as `Cons<LongValidCode, Either<OneThing, OtherThing>>`.
+
+
+## Stability Guarantees
+
+Unsynn is in development, nevertheless we give some stability promises. These will only be
+broken when we discover technical reasons that make it infeasible to keep them up. Eventually
+things in the unstable category below will move up to stable.
+
+
+### Stable
+
+ * Operator name definitions in operator::names  
+   These follow common (rust) naming, if not this will be fixed, otherwise you can rely on
+   these to be stable.
+ * Functionality  
+   Existing types and parsers are there to stay. A few things especially when they are freshly
+   added may be shaken out and refined/extended but existing functionality should be
+   preserved. In some cases changes may require minor adjustments on code using it.
+
+
+### Unstable
+
+ * modules  
+   The module organization is still in flux and may be refactored at any time. This shouldn't
+   matter because unsynn reexports everything at the crate root. The only exception here is
+   the `operators::names` which we try to keep stable.
+ * internal representation  
+   Don't rely on the internal representations there are some plans and ideas to change
+   these. Some types that are currently ZST may become stateful, collections may become
+   wrapped as `Rc<Vec<T>>` etc.
+ * traits  
+   Currently there are the main traits Parse, Parser, IParse and ToTokens. In future these may
+   become refactored and split into smaller traits and some more may be added. This will then
+   require some changes for the user. The existing functionality will be preserved nevertheless.
+ * trait bounds  
+   We don't have extra trait bounds on parsed type in the current implementation. This will
+   likely change in the future for improving the parser. Expect that types eventually should
+   be at least `Clone + Hash + PartialEq`. Possibly some helper trait needs to be implemented
+   too. Details will be worked out later.
