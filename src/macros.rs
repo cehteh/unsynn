@@ -392,7 +392,7 @@ macro_rules! unsynn{
 ///     pub If = "if";
 ///     pub Else = "else";
 ///     // keywords can be grouped from existing keywords
-///     IfElse = [If, Else];
+///     IfElse = [If, Else,];
 ///     // or contain identifiers in double quotes
 ///     IfElseThen = [IfElse, "then"];
 ///     // matching can be negated with `!=`
@@ -451,13 +451,13 @@ macro_rules! keyword{
         }
         $crate::keyword!{$($($cont)*)?}
     };
-    ($(#[$attribute:meta])* $pub:vis $name:ident = [$($keywords:tt),+] $(;$($cont:tt)*)?) => {
+    ($(#[$attribute:meta])* $pub:vis $name:ident = [$($keywords:tt),+ $(,)?] $(;$($cont:tt)*)?) => {
         $crate::keyword!{
             @{} $(#[$attribute])* $pub $name [$($keywords),+]
         }
         $crate::keyword!{$($($cont)*)?}
     };
-    ($(#[$attribute:meta])* $pub:vis $name:ident != [$($keywords:tt),+] $(;$($cont:tt)*)?) => {
+    ($(#[$attribute:meta])* $pub:vis $name:ident != [$($keywords:tt),+ $(,)?] $(;$($cont:tt)*)?) => {
         $crate::keyword!{
             @{!} $(#[$attribute])* $pub $name [$($keywords),+]
         }
