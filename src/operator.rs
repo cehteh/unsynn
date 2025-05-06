@@ -119,101 +119,53 @@ pub mod names {
     pub type LifetimeTick = PunctJoint<'\''>;
 
     operator! {
-        /// `+`
         pub Plus = "+";
-        /// `-`
         pub Minus = "-";
-        /// `*`
         pub Star = "*";
-        /// `/`
         pub Slash = "/";
-        /// `%`
         pub Percent = "%";
-        /// `^`
         pub Caret = "^";
-        /// `!`
         pub Bang = "!";
-        /// `&`
         pub And = "&";
-        /// `|`
         pub Or = "|";
-        /// `&&`
         pub AndAnd = "&&";
-        /// `||`
         pub OrOr = "||";
-        /// `<<`
         pub Shl = "<<";
-        /// `>>`
         pub Shr = ">>";
-        /// `+=`
         pub PlusEq = "+=";
-        /// `-=`
         pub MinusEq = "-=";
-        /// `*=`
         pub StarEq = "*=";
-        /// `/=`
         pub SlashEq = "/=";
-        /// `%=`
         pub PercentEq = "%=";
-        /// `^=`
         pub CaretEq = "^=";
-        /// `&=`
         pub AndEq = "&=";
-        /// `|=`
         pub OrEq = "|=";
-        /// `<<=`
         pub ShlEq = "<<=";
-        /// `>>=`
         pub ShrEq = ">>=";
-        /// `=`
         pub Assign = "=";
-        /// `==`
         pub Equal = "==";
-        /// `!=`
         pub NotEqual = "!=";
-        /// `>`
         pub Gt = ">";
-        /// `<`
         pub Lt = "<";
-        /// `>=`
         pub Ge = ">=";
-        /// `<=`
         pub Le = "<=";
-        /// `@`
         pub At = "@";
-        /// `_`
         pub Underscore = "_";
-        /// `.`
         pub Dot = ".";
-        /// `..`
         pub DotDot = "..";
-        /// `...`
         pub Ellipsis = "...";
-        /// `..=`
         pub DotDotEq = "..=";
-        /// `,`
         pub Comma = ",";
-        /// `;`
         pub Semicolon = ";";
-        /// `:`
         pub Colon = ":";
-        /// `::`
         pub PathSep = "::";
-        /// `->`
         pub RArrow = "->";
-        /// `=>`
         pub FatArrow = "=>";
-        /// `<-`
         pub LArrow = "<-";
-        /// `#`
         pub Pound = "#";
-        /// `$`
         pub Dollar = "$";
-        /// `?`
         pub Question = "?";
-        /// `~`
         pub Tilde = "~";
-        /// `\`
         pub Backslash = "\\";
     }
 }

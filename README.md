@@ -132,3 +132,7 @@ let ast = "CALC 10+1-2*3+4/5*100 ;".to_token_iter()
   to remove the dependency on `fxhash`. Keyword lookups then fall back to a binary search
   implementation. Note that the implementation already optimizes the cases where only one or
   only a few keywords are in a group.
+
+* `docgen`  
+  The [`unsynn!{}`], [`keyword!{}`] and [`operator!{}`] will automatically generate some
+  additional docs. This is **enabled by default**.

@@ -393,6 +393,8 @@ macro_rules! unsynn{
 ///
 /// Keywords implement `AsRef<str>`, `AsRef<Ident>` and `Keyword::as_str(&self) -> &str`.
 ///
+/// There is a automatically generated documentation like 'Matches: ...' for each
+/// keyword. User supplied documentation is put in front of that.
 ///
 /// # Example
 ///
@@ -476,6 +478,10 @@ macro_rules! keyword{
     };
     (@{$($not:tt)?} $(#[$attribute:meta])* $pub:vis $name:ident [$($keywords:tt),+] $(;$($cont:tt)*)?) => {
         $(#[$attribute])*
+        #[cfg_attr(feature = "docgen", doc = concat!(
+            $crate::keyword!{@docnot $($not)?},
+            $($crate::keyword!{@doc $keywords}),+
+        ))]
         #[derive(Debug, Clone, PartialEq, Eq)]
         $pub struct $name($crate::CachedIdent);
 
@@ -519,6 +525,7 @@ macro_rules! keyword{
         }
 
         impl $name {
+            /// get the underlying `&str` from a keyword
             #[allow(dead_code)]
             pub fn as_str(&self) -> &str {
                 self.0.as_str()
@@ -552,6 +559,20 @@ macro_rules! keyword{
     };
     (@entry $sub:path) => {
         *<$sub>::keywords()
+    };
+
+    // doc generator
+    (@doc $kw:literal) => {
+        concat!("`", $kw, "`, ")
+    };
+    (@doc $sub:path) => {
+        concat!("[`",stringify!($sub),"`], ")
+    };
+    (@docnot) => {
+        "Matches: "
+    };
+    (@docnot !) => {
+        "Matches any `Ident` but: "
     };
 }
 
@@ -601,6 +622,9 @@ macro_rules! operator{
     // match a single operator! defs with len 1-4
     (@operator $(#[$attribute:meta])* $pub:vis $name:ident = $op:literal) => {
         $(#[$attribute])*
+        #[cfg_attr(feature = "docgen", doc = concat!(
+            "`", $op, "`"
+        ))]
         $pub type $name = $crate::Operator<
         {
                 assert!(
