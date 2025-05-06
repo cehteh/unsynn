@@ -531,8 +531,9 @@ macro_rules! keyword{
                 self.0.as_str()
             }
 
+            #[doc(hidden)]
             #[inline]
-            const fn keywords() -> &'static $crate::KeywordGroup {
+            pub const fn keywords() -> &'static $crate::KeywordGroup {
                 static KEYWORDS: $crate::KeywordGroup = $crate::keyword! {@group $($keywords),+};
                 &KEYWORDS
             }
