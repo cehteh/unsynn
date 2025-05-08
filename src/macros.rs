@@ -13,11 +13,23 @@ use crate::*;
 /// public. Type aliases are supported and are just pass-through. This makes thing easier
 /// readable when you define larger unsynn macro blocks.
 ///
-/// Common for all variants is that entries are tried in order. Disjunctive for enums and
-/// conjunctive in structures. This makes the order important, e.g. for enums, in case some
-/// entries are subsets of others.
+/// The macro definition above is simplified for readability `struct`, `enum` and `type`
+/// definitions can include most of the things normal rust definitions can do. This also
+/// includes definitions of members of structs and enums:
 ///
-/// Enum variants without any data will never be parsed and will not generate any tokens.  For
+/// * Any number of attributes (`#[...]`), including documentation comments. Note that the
+///   unsynn macros have limited support for automatically generation documentation. This
+///   auto-generated documentation is appended after the user supplied docs.
+/// * structs, enums, types and members can exported with the usual `pub` declarations
+/// * struct, enum, and type definitions support generics. These generics can include simple
+///   trait bounds. The traits for the bounds have to be in scope since for simplicity only
+///   single identifiers are allowed.
+///
+/// Common for enum and struct variants is that entries are tried in order. Disjunctive for
+/// enums and conjunctive in structures. This makes the order important, e.g. for enums, in
+/// case some entries are subsets of others.
+///
+/// Enum variants without any data will never be parsed and will not generate any tokens. For
 /// *parsing* a enum that is optional one can add a variant like `None(Nothing)` at the end
 /// (at the end is important, because Nothing always matches).
 ///
@@ -25,6 +37,8 @@ use crate::*;
 ///
 /// ```
 /// # use unsynn::*;
+/// // must be in scope to be used as constraint
+/// use std::fmt::Debug;
 /// // Define some types
 /// unsynn!{
 ///     keyword MyKeyword = "keyword";
@@ -54,15 +68,16 @@ use crate::*;
 ///         Empty,
 ///     }
 ///
-///     struct MyStruct {
+///     // With generics
+///     struct MyStruct<T: Debug> {
 ///         text: LiteralString,
-///         number: LiteralInteger,
+///         number: T,
 ///     }
 ///
 ///     struct MyTupleStruct(Ident, LiteralString);
 ///
 ///     // type definitions are pass-through.
-///     pub type Alias = MyStruct;
+///     pub type Alias = MyStruct<LiteralInteger>;
 /// }
 ///
 /// // Create an iterator over the things we want to parse
@@ -100,12 +115,12 @@ use crate::*;
 #[cfg(doc)]
 #[macro_export]
 macro_rules! unsynn {
-    ($(#[$attribute:meta])* $pub:vis enum $name:ident { $( $variant:ident... ),* }) => {};
-    ($(#[$attribute:meta])* $pub:vis struct $name:ident { $( $member:ident: $parser:ty ),* }) => {};
-    ($(#[$attribute:meta])* $pub:vis struct $name:ident ( $( $parser:ty ),*);) => {};
-    ($(#[$attribute:meta])* $pub:vis keyword $name:ident = "see below";) => {};
-    ($(#[$attribute:meta])* $pub:vis keyword $name:ident != "see below";) => {};
-    ($(#[$attribute:meta])* $pub:vis operator $name:ident = "punct";) => {};
+    (enum $name:ident { $($variant:ident...),* }) => {};
+    (struct $name:ident { $($member:ident: $parser:ty),* }) => {};
+    (struct $name:ident ( $($parser:ty),*);) => {};
+    (keyword $name:ident = keyword_or_group;) => {};
+    (keyword $name:ident != keyword_or_group;) => {};
+    (operator $name:ident = "punct";) => {};
 }
 
 #[doc(hidden)]
@@ -113,16 +128,22 @@ macro_rules! unsynn {
 #[macro_export]
 macro_rules! unsynn{
     // enums
-    ($(#[$attribute:meta])* $pub:vis enum $name:ident {
+    ($(#[$attribute:meta])* $pub:vis enum $name:ident
+        $(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)?),*$(,)?>)?
+    {
         $($variants:tt)*
     } $($cont:tt)*) => {
         // The actual enum definition is written as given
         #[derive(Debug)]
-        $(#[$attribute])* $pub enum $name {
+        $(#[$attribute])* $pub enum $name
+        $(<$($generic$(: $constraint $(+ $constraints)*)?),*>)?
+        {
             $($variants)*
         }
 
-        impl $crate::Parser for $name {
+        impl$(<$($generic: $crate::Parser $(+ $constraint $(+ $constraints)*)?),*>)? $crate::Parser
+        for $name$(<$($generic),*>)?
+        {
             fn parser(tokens: &mut TokenIter) -> $crate::Result<Self> {
                 let mut err = Error::no_error();
                 // try to parse each variant
@@ -132,7 +153,9 @@ macro_rules! unsynn{
             }
         }
 
-        impl $crate::ToTokens for $name {
+        impl$(<$($generic: $crate::ToTokens $(+ $constraint $(+ $constraints)*)?),*>)? $crate::ToTokens
+        for $name$(< $($generic),* >)?
+        {
             fn to_tokens(&self, tokens: &mut $crate::TokenStream) {
                 $crate::unsynn!{@enum_to_tokens(self, tokens) {$($variants)*}}
             }
@@ -143,21 +166,32 @@ macro_rules! unsynn{
     };
 
     // normal structs
-    ($(#[$attribute:meta])* $pub:vis struct $name:ident {
+    ($(#[$attribute:meta])* $pub:vis struct $name:ident
+        $(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)?),*$(,)?>)?
+    {
         $($(#[$mattr:meta])* $mpub:vis $member:ident: $parser:ty),* $(,)?
     } $($cont:tt)*) => {
         #[derive(Debug)]
-        $(#[$attribute])* $pub struct $name {
-            $($(#[$mattr])* $mpub $member : $parser),*
+        $(#[$attribute])* $pub struct $name
+        $(<$($generic$(: $constraint $(+ $constraints)*)?),*>)?
+        {
+            $(
+                /// TODO: docgen
+                $(#[$mattr])* $mpub $member : $parser
+            ),*
         }
 
-        impl $crate::Parser for $name {
+        impl$(<$($generic: $crate::Parser $(+ $constraint $(+ $constraints)*)?),*>)? $crate::Parser
+        for $name$(<$($generic),*>)?
+        {
             fn parser(tokens: &mut TokenIter) -> $crate::Result<Self> {
                 Ok(Self{$($member: <$parser>::parser(tokens)?),*})
             }
         }
 
-        impl $crate::ToTokens for $name {
+        impl$(<$($generic: $crate::ToTokens $(+ $constraint $(+ $constraints)*)?),*>)? $crate::ToTokens
+        for $name$(<$($generic),*>)?
+        {
             fn to_tokens(&self, tokens: &mut $crate::TokenStream) {
                 $(self.$member.to_tokens(tokens);)*
             }
@@ -168,21 +202,27 @@ macro_rules! unsynn{
     };
 
     // tuple structs
-    ($(#[$attribute:meta])* $pub:vis struct $name:ident (
-        $($(#[$mattr:meta])* $mpub:vis $parser:ty),* $(,)?
-    ); $($cont:tt)*) => {
+    ($(#[$attribute:meta])* $pub:vis struct $name:ident
+        $(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)?),*$(,)?>)?
+        ($($(#[$mattr:meta])* $mpub:vis $parser:ty),* $(,)?);
+        $($cont:tt)*) =>
+    {
         #[derive(Debug)]
-        $(#[$attribute])* $pub struct $name (
-            $($(#[$mattr])* $mpub $parser),*
-        );
+        $(#[$attribute])* $pub struct $name
+        $(<$($generic$(: $constraint $(+ $constraints)*)?),*>)?
+        ($($(#[$mattr])* $mpub $parser),*);
 
-        impl $crate::Parser for $name {
+        impl$(<$($generic: $crate::Parser $(+ $constraint $(+ $constraints)*)?),*>)? $crate::Parser
+        for $name$(<$($generic),*>)?
+        {
             fn parser(tokens: &mut TokenIter) -> $crate::Result<Self> {
                 Ok(Self($(<$parser>::parser(tokens)?),*))
             }
         }
 
-        impl $crate::ToTokens for $name {
+        impl$(<$($generic: $crate::ToTokens $(+ $constraint $(+ $constraints)*)?),*>)? $crate::ToTokens
+        for $name$(<$($generic),*>)?
+        {
             fn to_tokens(&self, tokens: &mut $crate::TokenStream) {
                 unsynn! {@tuple_for_each item in self : Self($($parser),*) {
                     item.to_tokens(tokens);
@@ -195,8 +235,10 @@ macro_rules! unsynn{
     };
 
     // type passthough
-    ($(#[$attribute:meta])* $pub:vis type $name:ident = $orig:path; $($cont:tt)*) => {
-        $(#[$attribute])* $pub type $name = $orig;
+    ($(#[$attribute:meta])* $pub:vis type $name:ident
+        $(<$($generic:ident $(: $constraint:ident $(+ $constraints:ident)*)?),*$(,)?>)?
+        = $orig:path; $($cont:tt)*) => {
+        $(#[$attribute])* $pub type $name$(<$($generic$(: $constraint $(+ $constraints)*)?),*>)? = $orig;
         // next item
         $crate::unsynn!{$($cont)*}
     };
@@ -389,7 +431,7 @@ macro_rules! unsynn{
     };
 
     // replaces a single token with a underscore
-    (@_ $_tt:tt) => {_}
+    (@_ $_tt:tt) => {_};
 }
 
 /// Define types matching keywords.

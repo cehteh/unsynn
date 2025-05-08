@@ -10,6 +10,16 @@ unsynn! {
         // the Expect<Dollar> shows a rust-analyzer error here, which is probably a bug in r-a
         PunctBreak(Punct, Expect<Dollar>),
     }
+
+    type Attributes<C> = Vec<Attribute<C>>;
+
+    struct Attribute<C: Parse> {
+        _pound: Pound,
+        pub outer: Option<Bang>,
+
+        pub content: BracketGroupContaining<C>,
+    }
+
 }
 
 // Bug in 0.0.17, parsing Enum::Two consumes the Plus token
