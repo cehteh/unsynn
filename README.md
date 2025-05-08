@@ -134,5 +134,5 @@ let ast = "CALC 10+1-2*3+4/5*100 ;".to_token_iter()
   only a few keywords are in a group.
 
 * `docgen`  
-  The [`unsynn!{}`], [`keyword!{}`] and [`operator!{}`] will automatically generate some
-  additional docs. This is **enabled by default**.
+  The [`unsynn!{}`], [`keyword!{}`] and [`operator!{}`] macros will automatically generate
+  some additional docs. This is **enabled by default**.

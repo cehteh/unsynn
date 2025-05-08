@@ -436,10 +436,14 @@ macro_rules! unsynn{
 
 /// Define types matching keywords.
 ///
-/// * A optional `pub` defines the keyword public, default is private.
+///  * Any number of attributes (`#[...]`), including documentation comments. Keyword
+///    documentation is automatically extended by a small auto generated doc comment listing
+///    what a keyword definition will match.
+/// * A optional `pub` declaration.
 /// * `Name` is the name for the struct to be generated.
 /// * `"identifier"` is the case sensitive keyword.
-/// * `group` can be a non empty list of `"identifier"` or any other keyword definition.
+/// * `group` can be a non empty bracketed list of `"identifier"` or any an other keyword
+///   definition.
 /// * By using `=` the keyword must match the given definition while `!=` negates the output
 ///   and matches any identifier that is not in the definition.
 ///
@@ -455,9 +459,6 @@ macro_rules! unsynn{
 /// on the first use of the invalid keyword definition.
 ///
 /// Keywords implement `AsRef<str>`, `AsRef<Ident>` and `Keyword::as_str(&self) -> &str`.
-///
-/// There is a automatically generated documentation like 'Matches: ...' for each
-/// keyword. User supplied documentation is put in front of that.
 ///
 /// # Example
 ///
@@ -491,12 +492,12 @@ macro_rules! unsynn{
 #[cfg(doc)]
 #[macro_export]
 macro_rules! keyword {
-    ($(#[$attribute:meta])* $pub:vis $name:ident = $str:literal; ...) => {};
-    ($(#[$attribute:meta])* $pub:vis $name:ident = $group:path; ...) => {};
-    ($(#[$attribute:meta])* $pub:vis $name:ident = [$($keywords:tt),+]; ...) => {};
-    ($(#[$attribute:meta])* $pub:vis $name:ident != $str:literal; ...) => {};
-    ($(#[$attribute:meta])* $pub:vis $name:ident != $group:path; ...) => {};
-    ($(#[$attribute:meta])* $pub:vis $name:ident != [$($keywords:tt),+]; ...) => {};
+    ($name:ident = $str:literal; ...) => {};
+    ($name:ident = $group:path; ...) => {};
+    ($name:ident = [$($keywords:tt),+]; ...) => {};
+    ($name:ident != $str:literal; ...) => {};
+    ($name:ident != $group:path; ...) => {};
+    ($name:ident != [$($keywords:tt),+]; ...) => {};
 }
 
 #[doc(hidden)]
