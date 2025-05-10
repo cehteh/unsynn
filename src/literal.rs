@@ -189,9 +189,9 @@ impl LiteralString {
     /// supplied string.
     #[must_use]
     #[allow(clippy::should_implement_trait)]
-    pub fn from_str(value: &str) -> Self {
-        let value = format!("\"{value}\"");
-        let literal = Literal::string(&value);
+    pub fn from_str(string: &str) -> Self {
+        let value = format!(r#""{string}""#);
+        let literal = Literal::string(&string);
         Self { literal, value }
     }
 
@@ -245,9 +245,10 @@ impl ToTokens for LiteralString {
     }
 }
 
+/// Compares without the surrounding quotes.
 impl PartialEq<&str> for LiteralString {
     fn eq(&self, other: &&str) -> bool {
-        &self.value == other
+        self.as_str() == *other
     }
 }
 

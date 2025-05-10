@@ -44,13 +44,18 @@ fn test_string_as_str() {
     let mut token_iter = r#" "this is a string literal" "#.to_token_iter();
 
     let string = LiteralString::parse(&mut token_iter).unwrap();
+    assert_eq!(string.value(), "\"this is a string literal\"");
     assert_eq!(string.as_str(), "this is a string literal");
+    assert_eq!(string.tokens_to_string(), "\"this is a string literal\"");
 }
 
 #[test]
 fn test_string_from_str() {
     let string = LiteralString::from_str("this is a string literal");
     assert_eq!(string.value(), "\"this is a string literal\"");
+    assert_eq!(string.as_str(), "this is a string literal");
+    // bug in v0.1.0
+    assert_eq!(string.tokens_to_string(), "\"this is a string literal\"");
 }
 
 #[test]
@@ -88,8 +93,8 @@ fn test_string_set() {
     assert_eq!(string.value(), "\"world\"");
 
     // Test PartialEq implementations
-    assert!(string == "\"world\"");
-    assert!(!(string == "\"hello\""));
+    assert!(string == "world");
+    assert!(!(string == "hello"));
 }
 
 #[test]
@@ -109,8 +114,8 @@ fn test_character_partial_eq() {
 #[test]
 fn test_string_partial_eq() {
     let string = LiteralString::from_str("test");
-    assert!(string == "\"test\"");
-    assert!(!(string == "\"other\""));
+    assert!(string == "test");
+    assert!(!(string == "other"));
 }
 
 #[test]
