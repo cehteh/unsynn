@@ -554,6 +554,35 @@ impl<T: ToTokens> ToTokens for Insert<T> {
     }
 }
 
+/// Swaps the order of two entities.
+///
+/// # Example
+///
+/// ```
+/// # use unsynn::*;
+/// let mut token_iter = "foo bar".to_token_iter();
+///
+/// let parsed = <Swap<Ident, Ident>>::parser(&mut token_iter).unwrap();
+/// assert_eq!(parsed.tokens_to_string(), "bar foo".tokens_to_string());
+/// ```
+pub struct Swap<A, B>(pub B, pub A);
+
+impl<A: Parse, B: Parse> Parser for Swap<A, B> {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        let a: A = tokens.parse()?;
+        let b: B = tokens.parse()?;
+        Ok(Self(b, a))
+    }
+}
+
+impl<A: ToTokens, B: ToTokens> ToTokens for Swap<A, B> {
+    #[inline]
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.0.to_tokens(tokens);
+        self.1.to_tokens(tokens);
+    }
+}
+
 /// Matches the end of the stream when no tokens are left.
 ///
 /// # Example
