@@ -5,8 +5,13 @@
 //! `unsynn-rust` crate. There are `Literal*` for `Integer, Character, String` to parse simple
 //! literals and `ConstInteger<V>` and `ConstCharacter<V>` who must match an exact character.
 //! The later two also implement `Default`, thus they can be used to create constant tokens.
+//! There are is no `ConstString`, constant literal strings can be constructed with
+//! [`IntoLiteralString<T>`].
 
 #![allow(clippy::module_name_repetitions)]
+
+#[cfg(doc)]
+use crate::*;
 
 use crate::{Error, Literal, Parse, Parser, Result, ToTokens, TokenIter, TokenStream, TokenTree};
 

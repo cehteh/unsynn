@@ -160,3 +160,48 @@ impl<A: ToTokens, B: ToTokens> ToTokens for Swap<A, B> {
         self.1.to_tokens(tokens);
     }
 }
+
+/// Parse `T` and creates a `LiteralString` from it. When `T` implements `Default`, such as
+/// single string (non group) keywords, operators and `Const*` literals. Then this type can be
+/// used to create `LiteralStrings` on the fly.
+///
+///
+/// # Example
+///
+/// ```
+/// # use unsynn::*;
+/// let mut token_iter = "foo 123".to_token_iter();
+///
+/// let parsed = <IntoLiteralString<Cons<Ident, LiteralInteger>>>::parser(&mut token_iter).unwrap();
+/// assert_eq!(parsed.tokens_to_string(), r#" "foo 123" "#.tokens_to_string());
+///
+/// keyword!{Foo = "foo"}
+/// let default = <IntoLiteralString<Cons<Foo, ConstInteger<1234>>>>::default();
+/// assert_eq!(default.tokens_to_string(), r#" "foo 1234" "#.tokens_to_string());
+/// ```
+pub struct IntoLiteralString<T>(pub LiteralString, PhantomData<T>);
+
+impl<T: Parse + ToTokens> Parser for IntoLiteralString<T> {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        Ok(Self(
+            LiteralString::from_str(&tokens.parse::<T>()?.tokens_to_string()),
+            PhantomData,
+        ))
+    }
+}
+
+impl<T: ToTokens> ToTokens for IntoLiteralString<T> {
+    #[inline]
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.0.to_tokens(tokens);
+    }
+}
+
+impl<T: Default + ToTokens> Default for IntoLiteralString<T> {
+    fn default() -> Self {
+        Self(
+            LiteralString::from_str(&T::default().tokens_to_string()),
+            PhantomData,
+        )
+    }
+}
