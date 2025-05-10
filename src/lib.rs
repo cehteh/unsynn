@@ -335,6 +335,11 @@ pub mod combinator;
 #[doc(inline)]
 pub use combinator::*;
 
+// transformers
+pub mod transform;
+#[doc(inline)]
+pub use transform::*;
+
 // helpers for the keyword macro
 #[doc(hidden)]
 pub mod keyword_group;
