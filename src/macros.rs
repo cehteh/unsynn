@@ -508,6 +508,10 @@ macro_rules! keyword{
         $crate::keyword!{
             @{} $(#[$attribute])* $pub $name [$str]
         }
+        // implement `Default` for single token keywords
+        $crate::keyword!{
+            @default $name $str
+        }
         $crate::keyword!{$($($cont)*)?}
     };
     ($(#[$attribute:meta])* $pub:vis $name:ident != $str:literal $(;$($cont:tt)*)?) => {
@@ -612,6 +616,14 @@ macro_rules! keyword{
         $crate::keyword!{$($($cont)*)?}
     };
     () => {};
+
+    (@default $name:ident $str:literal) => {
+        impl Default for $name {
+            fn default() -> Self {
+                Self(CachedIdent::parse(&mut $str.to_token_iter()).unwrap())
+            }
+        }
+    };
 
     // keyword group creation
     (@group $($entry:tt),+) => {

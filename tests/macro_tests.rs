@@ -47,3 +47,9 @@ fn test_generics() {
     let parsed = i.parse::<Dollar>().unwrap();
     assert_eq!(parsed.tokens_to_string(), "$".tokens_to_string());
 }
+
+#[test]
+fn test_keyword_default() {
+    keyword! {Def = "default"};
+    Def::default();
+}
