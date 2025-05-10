@@ -181,6 +181,32 @@ impl<A: ToTokens, B: ToTokens> ToTokens for Swap<A, B> {
 /// ```
 pub struct IntoLiteralString<T>(pub LiteralString, PhantomData<T>);
 
+impl<T: ToTokens> IntoLiteralString<T> {
+    /// Create a IntoLiteralString from an already existing AST.
+    ///
+    /// ```
+    /// # use unsynn::*;
+    /// let mut token_iter = "foo 123".to_token_iter();
+    ///
+    /// let parsed = <Cons<Ident, LiteralInteger>>::parser(&mut token_iter).unwrap();
+    /// let as_string = IntoLiteralString::from(&parsed);
+    ///
+    /// assert_eq!(as_string.as_str(), "foo 123");
+    /// ```
+    pub fn from(from: &T) -> Self {
+        Self(
+            LiteralString::from_str(&from.tokens_to_string()),
+            PhantomData,
+        )
+    }
+
+    /// Returns the underlying `&str`without its surrounding quotes.
+    #[inline]
+    pub fn as_str(&self) -> &str {
+        self.0.as_str()
+    }
+}
+
 impl<T: Parse + ToTokens> Parser for IntoLiteralString<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         Ok(Self(
