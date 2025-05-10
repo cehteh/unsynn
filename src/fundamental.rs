@@ -528,6 +528,32 @@ impl<T: std::fmt::Debug> std::fmt::Debug for Skip<T> {
     }
 }
 
+/// Injects tokens without parsing anything.
+///
+/// # Example
+///
+/// ```
+/// # use unsynn::*;
+/// let mut token_iter = "foo bar".to_token_iter();
+///
+/// let parsed = <Cons<Ident, Insert<Plus>, Ident>>::parser(&mut token_iter).unwrap();
+/// assert_eq!(parsed.tokens_to_string(), "foo + bar".tokens_to_string());
+/// ```
+pub struct Insert<T>(pub T);
+
+impl<T: Default> Parser for Insert<T> {
+    fn parser(_tokens: &mut TokenIter) -> Result<Self> {
+        Ok(Self(T::default()))
+    }
+}
+
+impl<T: ToTokens> ToTokens for Insert<T> {
+    #[inline]
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.0.to_tokens(tokens);
+    }
+}
+
 /// Matches the end of the stream when no tokens are left.
 ///
 /// # Example
