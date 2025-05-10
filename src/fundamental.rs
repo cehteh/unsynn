@@ -554,6 +554,19 @@ impl<T: ToTokens> ToTokens for Insert<T> {
     }
 }
 
+/// Tries to parse a `T` or inserts a `D` when that fails.
+///
+/// # Example
+///
+/// ```
+/// # use unsynn::*;
+/// let mut token_iter = "foo".to_token_iter();
+///
+/// let parsed = <OrDefault<u32, Question>>::parser(&mut token_iter).unwrap();
+/// assert_eq!(parsed.tokens_to_string(), "?".tokens_to_string());
+/// ```
+pub type OrDefault<T, D> = Either<T, Insert<D>>;
+
 /// Swaps the order of two entities.
 ///
 /// # Example
