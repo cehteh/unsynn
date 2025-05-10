@@ -11,11 +11,25 @@ fn test_integer() {
 }
 
 #[test]
+fn test_constinteger() {
+    let mut token_iter = "1234".to_token_iter();
+    assert!(<ConstInteger<111>>::parse(&mut token_iter).is_err());
+    assert_eq!(<ConstInteger<1234>>::default().value(), 1234);
+}
+
+#[test]
 fn test_character() {
     let mut token_iter = "'x'".to_token_iter();
 
     let character = LiteralCharacter::parse(&mut token_iter).unwrap();
     assert_eq!(character.value(), 'x');
+}
+
+#[test]
+fn test_constcharacter() {
+    let mut token_iter = "'f'".to_token_iter();
+    assert!(<ConstCharacter<'o'>>::parse(&mut token_iter).is_err());
+    assert_eq!(<ConstCharacter<'f'>>::default().value(), 'f');
 }
 
 #[test]

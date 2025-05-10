@@ -2,11 +2,13 @@
 //! literals.  The literals are parsed from the token stream and can be used to represent the
 //! parsed value. unsynn defines only simplified literals, such as integers, characters and
 //! strings. The literals here are not full rust syntax, which will be defined in the
-//! `unsynn-rust` crate.
+//! `unsynn-rust` crate. There are `Literal*` for `Integer, Character, String` to parse simple
+//! literals and `ConstInteger<V>` and `ConstCharacter<V>` who must match an exact character.
+//! The later two also implement `Default`, thus they can be used to create constant tokens.
 
 #![allow(clippy::module_name_repetitions)]
 
-use crate::{Error, Literal, Parser, Result, ToTokens, TokenIter, TokenStream, TokenTree};
+use crate::{Error, Literal, Parse, Parser, Result, ToTokens, TokenIter, TokenStream, TokenTree};
 
 /// A simple unsigned 128 bit integer. This is the most simple form to parse integers. Note
 /// that only decimal integers without any other characters, signs or suffixes are supported,
@@ -81,6 +83,57 @@ impl From<LiteralInteger> for TokenTree {
 fn test_literalinteger_into_tt() {
     let lit = LiteralInteger::new(42);
     let _: TokenTree = lit.into();
+}
+
+/// A constant `u128` integer of value `V`. Must match V and also has `Default` implemented to create
+/// a `LiteralInteger` with value `V`.
+///
+/// ```
+/// # use unsynn::*;
+/// let mut token_iter = "foo".to_token_iter();
+///
+/// let parsed = <OrDefault<u32, ConstInteger<1234>>>::parser(&mut token_iter).unwrap();
+/// assert_eq!(parsed.tokens_to_string(), "1234".tokens_to_string());
+/// ```
+#[derive(Debug, Clone)]
+pub struct ConstInteger<const V: u128>(LiteralInteger);
+
+impl<const V: u128> ConstInteger<V> {
+    /// Get the value.
+    #[must_use]
+    pub const fn value(&self) -> u128 {
+        self.0.value
+    }
+
+    /// Deconstructs `self` and gets the `Literal`
+    #[must_use]
+    pub fn into_inner(self) -> Literal {
+        self.0.literal
+    }
+}
+
+impl<const V: u128> Parser for ConstInteger<V> {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        Parse::parse_with(tokens, |this: LiteralInteger, e| {
+            if this.value == V {
+                Ok(Self(this))
+            } else {
+                Error::unexpected_token(e)
+            }
+        })
+    }
+}
+
+impl<const V: u128> ToTokens for ConstInteger<V> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.0.to_tokens(tokens);
+    }
+}
+
+impl<const V: u128> Default for ConstInteger<V> {
+    fn default() -> Self {
+        Self(LiteralInteger::new(V))
+    }
 }
 
 /// A single quoted character literal (`'x'`).
@@ -158,6 +211,57 @@ impl From<LiteralCharacter> for TokenTree {
 fn test_literalcharacter_into_tt() {
     let lit = LiteralCharacter::new('c');
     let _: TokenTree = lit.into();
+}
+
+/// A constant `char` of value `V`. Must match V and also has `Default` implemented to create
+/// a `LiteralCharacter` with value `V`.
+///
+/// ```
+/// # use unsynn::*;
+/// let mut token_iter = "'f'".to_token_iter();
+///
+/// let parsed = <OrDefault<u32, ConstCharacter<'f'>>>::parser(&mut token_iter).unwrap();
+/// assert_eq!(parsed.tokens_to_string(), "'f'".tokens_to_string());
+/// ```
+#[derive(Debug, Clone)]
+pub struct ConstCharacter<const V: char>(LiteralCharacter);
+
+impl<const V: char> ConstCharacter<V> {
+    /// Get the value.
+    #[must_use]
+    pub const fn value(&self) -> char {
+        self.0.value
+    }
+
+    /// Deconstructs `self` and gets the `Literal`
+    #[must_use]
+    pub fn into_inner(self) -> Literal {
+        self.0.literal
+    }
+}
+
+impl<const V: char> Parser for ConstCharacter<V> {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        Parse::parse_with(tokens, |this: LiteralCharacter, e| {
+            if this.value == V {
+                Ok(Self(this))
+            } else {
+                Error::unexpected_token(e)
+            }
+        })
+    }
+}
+
+impl<const V: char> ToTokens for ConstCharacter<V> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.0.to_tokens(tokens);
+    }
+}
+
+impl<const V: char> Default for ConstCharacter<V> {
+    fn default() -> Self {
+        Self(LiteralCharacter::new(V))
+    }
 }
 
 /// A double quoted string literal (`"hello"`). The quotes are included in the value.  Note
