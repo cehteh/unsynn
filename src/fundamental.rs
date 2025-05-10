@@ -339,11 +339,12 @@ pub type CachedLiteral = Cached<Literal>;
 /// to parse a [`Repeats`] without a delimiter.  Note that using [`Nothing`] as primary entity
 /// in a [`Vec`], [`LazyVec`], [`DelimitedVec`] or [`Repeats`] will result in an infinite
 /// loop.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Nothing;
 
 impl Parser for Nothing {
     #[inline]
+    #[mutants::skip]
     fn parser(_tokens: &mut TokenIter) -> Result<Self> {
         Ok(Self)
     }

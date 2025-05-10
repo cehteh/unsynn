@@ -8,7 +8,7 @@ use crate::{Error, Invalid, Nothing, Parse, Parser, Result, ToTokens, TokenIter,
 
 /// Conjunctive `A` followed by `B` and optional `C` and `D`
 /// When `C` and `D` are not used, they are set to [`Nothing`].
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct Cons<A, B, C = Nothing, D = Nothing> {
     /// The first value
     pub first: A,
