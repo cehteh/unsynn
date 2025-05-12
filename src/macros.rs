@@ -20,10 +20,10 @@ use crate::*;
 /// * Any number of attributes (`#[...]`), including documentation comments. Note that the
 ///   unsynn macros have limited support for automatically generation documentation. This
 ///   auto-generated documentation is appended after the user supplied docs.
-/// * structs, enums, types and members can exported with the usual `pub` declarations
+/// * structs, enums, types and members can exported with the usual `pub` declarations.
 /// * struct, enum, and type definitions support generics. These generics can include simple
-///   trait bounds. The traits for the bounds have to be in scope since for simplicity only
-///   single identifiers are allowed.
+///   trait bounds and defaults. The traits for the bounds have to be in scope since for
+///   simplicity only single identifiers are allowed.
 ///
 /// Common for enum and struct variants is that entries are tried in order. Disjunctive for
 /// enums and conjunctive in structures. This makes the order important, e.g. for enums, in
@@ -68,8 +68,8 @@ use crate::*;
 ///         Empty,
 ///     }
 ///
-///     // With generics
-///     struct MyStruct<T: Debug> {
+///     // With generics and type defaults
+///     struct MyStruct<T: Debug = i32> {
 ///         text: LiteralString,
 ///         number: T,
 ///     }
@@ -129,14 +129,14 @@ macro_rules! unsynn {
 macro_rules! unsynn{
     // enums
     ($(#[$attribute:meta])* $pub:vis enum $name:ident
-        $(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)?),*$(,)?>)?
+        $(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)? $(= $default:ty)?),*$(,)?>)?
     {
         $($variants:tt)*
     } $($cont:tt)*) => {
         // The actual enum definition is written as given
         #[derive(Debug)]
         $(#[$attribute])* $pub enum $name
-        $(<$($generic$(: $constraint $(+ $constraints)*)?),*>)?
+        $(<$($generic$(: $constraint $(+ $constraints)*)? $(= $default)?),*>)?
         {
             $($variants)*
         }
@@ -167,13 +167,13 @@ macro_rules! unsynn{
 
     // normal structs
     ($(#[$attribute:meta])* $pub:vis struct $name:ident
-        $(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)?),*$(,)?>)?
+        $(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)? $(= $default:ty)?),*$(,)?>)?
     {
         $($(#[$mattr:meta])* $mpub:vis $member:ident: $parser:ty),* $(,)?
     } $($cont:tt)*) => {
         #[derive(Debug)]
         $(#[$attribute])* $pub struct $name
-        $(<$($generic$(: $constraint $(+ $constraints)*)?),*>)?
+        $(<$($generic$(: $constraint $(+ $constraints)*)? $(= $default)?),*>)?
         {
             $(
                 /// TODO: docgen
@@ -203,13 +203,13 @@ macro_rules! unsynn{
 
     // tuple structs
     ($(#[$attribute:meta])* $pub:vis struct $name:ident
-        $(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)?),*$(,)?>)?
+        $(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)? $(= $default:ty)?),*$(,)?>)?
         ($($(#[$mattr:meta])* $mpub:vis $parser:ty),* $(,)?);
         $($cont:tt)*) =>
     {
         #[derive(Debug)]
         $(#[$attribute])* $pub struct $name
-        $(<$($generic$(: $constraint $(+ $constraints)*)?),*>)?
+        $(<$($generic$(: $constraint $(+ $constraints)*)? $(= $default)?),*>)?
         ($($(#[$mattr])* $mpub $parser),*);
 
         impl$(<$($generic: $crate::Parser $(+ $constraint $(+ $constraints)*)?),*>)? $crate::Parser
@@ -235,10 +235,13 @@ macro_rules! unsynn{
     };
 
     // type passthough
-    ($(#[$attribute:meta])* $pub:vis type $name:ident
-        $(<$($generic:ident $(: $constraint:ident $(+ $constraints:ident)*)?),*$(,)?>)?
-        = $orig:path; $($cont:tt)*) => {
-        $(#[$attribute])* $pub type $name$(<$($generic$(: $constraint $(+ $constraints)*)?),*>)? = $orig;
+    (
+        $(#[$attribute:meta])* $pub:vis type $name:ident
+        $(<$($generic:ident $(: $constraint:ident $(+ $constraints:ident)*)? $(= $default:ty)?),*$(,)?>)?
+        = $orig:path;
+        $($cont:tt)*
+    ) => {
+        $(#[$attribute])* $pub type $name$(<$($generic$(: $constraint $(+ $constraints)*)? $(= $default)?),*>)? = $orig;
         // next item
         $crate::unsynn!{$($cont)*}
     };
