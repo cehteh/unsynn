@@ -231,3 +231,81 @@ impl<T: Default + ToTokens> Default for IntoLiteralString<T> {
         )
     }
 }
+
+/// Parses `T` and concats all its elements to a single identifier by removing all characters
+/// that are not valid in identifiers.  When `T` implements `Default`, such as single string
+/// (non group) keywords, operators and `Const*` literals. Then it can be used to create
+/// `IntoIdentifier` on the fly. Note that construction may still fail when one tries to
+/// create a invalid identifier such as one starting with digits for example.
+///
+///
+/// # Example
+///
+/// ```
+/// # use unsynn::*;
+/// let mut token_iter = "foo 123".to_token_iter();
+///
+/// let parsed = <IntoIdent<Cons<Ident, LiteralInteger>>>::parser(&mut token_iter).unwrap();
+/// assert_eq!(parsed.tokens_to_string(), "foo123".tokens_to_string());
+///
+/// keyword!{Foo = "foo"}
+/// let default = <IntoIdent<Cons<Foo, ConstInteger<1234>>>>::default();
+/// assert_eq!(default.tokens_to_string(), "foo1234".tokens_to_string());
+/// ```
+pub struct IntoIdent<T>(pub CachedIdent, PhantomData<T>);
+
+impl<T: ToTokens> IntoIdent<T> {
+    /// Create a IntoLiteralString from an already existing AST.
+    ///
+    /// ```
+    /// # use unsynn::*;
+    /// let mut token_iter = r#" foo "123" "#.to_token_iter();
+    ///
+    /// let parsed = <Cons<Ident, LiteralString>>::parser(&mut token_iter).unwrap();
+    /// let ident = IntoIdent::from(&parsed).unwrap();
+    ///
+    /// assert_eq!(ident.as_str(), "foo123");
+    /// ```
+    pub fn from(from: &T) -> Result<Self> {
+        let mut string = from.tokens_to_string();
+        string.retain(|c| c.is_alphanumeric() || c == '_');
+        Ok(Self(CachedIdent::from_string(string)?, PhantomData))
+    }
+
+    /// Returns the underlying `&str`without its surrounding quotes.
+    #[inline]
+    pub fn as_str(&self) -> &str {
+        self.0.as_str()
+    }
+}
+
+impl<T: Parse + ToTokens> Parser for IntoIdent<T> {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        let mut string = tokens.parse::<T>()?.tokens_to_string();
+        string.retain(|c| c.is_alphanumeric() || c == '_');
+        Ok(Self(CachedIdent::from_string(string)?, PhantomData))
+    }
+}
+
+impl<T: ToTokens> ToTokens for IntoIdent<T> {
+    #[inline]
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.0.to_tokens(tokens);
+    }
+}
+
+/// Creates a default constructed `IntoIdent<T>` from `T`
+///
+/// # Panics
+///
+/// When the concatenation of `T` does not form a valid `Ident`.
+impl<T: Default + ToTokens> Default for IntoIdent<T> {
+    fn default() -> Self {
+        let mut string = T::default().tokens_to_string();
+        string.retain(|c| c.is_alphanumeric() || c == '_');
+        Self(
+            CachedIdent::from_string(string).expect("invalid default constructed IntoIdent"),
+            PhantomData,
+        )
+    }
+}
