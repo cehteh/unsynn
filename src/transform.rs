@@ -1,8 +1,6 @@
 //! This module contains the transforming parsers. This are the parsers that add, remove,
 //! replace or reorder Tokens.
 
-pub use proc_macro2::{Group, Ident, Literal, Punct, TokenStream, TokenTree};
-
 #[allow(clippy::wildcard_imports)]
 use crate::*;
 
