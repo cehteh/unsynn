@@ -161,9 +161,9 @@ impl<A: ToTokens, B: ToTokens> ToTokens for Swap<A, B> {
     }
 }
 
-/// Parse `T` and creates a `LiteralString` from it. When `T` implements `Default`, such as
-/// single string (non group) keywords, operators and `Const*` literals. Then this type can be
-/// used to create `LiteralStrings` on the fly.
+/// Parses `T` and creates a `LiteralString` from it. When `T` implements `Default`, such as
+/// single string (non group) keywords, operators and `Const*` literals. It can be used to
+/// create `IntoLiteralString` on the fly.
 ///
 ///
 /// # Example
@@ -216,7 +216,7 @@ impl<T: Parse + ToTokens> Parser for IntoLiteralString<T> {
     }
 }
 
-impl<T: ToTokens> ToTokens for IntoLiteralString<T> {
+impl<T> ToTokens for IntoLiteralString<T> {
     #[inline]
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.0.to_tokens(tokens);
