@@ -200,7 +200,7 @@ impl<T: Parse + ToTokens> Cached<T> {
 }
 
 impl<T: Parse> Cached<T> {
-    /// Creates a new `Cached<T>` from a (literal) string.
+    /// Creates a new `Cached<T>` from a `&str`.
     ///
     /// # Panics
     ///
@@ -220,6 +220,22 @@ impl<T: Parse> Cached<T> {
             value,
             string: s.to_string(),
         }
+    }
+
+    /// Creates a new `Cached<T>` from a owned `String`.
+    ///
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use unsynn::*;
+    /// let cached_ident = Cached::<Ident>::from_string("ident".into()).unwrap();
+    /// assert!(cached_ident == "ident");
+    /// ```
+    #[must_use]
+    pub fn from_string(s: String) -> Result<Self> {
+        let value = s.into_token_iter().parse()?;
+        Ok(Self { value, string: s })
     }
 
     /// Deconstructs self and returns the inner value.
