@@ -458,7 +458,10 @@ macro_rules! unsynn{
 /// because the actual matching function is optimized and lazy evaluated this will only happen
 /// on the first use of the invalid keyword definition.
 ///
-/// Keywords implement `AsRef<str>`, `AsRef<Ident>` and `Keyword::as_str(&self) -> &str`.
+/// Keywords implement `AsRef<str>`, `AsRef<Ident>` and `Keyword::as_str(&self) -> &str`. For
+/// Keywords that are defined with a single literal string (`keyword!{ Foo = "foo"}`) the
+/// `Default` trait is implemented. Thus they can be created and inserted statically.
+///
 ///
 /// # Example
 ///

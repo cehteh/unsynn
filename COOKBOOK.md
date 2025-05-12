@@ -313,7 +313,8 @@ things in the unstable category below will move up to stable.
  * internal representation  
    Don't rely on the internal representations there are some plans and ideas to change
    these. Some types that are currently ZST may become stateful, collections may become
-   wrapped as `Rc<Vec<T>>` etc.
+   wrapped as `Rc<Vec<T>>` etc. The `TokenIter` representation will likely change in future as
+   well.
  * traits  
    Currently there are the main traits Parse, Parser, IParse and ToTokens. In future these may
    become refactored and split into smaller traits and some more may be added. This will then

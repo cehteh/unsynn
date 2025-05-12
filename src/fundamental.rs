@@ -391,7 +391,9 @@ impl ToTokens for Invalid {
     }
 }
 
-/// Succeeds when the next token does not match `T`. Will not consume any tokens.
+/// Succeeds when the next token does not match `T`. **Will not consume any tokens.** Usually
+/// this has to be followed with a conjunctive match such as `Cons<Except<T>, U>` or followed
+/// by another entry in a struct or tuple.
 ///
 /// # Example
 ///
@@ -429,7 +431,7 @@ impl<T: std::fmt::Debug> std::fmt::Debug for Except<T> {
     }
 }
 
-/// Succeeds when the next token would match `T`. Will not consume any tokens.
+/// Succeeds when the next token would match `T`. **Will not consume any tokens.**
 /// This is similar to peeking.
 ///
 /// # Example

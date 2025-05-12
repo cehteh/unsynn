@@ -12,6 +12,8 @@ are found then it is time for a 1.0.0 release.
   this would disable parsing &str and related API's and most of the test suite. But should be
   sufficient for writing lean proc_macro parsers.
 * `Enclosed<Begin, Content, End>` like `Cons<Begin, Cons<Except<End>, Content>, End>>`
+* TODO: which types can implement default? ... keywords, make a `ExactInteger<const isize>`,
+  bool, character, can we reverse string from char
 * improve error handing
    - document how errors are reported and what the user can do to handle them
    - User can/should write forgiving grammars that are error tolerant
@@ -21,6 +23,7 @@ are found then it is time for a 1.0.0 release.
      things correct. Details for this need to be laied out. Maybe a `SpanOf<T: Parse>`
    - can we have some `Explain<T>` that explains what was expected and why it failed to simplify
      complex errors?
+* transformer/feature case_convert https://crates.io/crates/heck
 * Brainfart: Dynamic parser construction  
   instead `parse::<UnsynnType>()`
   create a parse function dynamically from a str parsed by unsynn itself
@@ -31,6 +34,7 @@ are found then it is time for a 1.0.0 release.
   Add some scanf like DSL to generate these parsers.
   xmacro may use it like $(foo@Ident: values)
 * Braintfart: Memoization
+  - not before v0.3 maybe much later, this may be a good opportunity to sponsor unsynn development
   in TokenIter:
   ```text
    Rc< enum {
@@ -91,13 +95,16 @@ Chances to get contributions merged increase when you:
 
  * `main`  
    Will be updated on new releases. When you plan to make a small contribution that should be
-   merged soon then you can work on top of `main`.
+   merged soon then you can work on top of `main`. Will have linear history.
  * `release-*`  
-   stable release may get their own branch for fixes and backported features.
+   stable release may get their own branch for fixes and backported features- Will have linear history.
  * `devel`  
-   Development branch which will eventually be merged into `main`. Non-trivial contributions that
-   may take some time to develop should use `devel` as starting point. But be prepared to
-   rebase frequently on top of the ongoing `devel`.
+   Development branch which will eventually be merged into `main`. Non-trivial contributions
+   that may take some time to develop should use `devel` as starting point. But be prepared to
+   rebase frequently on top of the ongoing `devel`. May itself become rebased on fixes and
+   features.
+ * `fix-*`  
+   Non trivial bugfixes are prepared in `fix-*` branches.
  * `feature-*`  
    More complex features and experiments are developed in feature branches. Any non trivial
    contribution should be done in a `feature-*` branch as well. Once complete they become
