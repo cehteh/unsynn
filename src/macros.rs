@@ -128,11 +128,14 @@ macro_rules! unsynn {
 #[macro_export]
 macro_rules! unsynn{
     // enums
-    ($(#[$attribute:meta])* $pub:vis enum $name:ident
+    (
+        $(#[$attribute:meta])* $pub:vis enum $name:ident
         $(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)? $(= $default:ty)?),*$(,)?>)?
-    {
-        $($variants:tt)*
-    } $($cont:tt)*) => {
+        {
+            $($variants:tt)*
+        }
+        $($cont:tt)*
+    ) => {
         // The actual enum definition is written as given
         #[derive(Debug)]
         $(#[$attribute])* $pub enum $name
@@ -166,17 +169,19 @@ macro_rules! unsynn{
     };
 
     // normal structs
-    ($(#[$attribute:meta])* $pub:vis struct $name:ident
+    (
+        $(#[$attribute:meta])* $pub:vis struct $name:ident
         $(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)? $(= $default:ty)?),*$(,)?>)?
-    {
-        $($(#[$mattr:meta])* $mpub:vis $member:ident: $parser:ty),* $(,)?
-    } $($cont:tt)*) => {
+        {
+            $($(#[$mattr:meta])* $mpub:vis $member:ident: $parser:ty),* $(,)?
+        }
+        $($cont:tt)*
+    ) => {
         #[derive(Debug)]
         $(#[$attribute])* $pub struct $name
         $(<$($generic$(: $constraint $(+ $constraints)*)? $(= $default)?),*>)?
         {
             $(
-                /// TODO: docgen
                 $(#[$mattr])* $mpub $member : $parser
             ),*
         }
@@ -202,11 +207,14 @@ macro_rules! unsynn{
     };
 
     // tuple structs
-    ($(#[$attribute:meta])* $pub:vis struct $name:ident
+    (
+        $(#[$attribute:meta])* $pub:vis struct $name:ident
         $(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)? $(= $default:ty)?),*$(,)?>)?
-        ($($(#[$mattr:meta])* $mpub:vis $parser:ty),* $(,)?);
-        $($cont:tt)*) =>
-    {
+        (
+            $($(#[$mattr:meta])* $mpub:vis $parser:ty),* $(,)?
+        );
+        $($cont:tt)*
+    ) => {
         #[derive(Debug)]
         $(#[$attribute])* $pub struct $name
         $(<$($generic$(: $constraint $(+ $constraints)*)? $(= $default)?),*>)?
@@ -282,7 +290,12 @@ macro_rules! unsynn{
     () => {};
 
     // to_tokens for enum tuple variant
-    (@enum_to_tokens($self:ident, $tokens:ident) {$(#[$_attrs:meta])* $variant:ident($($tuple:tt)*) $(,$($cont:tt)*)?} ) => {
+    (
+        @enum_to_tokens($self:ident, $tokens:ident)
+        {
+            $(#[$_attrs:meta])* $variant:ident($($tuple:tt)*) $(,$($cont:tt)*)?
+        }
+    ) => {
         if matches!($self, Self::$variant(..)) {
             unsynn! {@tuple_for_each item in $self : Self::$variant($($tuple)*) {
                 item.to_tokens($tokens);
@@ -293,10 +306,15 @@ macro_rules! unsynn{
     };
 
     // to_tokens for enum struct variant
-    (@enum_to_tokens($self:ident, $tokens:ident) {
-        $(#[$_attrs:meta])* $variant:ident {
-            $($(#[$_mattrs:meta])* $member:ident: $_type:ty),* $(,)?
-        } $(,$($cont:tt)*)?} ) => {
+    (
+        @enum_to_tokens($self:ident, $tokens:ident)
+        {
+            $(#[$_attrs:meta])* $variant:ident {
+                $($(#[$_mattrs:meta])* $member:ident: $_type:ty),* $(,)?
+            }
+            $(,$($cont:tt)*)?
+        }
+    ) => {
             if matches!($self, Self::$variant{..}) {
                 $(
                     let Self::$variant{$member: member, ..} = $self else {unreachable!()};
@@ -308,7 +326,13 @@ macro_rules! unsynn{
     };
 
     // to_tokens for empty variant does nothing
-    (@enum_to_tokens($self:ident, $tokens:ident) {$(#[$_attrs:meta])* $variant:ident $(,$($cont:tt)*)?} ) => {
+    (
+        @enum_to_tokens($self:ident, $tokens:ident)
+        {
+            $(#[$_attrs:meta])* $variant:ident
+            $(,$($cont:tt)*)?
+        }
+    ) => {
         if matches!($self, Self::$variant) {
             return
         }
@@ -319,7 +343,12 @@ macro_rules! unsynn{
     (@enum_to_tokens($self:ident, $tokens:ident) {}) => {};
 
     // write for enum tuple variant
-    (@enum_write($self:ident, $f:ident) {$(#[$_attrs:meta])* $variant:ident($($tuple:tt)*) $(,$($cont:tt)*)?} ) => {
+    (
+        @enum_write($self:ident, $f:ident)
+        {
+            $(#[$_attrs:meta])* $variant:ident($($tuple:tt)*) $(,$($cont:tt)*)?
+        }
+    ) => {
         if matches!($self, Self::$variant(..)) {
             unsynn! {@tuple_for_each item in $self : Self::$variant($($tuple)*) {
                 write!($f, "{} " , &item)?;
@@ -343,7 +372,12 @@ macro_rules! unsynn{
     };
 
     // write for empty variant does nothing
-    (@enum_write($self:ident, $f:ident) {$(#[$_attrs:meta])* $variant:ident $(,$($cont:tt)*)?} ) => {
+    (
+        @enum_write($self:ident, $f:ident)
+        {
+            $(#[$_attrs:meta])* $variant:ident $(,$($cont:tt)*)?
+        }
+    ) => {
         if matches!($self, Self::$variant) {
         }
         $crate::unsynn!{@enum_write($self, $f) {$($($cont)*)?}}
@@ -353,7 +387,11 @@ macro_rules! unsynn{
     (@enum_write($self:ident, $f:ident) {}) => {};
 
     // Tuple enum variant
-    (@enum_parse_variant($tokens:ident, $err:ident) $(#[$_attrs:meta])* $variant:ident($($tuple:tt)*) $(, $($cont:tt)*)?) => {
+    (
+        @enum_parse_variant($tokens:ident, $err:ident)
+        $(#[$_attrs:meta])* $variant:ident($($tuple:tt)*)
+        $(, $($cont:tt)*)?
+    ) => {
         if let Ok(parsed) = (|| -> $crate::Result<_> {
             $err.upgrade($crate::unsynn!{@enum_parse_tuple($tokens) $variant($($tuple)*)})
         })() {
@@ -363,7 +401,12 @@ macro_rules! unsynn{
     };
 
     // Struct enum variant
-    (@enum_parse_variant($tokens:ident, $err:ident) $(#[$_attrs:meta])* $variant:ident{$($members:tt)*} $(, $($cont:tt)*)?) => {
+    (
+        @enum_parse_variant($tokens:ident, $err:ident)
+        $(#[$_attrs:meta])*
+        $variant:ident{$($members:tt)*}
+        $(, $($cont:tt)*)?
+    ) => {
         if let Ok(parsed) = (|| -> $crate::Result<_> {
             $err.upgrade($crate::unsynn!{@enum_parse_struct($tokens) $variant{$($members)*}})
         })() {
@@ -373,7 +416,11 @@ macro_rules! unsynn{
     };
 
     // Empty enum variant
-    (@enum_parse_variant($tokens:ident, $err:ident) $(#[$_attrs:meta])* $variant:ident $(, $($cont:tt)*)?) => {
+    (
+        @enum_parse_variant($tokens:ident, $err:ident)
+        $(#[$_attrs:meta])* $variant:ident
+        $(, $($cont:tt)*)?
+    ) => {
         /* NOP */
         $crate::unsynn!{@enum_parse_variant($tokens, $err) $($($cont)*)?}
     };
@@ -382,21 +429,28 @@ macro_rules! unsynn{
     (@enum_parse_variant($tokens:ident, $err:ident)) => {};
 
     // Parse a tuple variant
-    (@enum_parse_tuple($tokens:ident) $variant:ident($($(#[$_attrs:meta])* $parser:ty),* $(,)?)) => {
+    (
+        @enum_parse_tuple($tokens:ident)
+        $variant:ident($($(#[$_attrs:meta])* $parser:ty),* $(,)?)
+    ) => {
         $tokens.transaction(
             |mut tokens| Ok(Self::$variant($(<$parser>::parser(&mut tokens)?,)*))
         )
     };
 
     // Parse a struct variant
-    (@enum_parse_struct($tokens:ident) $variant:ident{$($(#[$_attrs:meta])* $name:ident : $parser:ty),* $(,)?}) => {
+    (
+        @enum_parse_struct($tokens:ident)
+        $variant:ident{$($(#[$_attrs:meta])* $name:ident : $parser:ty),* $(,)?}
+    ) => {
         $tokens.transaction(
             |mut tokens| Ok(Self::$variant{$($name : <$parser>::parser(&mut tokens)?,)*})
         )
     };
 
     // iterate over $variant:($tuple) in $this and apply some $code for each $i
-    (@tuple_for_each
+    (
+        @tuple_for_each
         $i:ident in $this:ident :
         $($variant:ident)::*($($tuple:tt)*)
         {
@@ -408,7 +462,8 @@ macro_rules! unsynn{
         }
     };
 
-    (@tuple_for_each
+    (
+        @tuple_for_each
         $i:ident in $this:ident :
         $($variant:ident)::*[
             $(#[$_attrs:meta])* $_pub:vis $element:ty
@@ -538,19 +593,31 @@ macro_rules! keyword{
         }
         $crate::keyword!{$($($cont)*)?}
     };
-    ($(#[$attribute:meta])* $pub:vis $name:ident = [$($keywords:tt),+ $(,)?] $(;$($cont:tt)*)?) => {
+    (
+        $(#[$attribute:meta])*
+        $pub:vis $name:ident = [$($keywords:tt),+ $(,)?]
+        $(;$($cont:tt)*)?
+    ) => {
         $crate::keyword!{
             @{} $(#[$attribute])* $pub $name [$($keywords),+]
         }
         $crate::keyword!{$($($cont)*)?}
     };
-    ($(#[$attribute:meta])* $pub:vis $name:ident != [$($keywords:tt),+ $(,)?] $(;$($cont:tt)*)?) => {
+    (
+        $(#[$attribute:meta])*
+        $pub:vis $name:ident != [$($keywords:tt),+ $(,)?]
+        $(;$($cont:tt)*)?
+    ) => {
         $crate::keyword!{
             @{!} $(#[$attribute])* $pub $name [$($keywords),+]
         }
         $crate::keyword!{$($($cont)*)?}
     };
-    (@{$($not:tt)?} $(#[$attribute:meta])* $pub:vis $name:ident [$($keywords:tt),+] $(;$($cont:tt)*)?) => {
+    (
+        @{$($not:tt)?} $(#[$attribute:meta])*
+        $pub:vis $name:ident [$($keywords:tt),+]
+        $(;$($cont:tt)*)?
+    ) => {
         $(#[$attribute])*
         #[doc = concat!(
              $crate::docgen!{@keyword_header $($not)?},
