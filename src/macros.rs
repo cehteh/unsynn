@@ -11,7 +11,8 @@ use crate::*;
 /// and operator definitions can also be defined, they delegate to the `keyword!` and
 /// `operator!` macro described below. All entities can be prefixed by `pub` to make them
 /// public. Type aliases are supported and are just pass-through. This makes thing easier
-/// readable when you define larger unsynn macro blocks.
+/// readable when you define larger unsynn macro blocks. Functions are pass through too, this
+/// allows one to write tests within the grammar definition.
 ///
 /// The macro definition above is simplified for readability `struct`, `enum` and `type`
 /// definitions can include most of the things normal rust definitions can do. This also
@@ -78,6 +79,9 @@ use crate::*;
 ///
 ///     // type definitions are pass-through.
 ///     pub type Alias = MyStruct<LiteralInteger>;
+///
+///     // functions are pass though too
+///     fn testfn() -> bool { true }
 /// }
 ///
 /// // Create an iterator over the things we want to parse
@@ -111,6 +115,7 @@ use crate::*;
 /// let my_tuple_struct =  MyTupleStruct::parse(&mut token_iter).unwrap();
 /// let my_keyword =  MyKeyword::parse(&mut token_iter).unwrap();
 /// let my_operator =  MyOperator::parse(&mut token_iter).unwrap();
+/// # assert!(testfn());
 /// ```
 ///
 ///
@@ -367,6 +372,15 @@ macro_rules! unsynn{
         $trait
         for $type {$($body)*}
         // next item
+        $crate::unsynn!{$($cont)*}
+    };
+
+    // fn passthough
+    (
+        $(#[$attribute:meta])* $pub:vis fn $name:ident($($param:tt)*) $(-> $ret:ty)? {$($body:tt)*}
+        $($cont:tt)*
+    ) => {
+        $(#[$attribute])* $pub fn $name($($param)?) $(-> $ret)? {$($body)*}
         $crate::unsynn!{$($cont)*}
     };
 
