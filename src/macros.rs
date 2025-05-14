@@ -151,9 +151,10 @@ use crate::*;
 ///     // simplified trait impl block following the struct definition
 ///     pub struct SimpleStruct(bool);
 ///     impl {
-///            TestMarker;
-///            TestMarker2 {}
-///            SimpleAccessor {fn get(&self) -> bool {self.0}}
+///         #[doc = "impl attributes go here"]
+///         TestMarker;
+///         TestMarker2 {}
+///         SimpleAccessor {fn get(&self) -> bool {self.0}}
 ///     }
 ///
 ///     // passed though trait impl
@@ -264,7 +265,7 @@ macro_rules! unsynn{
             $($(#[$mattr:meta])* $mpub:vis $parser:ty),* $(,)?
         );
         // PLANNED: impl$(<extragenerics: bounds>)* Trait$(<extra>)
-        impl {$($trait:ident $bracesemi:tt)*}
+        impl {$($(#[$tattr:meta])* $trait:ident $bracesemi:tt)*}
         $($cont:tt)*
     ) => {
         $crate::unsynn!{
@@ -278,7 +279,7 @@ macro_rules! unsynn{
         $crate::unsynn!{
             @impl$(<$($generic$(: $constraint $(+ $constraints)*)?),*>)?
             for $name
-            {$({$trait $bracesemi})*}
+            {$({$(#[$tattr])* $trait $bracesemi})*}
         }
         $crate::unsynn!{$($cont)*}
     };
@@ -367,11 +368,13 @@ macro_rules! unsynn{
 
     // impl passthough
     (
+        $(#[$attribute:meta])*
         impl
         $trait:ident
         for $type:ty {$($body:tt)*}
         $($cont:tt)*
     ) => {
+        $(#[$attribute])*
         impl
         $trait
         for $type {$($body)*}
@@ -427,9 +430,11 @@ macro_rules! unsynn{
     (
         @impl$(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)?),*>)?
         for $name:ident
-        {{$trait:ident ;} $($cont:tt)*}
+        {{$(#[$tattr:meta])* $trait:ident ;} $($cont:tt)*}
     ) => {
-        impl $trait for $name {}
+        $(#[$tattr])*
+        impl$(<$($generic$(: $constraint $(+ $constraints)*)?),*>)? $trait
+        for $name$(<$($generic),*>)? {}
         $crate::unsynn!{
             @impl$(<$($generic$(: $constraint $(+ $constraints)*)?),*>)?
             for $name
@@ -439,8 +444,9 @@ macro_rules! unsynn{
     (
         @impl$(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)?),*>)?
         for $name:ident
-        {{$trait:ident {$($body:tt)*}} $($cont:tt)*}
+        {{$(#[$tattr:meta])* $trait:ident {$($body:tt)*}} $($cont:tt)*}
     ) => {
+        $(#[$tattr])*
         impl$(<$($generic$(: $constraint $(+ $constraints)*)?),*>)? $trait
         for $name$(<$($generic),*>)? {$($body)*}
         $crate::unsynn!{
