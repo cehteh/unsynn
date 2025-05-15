@@ -10,9 +10,8 @@ use crate::*;
 /// control over the expansion. `#[derive(Copy, Clone)]` have to be manually defined. Keyword
 /// and operator definitions can also be defined, they delegate to the `keyword!` and
 /// `operator!` macro described below. All entities can be prefixed by `pub` to make them
-/// public. Type aliases are supported and are just pass-through. This makes thing easier
-/// readable when you define larger unsynn macro blocks. Functions are pass through too, this
-/// allows one to write tests within the grammar definition.
+/// public. Type aliases, function definitions and use statements are passed through. This
+/// makes thing easier readable when you define larger unsynn macro blocks.
 ///
 /// The macro definition above is simplified for readability `struct`, `enum` and `type`
 /// definitions can include most of the things normal rust definitions can do. This also
@@ -165,9 +164,15 @@ use crate::*;
 #[cfg(doc)]
 #[macro_export]
 macro_rules! unsynn {
-    (enum $name:ident { $($variant:ident...),* }) => {};
+    (enum $name:ident { $($variant:ident),* }) => {};
     (struct $name:ident { $($member:ident: $parser:ty),* }) => {};
     (struct $name:ident ( $($parser:ty),*);) => {};
+    (trait $name:ident;) => {};
+    (trait $name:ident{}) => {};
+    (impl { $($trait:ident $semicolon_or_block:tt)+ }) => {};
+    (impl $trait:ident for $type:ty {$body:tt}) => {};
+    (fn $function:ident($params:tt) {$body:tt}) => {};
+    (use $($path:path)+ $(as $alias:ident)?) => {};
     (keyword $name:ident = keyword_or_group;) => {};
     (keyword $name:ident != keyword_or_group;) => {};
     (operator $name:ident = "punct";) => {};
@@ -388,6 +393,24 @@ macro_rules! unsynn{
         $($cont:tt)*
     ) => {
         $(#[$attribute])* $pub fn $name($($param)?) $(-> $ret)? {$($body)*}
+        $crate::unsynn!{$($cont)*}
+    };
+
+    // use passthrough
+    (use ::$($path:ident)::+$(::{$($inside:tt)+})?; $($cont:tt)*) => {
+        use ::$($path)::+$(::{$($inside)+})?;
+        $crate::unsynn!{$($cont)*}
+    };
+    (use $($path:ident)::+$(::{$($inside:tt)+})?; $($cont:tt)*) => {
+        use $($path)::+$(::{$($inside)+})?;
+        $crate::unsynn!{$($cont)*}
+    };
+    (use ::$($path:ident)::+ as $alias:ident; $($cont:tt)*) => {
+        use $($path)::+ as $alias;
+        $crate::unsynn!{$($cont)*}
+    };
+    (use ::$($path:ident)::+ as $alias:ident; $($cont:tt)*) => {
+        use $($path)::+ as $alias;
         $crate::unsynn!{$($cont)*}
     };
 
