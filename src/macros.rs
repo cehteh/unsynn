@@ -135,7 +135,8 @@ use crate::*;
 ///
 /// Trait support is very basic and experimental, it is unspecified what features (lack of
 /// generics and lifetimes) are supported. Try it out, we promise not to break working things
-/// (if possible).
+/// (if possible). For trait definitions that are not supported within the unsynn macro it is
+/// still possible and advised to define them outside of the macro block.
 ///
 ///
 /// ## Example
@@ -170,6 +171,9 @@ use crate::*;
 ///     // normal rust syntax, passthough trait impl
 ///     impl SimpleAccessor for bool {fn get(&self) -> bool {*self}}
 /// }
+///
+/// // implementing traits outside of the macro works as usual
+/// impl TestMarker4 for SimpleStruct {}
 /// ```
 #[cfg(doc)]
 #[macro_export]
