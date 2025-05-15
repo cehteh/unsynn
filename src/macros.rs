@@ -481,6 +481,20 @@ macro_rules! unsynn{
         // next item
         $crate::unsynn!{$($cont)*}
     };
+    (
+        $(#[$attribute:meta])*
+        impl
+        $trait:ident
+        for $type:ty;
+        $($cont:tt)*
+    ) => {
+        $(#[$attribute])*
+        impl
+        $trait
+        for $type {}
+        // next item
+        $crate::unsynn!{$($cont)*}
+    };
 
     // fn passthough
     (
