@@ -190,7 +190,52 @@ macro_rules! unsynn{
         {
             $($variants:tt)*
         }
+        // PLANNED: impl$(<extragenerics: bounds>)* Trait$(<extra>)
+        impl {$($(#[$tattr:meta])* $trait:ident $bracesemi:tt)*}
         $($cont:tt)*
+    ) => {
+        $crate::unsynn!{
+            @enum
+            $(#[$attribute])* $pub enum $name
+            $(<$($generic$(: $constraint $(+ $constraints)*)? $(= $default)?),*>)?
+            {
+                $($variants)*
+            }
+        }
+        $crate::unsynn!{
+            @impl$(<$($generic$(: $constraint $(+ $constraints)*)?),*>)?
+            for $name
+            {$({$(#[$tattr])* $trait $bracesemi})*}
+        }
+        // next item
+        $crate::unsynn!{$($cont)*}
+    };
+    (
+        $(#[$attribute:meta])* $pub:vis enum $name:ident
+        $(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)? $(= $default:ty)?),*$(,)?>)?
+        {
+            $($variants:tt)*
+        }
+        $($cont:tt)*
+    ) => {
+        $crate::unsynn!{
+            @enum
+            $(#[$attribute])* $pub enum $name
+            $(<$($generic$(: $constraint $(+ $constraints)*)? $(= $default)?),*>)?
+            {
+                $($variants)*
+            }
+        }
+        // next item
+        $crate::unsynn!{$($cont)*}
+    };
+    (
+        @enum
+        $(#[$attribute:meta])* $pub:vis enum $name:ident
+        $(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)? $(= $default:ty)?),*$(,)?>)?
+        {
+            $($variants:tt)*
+        }
     ) => {
         // The actual enum definition is written as given
         #[derive(Debug)]
@@ -219,9 +264,6 @@ macro_rules! unsynn{
                 $crate::unsynn!{@enum_to_tokens(self, tokens) {$($variants)*}}
             }
         }
-
-        // next item
-        $crate::unsynn!{$($cont)*}
     };
 
     // normal structs
