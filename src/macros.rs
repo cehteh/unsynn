@@ -231,7 +231,52 @@ macro_rules! unsynn{
         {
             $($(#[$mattr:meta])* $mpub:vis $member:ident: $parser:ty),* $(,)?
         }
+        // PLANNED: impl$(<extragenerics: bounds>)* Trait$(<extra>)
+        impl {$($(#[$tattr:meta])* $trait:ident $bracesemi:tt)*}
         $($cont:tt)*
+    ) => {
+        $crate::unsynn!{
+            @struct
+            $(#[$attribute])* $pub struct $name
+            $(<$($generic$(: $constraint $(+ $constraints)*)? $(= $default)?),*>)?
+            {
+                $($(#[$mattr])* $mpub $member: $parser),*
+            }
+        }
+        $crate::unsynn!{
+            @impl$(<$($generic$(: $constraint $(+ $constraints)*)?),*>)?
+            for $name
+            {$({$(#[$tattr])* $trait $bracesemi})*}
+        }
+        // next item
+        $crate::unsynn!{$($cont)*}
+    };
+    (
+        $(#[$attribute:meta])* $pub:vis struct $name:ident
+        $(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)? $(= $default:ty)?),*$(,)?>)?
+        {
+            $($(#[$mattr:meta])* $mpub:vis $member:ident: $parser:ty),* $(,)?
+        }
+        $($cont:tt)*
+    ) => {
+        $crate::unsynn!{
+            @struct
+            $(#[$attribute])* $pub struct $name
+            $(<$($generic$(: $constraint $(+ $constraints)*)? $(= $default)?),*>)?
+            {
+                $($(#[$mattr])* $mpub $member: $parser),*
+            }
+        }
+        // next item
+        $crate::unsynn!{$($cont)*}
+    };
+    (
+        @struct
+        $(#[$attribute:meta])* $pub:vis struct $name:ident
+        $(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)? $(= $default:ty)?),*$(,)?>)?
+        {
+            $($(#[$mattr:meta])* $mpub:vis $member:ident: $parser:ty),* $(,)?
+        }
     ) => {
         #[derive(Debug)]
         $(#[$attribute])* $pub struct $name
@@ -257,9 +302,6 @@ macro_rules! unsynn{
                 $(self.$member.to_tokens(tokens);)*
             }
         }
-
-        // next item
-        $crate::unsynn!{$($cont)*}
     };
 
     // tuple structs
