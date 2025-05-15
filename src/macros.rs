@@ -10,7 +10,7 @@ use crate::*;
 /// control over the expansion. `#[derive(Copy, Clone)]` have to be manually defined. Keyword
 /// and operator definitions can also be defined, they delegate to the `keyword!` and
 /// `operator!` macro described below. All entities can be prefixed by `pub` to make them
-/// public. Type aliases, function definitions and use statements are passed through. This
+/// public. Type aliases, function definitions, macros and use statements are passed through. This
 /// makes thing easier readable when you define larger unsynn macro blocks.
 ///
 /// The macro definition above is simplified for readability `struct`, `enum` and `type`
@@ -533,6 +533,20 @@ macro_rules! unsynn{
     };
     (use ::$($path:ident)::+ as $alias:ident; $($cont:tt)*) => {
         use $($path)::+ as $alias;
+        $crate::unsynn!{$($cont)*}
+    };
+
+    // macro passthrough
+    ($macro:ident! {$($args:tt)*} $($cont:tt)*) => {
+        $macro! {$($args)*}
+        $crate::unsynn!{$($cont)*}
+    };
+    ($macro:ident! ($($args:tt)*); $($cont:tt)*) => {
+        $macro! ($($args)*);
+        $crate::unsynn!{$($cont)*}
+    };
+    ($macro:ident! [$($args:tt)*]; $($cont:tt)*) => {
+        $macro! [$($args)*];
         $crate::unsynn!{$($cont)*}
     };
 
