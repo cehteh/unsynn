@@ -551,24 +551,102 @@ macro_rules! unsynn{
     };
 
     // keyword delegation
+    (
+        $(#[$attribute:meta])* $pub:vis keyword $name:ident = $str:literal;
+        impl {$($(#[$tattr:meta])* $trait:ident $bracesemi:tt)*}
+        $($cont:tt)*
+    ) => {
+        $crate::keyword!{$(#[$attribute])* $pub $name = $str}
+        $crate::unsynn!{
+            @impl
+            for $name
+            {$({$(#[$tattr])* $trait $bracesemi})*}
+        }
+        $crate::unsynn!{$($cont)*}
+    };
     ($(#[$attribute:meta])* $pub:vis keyword $name:ident = $str:literal; $($cont:tt)*) => {
         $crate::keyword!{$(#[$attribute])* $pub $name = $str}
+        $crate::unsynn!{$($cont)*}
+    };
+    (
+        $(#[$attribute:meta])* $pub:vis keyword $name:ident != $str:literal;
+        impl {$($(#[$tattr:meta])* $trait:ident $bracesemi:tt)*}
+        $($cont:tt)*
+    ) => {
+        $crate::keyword!{$(#[$attribute])* $pub $name != $str}
+        $crate::unsynn!{
+            @impl
+            for $name
+            {$({$(#[$tattr])* $trait $bracesemi})*}
+        }
         $crate::unsynn!{$($cont)*}
     };
     ($(#[$attribute:meta])* $pub:vis keyword $name:ident != $str:literal; $($cont:tt)*) => {
         $crate::keyword!{$(#[$attribute])* $pub $name != $str}
         $crate::unsynn!{$($cont)*}
     };
+    (
+        $(#[$attribute:meta])* $pub:vis keyword $name:ident = $group:path;
+        impl {$($(#[$tattr:meta])* $trait:ident $bracesemi:tt)*}
+        $($cont:tt)*
+    ) => {
+        $crate::keyword!{$(#[$attribute])* $pub $name = $group}
+        $crate::unsynn!{
+            @impl
+            for $name
+            {$({$(#[$tattr])* $trait $bracesemi})*}
+        }
+        $crate::unsynn!{$($cont)*}
+    };
     ($(#[$attribute:meta])* $pub:vis keyword $name:ident = $group:path; $($cont:tt)*) => {
         $crate::keyword!{$(#[$attribute])* $pub $name = $group}
+        $crate::unsynn!{$($cont)*}
+    };
+    (
+        $(#[$attribute:meta])* $pub:vis keyword $name:ident != $group:path;
+        impl {$($(#[$tattr:meta])* $trait:ident $bracesemi:tt)*}
+        $($cont:tt)*
+    ) => {
+        $crate::keyword!{$(#[$attribute])* $pub $name != $group}
+        $crate::unsynn!{
+            @impl
+            for $name
+            {$({$(#[$tattr])* $trait $bracesemi})*}
+        }
         $crate::unsynn!{$($cont)*}
     };
     ($(#[$attribute:meta])* $pub:vis keyword $name:ident != $group:path; $($cont:tt)*) => {
         $crate::keyword!{$(#[$attribute])* $pub $name != $group}
         $crate::unsynn!{$($cont)*}
     };
+    (
+        $(#[$attribute:meta])* $pub:vis keyword $name:ident = [$($keywords:tt),+ $(,)?];
+        impl {$($(#[$tattr:meta])* $trait:ident $bracesemi:tt)*}
+        $($cont:tt)*
+    ) => {
+        $crate::keyword!{$(#[$attribute])* $pub $name = [$($keywords),+]}
+        $crate::unsynn!{
+            @impl
+            for $name
+            {$({$(#[$tattr])* $trait $bracesemi})*}
+        }
+        $crate::unsynn!{$($cont)*}
+    };
     ($(#[$attribute:meta])* $pub:vis keyword $name:ident = [$($keywords:tt),+ $(,)?]; $($cont:tt)*) => {
         $crate::keyword!{$(#[$attribute])* $pub $name = [$($keywords),+]}
+        $crate::unsynn!{$($cont)*}
+    };
+    (
+        $(#[$attribute:meta])* $pub:vis keyword $name:ident != [$($keywords:tt),+ $(,)?];
+        impl {$($(#[$tattr:meta])* $trait:ident $bracesemi:tt)*}
+        $($cont:tt)*
+    ) => {
+        $crate::keyword!{$(#[$attribute])* $pub $name != [$($keywords),+]}
+        $crate::unsynn!{
+            @impl
+            for $name
+            {$({$(#[$tattr])* $trait $bracesemi})*}
+        }
         $crate::unsynn!{$($cont)*}
     };
     ($(#[$attribute:meta])* $pub:vis keyword $name:ident != [$($keywords:tt),+ $(,)?]; $($cont:tt)*) => {
