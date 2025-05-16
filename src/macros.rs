@@ -577,6 +577,19 @@ macro_rules! unsynn{
     };
 
     // operator delegation
+    (
+        $(#[$attribute:meta])* $pub:vis operator $name:ident = $str:literal;
+        impl {$($(#[$tattr:meta])* $trait:ident $bracesemi:tt)*}
+        $($cont:tt)*
+    ) => {
+        $crate::operator!{$(#[$attribute])* $pub $name = $str}
+        $crate::unsynn!{
+            @impl
+            for $name
+            {$({$(#[$tattr])* $trait $bracesemi})*}
+        }
+        $crate::unsynn!{$($cont)*}
+    };
     ($(#[$attribute:meta])* $pub:vis operator $name:ident = $str:literal; $($cont:tt)*) => {
         $crate::operator!{$(#[$attribute])* $pub $name = $str}
         $crate::unsynn!{$($cont)*}
