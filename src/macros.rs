@@ -482,28 +482,28 @@ macro_rules! unsynn{
     // impl passthough
     (
         $(#[$attribute:meta])*
-        impl
-        $trait:ident
+        impl$(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)?),*$(,)?>)?
+        $trait:ident$(<$($traitgenparam:ident),*$(,)?>)?
         for $type:ty {$($body:tt)*}
         $($cont:tt)*
     ) => {
         $(#[$attribute])*
-        impl
-        $trait
+        impl$(<$($generic$(: $constraint $(+ $constraints)*)?),*>)?
+        $trait$(<$($traitgenparam),*$(,)?>)?
         for $type {$($body)*}
         // next item
         $crate::unsynn!{$($cont)*}
     };
     (
         $(#[$attribute:meta])*
-        impl
-        $trait:ident
+        impl$(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)?),*$(,)?>)?
+        $trait:ident$(<$($traitgenparam:ident),*$(,)?>)?
         for $type:ty;
         $($cont:tt)*
     ) => {
         $(#[$attribute])*
-        impl
-        $trait
+        impl$(<$($generic$(: $constraint $(+ $constraints)*)?),*>)?
+        $trait$(<$($traitgenparam),*$(,)?>)?
         for $type {}
         // next item
         $crate::unsynn!{$($cont)*}
