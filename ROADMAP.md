@@ -59,6 +59,14 @@ are found then it is time for a 1.0.0 release.
 * add rust types
   * f32: 32-bit floating point number
   * f64: 64-bit floating point number (default)
+* Benchmarking
+  * optimize the unsynn! macro (and keyword!, operator!)  
+    This can be done by refactoring the @aspect clauses into dedicated (#[doc(hidden)]
+    unsynn_aspect!) macros and reordering some clauses. But to start this work we need a solid
+    benchmark for the macros first.
+  * benchmark unsynn-rust grammars
+* Brainfart: a build-macro crate (benchmark!)
+  * library that expands *_unsynn.rs to *_parser.rs from build.rs
 
 
 # Design Priorities
