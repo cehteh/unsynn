@@ -372,5 +372,3 @@ fn test_literalstring_into_tt() {
     let lit = LiteralString::from_str("foobar");
     let _: TokenTree = lit.into();
 }
-
-// PLANNED: literal!( Type = lit, ...)

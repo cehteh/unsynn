@@ -449,8 +449,9 @@ macro_rules! unsynn{
         $crate::unsynn!{$($cont)*}
     };
 
-    // trait definition passthrough
     // TODO: generics
+
+    // marker trait blocks
     (
         trait {
             $($(#[$attribute:meta])* $pub:vis $name:ident$(: $super:ident $(+ $supers:ident)*)?);+$(;)?
@@ -461,6 +462,7 @@ macro_rules! unsynn{
         // next item
         $crate::unsynn!{$($cont)*}
     };
+    // marker trait definitions with ; at the end
     (
         $(#[$attribute:meta])* $pub:vis trait $name:ident$(: $super:ident $(+ $supers:ident)*)?;
         $($cont:tt)*
@@ -469,6 +471,7 @@ macro_rules! unsynn{
         // next item
         $crate::unsynn!{$($cont)*}
     };
+    // trait definition passthrough
     (
         $(#[$attribute:meta])* $pub:vis trait $name:ident$(: $super:ident $(+ $supers:ident)*)?
         {$($body:tt)*}
@@ -1040,6 +1043,7 @@ macro_rules! keyword{
         $(;$($cont:tt)*)?
     ) => {
         $(#[$attribute])*
+        // TODO $crate::docgen!{keyword {$($not)?} {$keywords}},
         #[doc = concat!(
              $crate::docgen!{@keyword_header $($not)?},
              $($crate::docgen!{@keyword_doc $keywords}),+
@@ -1179,6 +1183,7 @@ macro_rules! operator{
     // match a single operator! defs with len 1-4
     (@operator $(#[$attribute:meta])* $pub:vis $name:ident = $op:literal) => {
         $(#[$attribute])*
+        // TODO $crate::docgen!{operator $op},
         #[doc = $crate::docgen!{@operator_doc $op}]
         $pub type $name = $crate::Operator<
         {

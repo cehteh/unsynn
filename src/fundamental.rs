@@ -253,6 +253,8 @@ impl<T: Parse> Cached<T> {
     pub fn as_str(&self) -> &str {
         &self.string
     }
+
+    // PLANNED: mutate(&mut self, Fn(&mut String))
 }
 
 impl<T: Parse> Deref for Cached<T> {
