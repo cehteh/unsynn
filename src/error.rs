@@ -242,7 +242,33 @@ impl std::fmt::Display for Error {
     }
 }
 
-/// Pretty printer for Options, either prints None or T without the enclosing Some.
+/// Helper Trait for refining error type names. Every parser type in unsynn eventually tries
+/// to parse one of the fundamental types. When parsing fails then that fundamental type name
+/// is recorded as expected type name of the error. Often this is not desired, a user wants to
+/// know the type of parser that actually failed. Since we don't want to keep a stack/vec of
+/// errors for simplicity and performance reasons we provide a way to register refined type
+/// names in errors. Note that this refinement should only be applied to leaves in the
+/// AST. Refining errors on composed types will lead to unexpected results.
+pub trait RefineErr {
+    /// Refines a errors type name to the type name of `T`.
+    fn refine_err<T>(self) -> Self
+    where
+        Self: Sized;
+}
+
+impl<T> RefineErr for Result<T> {
+    fn refine_err<U>(mut self) -> Self
+    where
+        Self: Sized,
+    {
+        if let Err(ref mut err) = self {
+            err.refined = Some(std::any::type_name::<U>());
+        }
+        self
+    }
+}
+
+/// Pretty printer for Options, either prints `None` or `T` without the enclosing Some.
 struct OptionPP<'a, T>(&'a Option<T>);
 
 impl<T: std::fmt::Debug> std::fmt::Debug for OptionPP<'_, T> {
