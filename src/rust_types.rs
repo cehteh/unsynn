@@ -13,7 +13,7 @@ macro_rules! impl_unsigned_integer {
             impl Parser for $ty {
                 fn parser(tokens: &mut TokenIter) -> Result<Self> {
                     let lit = crate::Cons::<Option<crate::Plus>, LiteralInteger>::parser(tokens)?;
-                    <$ty>::try_from(lit.second.value()).map_err(|e| Error::dynamic(tokens, e))
+                    <$ty>::try_from(lit.second.value()).map_err(|e| Error::dynamic::<Self>(tokens, e))
                 }
             }
 
@@ -39,7 +39,7 @@ macro_rules! impl_signed_integer {
                 fn parser(tokens: &mut TokenIter) -> Result<Self> {
                     let lit = crate::Cons::<Option<crate::Either<crate::Plus, crate::Minus>>, LiteralInteger>::parser(tokens)?;
                     <$ty>::try_from(lit.second.value())
-                    .map_err(|e| Error::dynamic(tokens, e))
+                    .map_err(|e| Error::dynamic::<Self>(tokens, e))
                     .and_then(|value| {
                         match lit.first {
                             Some(crate::Either::Second(_)) => Ok(-value),

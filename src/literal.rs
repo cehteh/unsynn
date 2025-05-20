@@ -61,7 +61,7 @@ impl Parser for LiteralInteger {
         let value = literal
             .to_string()
             .parse()
-            .map_err(|e| Error::dynamic(tokens, e))?;
+            .map_err(|e| Error::dynamic::<Self>(tokens, e))?;
         Ok(Self { literal, value })
     }
 }
