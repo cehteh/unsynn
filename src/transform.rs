@@ -180,7 +180,7 @@ impl<A: ToTokens, B: ToTokens> ToTokens for Swap<A, B> {
 pub struct IntoLiteralString<T>(pub LiteralString, PhantomData<T>);
 
 impl<T: ToTokens> IntoLiteralString<T> {
-    /// Create a IntoLiteralString from an already existing AST.
+    /// Create a `IntoLiteralString` from an already existing AST.
     ///
     /// ```
     /// # use unsynn::*;
@@ -200,6 +200,7 @@ impl<T: ToTokens> IntoLiteralString<T> {
 
     /// Returns the underlying `&str`without its surrounding quotes.
     #[inline]
+    #[must_use]
     pub fn as_str(&self) -> &str {
         self.0.as_str()
     }
@@ -253,7 +254,12 @@ impl<T: Default + ToTokens> Default for IntoLiteralString<T> {
 pub struct IntoIdent<T>(pub CachedIdent, PhantomData<T>);
 
 impl<T: ToTokens> IntoIdent<T> {
-    /// Create a IntoLiteralString from an already existing AST.
+    /// Create a `IntoLiteralString` from an already existing AST.
+    ///
+    /// # Errors
+    ///
+    /// This function returns an error when the provided data cannot be parsed as an
+    /// identifier.
     ///
     /// ```
     /// # use unsynn::*;
@@ -272,6 +278,7 @@ impl<T: ToTokens> IntoIdent<T> {
 
     /// Returns the underlying `&str`without its surrounding quotes.
     #[inline]
+    #[must_use]
     pub fn as_str(&self) -> &str {
         self.0.as_str()
     }

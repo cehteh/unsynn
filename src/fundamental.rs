@@ -224,6 +224,9 @@ impl<T: Parse> Cached<T> {
 
     /// Creates a new `Cached<T>` from a owned `String`.
     ///
+    /// # Errors
+    ///
+    /// Returns `Err` when `s` can't be parsed.
     ///
     /// # Example
     ///
@@ -232,7 +235,6 @@ impl<T: Parse> Cached<T> {
     /// let cached_ident = Cached::<Ident>::from_string("ident".into()).unwrap();
     /// assert!(cached_ident == "ident");
     /// ```
-    #[must_use]
     pub fn from_string(s: String) -> Result<Self> {
         let value = s.into_token_iter().parse()?;
         Ok(Self { value, string: s })

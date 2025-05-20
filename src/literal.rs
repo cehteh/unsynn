@@ -300,7 +300,7 @@ impl LiteralString {
     #[allow(clippy::should_implement_trait)]
     pub fn from_str(string: &str) -> Self {
         let value = format!(r#""{string}""#);
-        let literal = Literal::string(&string);
+        let literal = Literal::string(string);
         Self { literal, value }
     }
 
