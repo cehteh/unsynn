@@ -13,7 +13,9 @@
 #[cfg(doc)]
 use crate::*;
 
-use crate::{Error, Literal, Parse, Parser, Result, ToTokens, TokenIter, TokenStream, TokenTree};
+use crate::{
+    Error, Literal, Parse, Parser, RefineErr, Result, ToTokens, TokenIter, TokenStream, TokenTree,
+};
 
 /// A simple unsigned 128 bit integer. This is the most simple form to parse integers. Note
 /// that only decimal integers without any other characters, signs or suffixes are supported,
@@ -57,7 +59,7 @@ impl LiteralInteger {
 
 impl Parser for LiteralInteger {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        let literal = Literal::parser(tokens)?;
+        let literal = Literal::parser(tokens).refine_err::<Self>()?;
         let value = literal
             .to_string()
             .parse()
@@ -126,6 +128,7 @@ impl<const V: u128> Parser for ConstInteger<V> {
                 Error::unexpected_token(e)
             }
         })
+        .refine_err::<Self>()
     }
 }
 
@@ -181,7 +184,7 @@ impl LiteralCharacter {
 
 impl Parser for LiteralCharacter {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        let literal = Literal::parser(tokens)?;
+        let literal = Literal::parser(tokens).refine_err::<Self>()?;
         let string = literal.to_string();
         let mut chars = string.chars();
         // We only need to to check for first single quote, since the lexer already checked
@@ -254,6 +257,7 @@ impl<const V: char> Parser for ConstCharacter<V> {
                 Error::unexpected_token(e)
             }
         })
+        .refine_err::<Self>()
     }
 }
 
@@ -334,7 +338,7 @@ impl LiteralString {
 
 impl Parser for LiteralString {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        let literal = Literal::parser(tokens)?;
+        let literal = Literal::parser(tokens).refine_err::<Self>()?;
         let string = literal.to_string();
         // The lexer did its job here as well
         if &string[0..1] == "\"" {

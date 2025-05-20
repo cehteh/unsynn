@@ -1,8 +1,8 @@
 //! Parsers for rusts types.
 
 use crate::{
-    Error, Ident, LiteralCharacter, LiteralInteger, Parse, Parser, Result, Span, ToTokens,
-    TokenIter, TokenStream, TokenTree,
+    Error, Ident, LiteralCharacter, LiteralInteger, Parse, Parser, RefineErr, Result, Span,
+    ToTokens, TokenIter, TokenStream, TokenTree,
 };
 
 // Parser and ToTokens for unsigned integer types
@@ -12,7 +12,7 @@ macro_rules! impl_unsigned_integer {
             #[doc = stringify!(Parse $ty may have a positive sign but no suffix)]
             impl Parser for $ty {
                 fn parser(tokens: &mut TokenIter) -> Result<Self> {
-                    let lit = crate::Cons::<Option<crate::Plus>, LiteralInteger>::parser(tokens)?;
+                    let lit = crate::Cons::<Option<crate::Plus>, LiteralInteger>::parser(tokens).refine_err::<Self>()?;
                     <$ty>::try_from(lit.second.value()).map_err(|e| Error::dynamic::<Self>(tokens, e))
                 }
             }
@@ -37,7 +37,7 @@ macro_rules! impl_signed_integer {
             #[doc = stringify!(Parse $ty may have a positive or negative sign but no suffix)]
             impl Parser for $ty {
                 fn parser(tokens: &mut TokenIter) -> Result<Self> {
-                    let lit = crate::Cons::<Option<crate::Either<crate::Plus, crate::Minus>>, LiteralInteger>::parser(tokens)?;
+                    let lit = crate::Cons::<Option<crate::Either<crate::Plus, crate::Minus>>, LiteralInteger>::parser(tokens).refine_err::<Self>()?;
                     <$ty>::try_from(lit.second.value())
                     .map_err(|e| Error::dynamic::<Self>(tokens, e))
                     .and_then(|value| {
@@ -67,7 +67,7 @@ impl_signed_integer! {i8, i16, i32, i64, i128, isize}
 // Parser and ToTokens for char
 impl Parser for char {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        let lit = LiteralCharacter::parser(tokens)?;
+        let lit = LiteralCharacter::parser(tokens).refine_err::<Self>()?;
         Ok(lit.value())
     }
 }
@@ -92,6 +92,7 @@ impl Parser for bool {
                 Error::unexpected_token(tokens)
             }
         })
+        .refine_err::<Self>()
     }
 }
 
@@ -108,7 +109,7 @@ impl ToTokens for bool {
 /// parser significantly.
 impl Parser for String {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        TokenTree::parse_with(tokens, |token, _| Ok(token.to_string()))
+        TokenTree::parse_with(tokens, |token, _| Ok(token.to_string())).refine_err::<Self>()
     }
 }
 

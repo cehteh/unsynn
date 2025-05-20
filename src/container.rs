@@ -3,8 +3,8 @@
 //! for delimited and repeated values with numbered repeats.
 
 use crate::{
-    Colon, Comma, Delimited, Dot, Error, Nothing, Parse, Parser, PathSep, Result, Semicolon,
-    ToTokens, TokenIter, TokenStream,
+    Colon, Comma, Delimited, Dot, Error, Nothing, Parse, Parser, PathSep, RefineErr, Result,
+    Semicolon, ToTokens, TokenIter, TokenStream,
 };
 
 use std::{cell::RefCell, rc::Rc};
@@ -125,7 +125,7 @@ impl<T: Parse> RangedRepeats for Vec<T> {
 /// keep the enum lean. `Box` or `Rc` are required for parsing recursive grammars.
 impl<T: Parse> Parser for Box<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        Ok(Box::new(T::parser(tokens)?))
+        Ok(Box::new(T::parser(tokens).refine_err::<Self>()?))
     }
 }
 
@@ -139,7 +139,7 @@ impl<T: ToTokens> ToTokens for Box<T> {
 /// multiple entities it may be beneficial to use Rc. `Box` or `Rc` are required for parsing recursive grammars.
 impl<T: Parse> Parser for Rc<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        Ok(Rc::new(T::parser(tokens)?))
+        Ok(Rc::new(T::parser(tokens).refine_err::<Self>()?))
     }
 }
 
@@ -153,7 +153,7 @@ impl<T: ToTokens> ToTokens for Rc<T> {
 /// fly.
 impl<T: Parse> Parser for RefCell<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        Ok(RefCell::new(T::parser(tokens)?))
+        Ok(RefCell::new(T::parser(tokens).refine_err::<Self>()?))
     }
 }
 

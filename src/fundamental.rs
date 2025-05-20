@@ -51,7 +51,7 @@ impl TryFrom<TokenStream> for NonEmptyTokenStream {
 
 impl Parser for NonEmptyTokenStream {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        tokens.parse::<Expect<TokenTree>>()?;
+        tokens.parse::<Expect<TokenTree>>().refine_err::<Self>()?;
         // A TokenStream will always match, so we can safely unwrap here.
         #[allow(clippy::unwrap_used)]
         Ok(Self(TokenStream::parser(tokens).unwrap()))
@@ -178,7 +178,7 @@ pub struct Cached<T: Parse> {
 
 impl<T: Parse + ToTokens> Parser for Cached<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        let value = T::parser(tokens)?;
+        let value = T::parser(tokens).refine_err::<Self>()?;
         let string = value.tokens_to_string();
         Ok(Self { value, string })
     }
@@ -319,7 +319,7 @@ impl<T: Parse> TryFrom<String> for Cached<T> {
 
     fn try_from(value: String) -> Result<Self> {
         let mut token_iter = value.into_token_iter();
-        let t = T::parser(&mut token_iter)?;
+        let t = T::parser(&mut token_iter).refine_err::<Self>()?;
         Ok(Self {
             value: t,
             string: value,

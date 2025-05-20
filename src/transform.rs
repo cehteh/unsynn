@@ -25,7 +25,7 @@ pub struct Discard<T>(PhantomData<T>);
 
 impl<T: Parse> Parser for Discard<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        match T::parser(tokens) {
+        match T::parser(tokens).refine_err::<Self>() {
             Ok(_) => Ok(Self(PhantomData)),
             Err(e) => Err(e),
         }
@@ -64,7 +64,7 @@ pub struct Skip<T>(PhantomData<T>);
 
 impl<T: Parse> Parser for Skip<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        T::parser(tokens)?;
+        T::parser(tokens).refine_err::<Self>()?;
         Ok(Self(PhantomData))
     }
 }
@@ -279,7 +279,7 @@ impl<T: ToTokens> IntoIdent<T> {
 
 impl<T: Parse + ToTokens> Parser for IntoIdent<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        let mut string = tokens.parse::<T>()?.tokens_to_string();
+        let mut string = tokens.parse::<T>().refine_err::<Self>()?.tokens_to_string();
         string.retain(|c| c.is_alphanumeric() || c == '_');
         Ok(Self(CachedIdent::from_string(string)?, PhantomData))
     }

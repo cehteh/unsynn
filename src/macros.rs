@@ -1065,10 +1065,10 @@ macro_rules! keyword{
                                 stringify!($name),
                                 ident.as_str(),
                                 ident.span().start()
-                            )
+                            ),
                         )
                     }
-                })
+                }).refine_err::<Self>()
             }
         }
 
