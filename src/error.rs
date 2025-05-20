@@ -123,30 +123,19 @@ impl Error {
             pos: at.token_count(),
         }
     }
+
+    /// gives the refined type name of the parser that failed.
+    pub fn expected_type_name(&self) -> &'static str {
+        self.refined.unwrap_or(self.expected)
+    }
+
+    /// gives the original type name of the parser that failed.
+    pub fn expected_original_type_name(&self) -> &'static str {
+        self.expected
+    }
 }
 
 impl std::error::Error for Error {}
-
-/// Pretty printer for Options, either prints None or T without the enclosing Some.
-struct OptionPP<'a, T>(&'a Option<T>);
-
-impl<T: std::fmt::Debug> std::fmt::Debug for OptionPP<'_, T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match &self.0 {
-            Some(value) => write!(f, "{value:?}"),
-            None => write!(f, "None"),
-        }
-    }
-}
-
-impl<T: std::fmt::Display> std::fmt::Display for OptionPP<'_, T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match &self.0 {
-            Some(value) => write!(f, "{value}"),
-            None => write!(f, "None"),
-        }
-    }
-}
 
 impl std::fmt::Debug for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -158,7 +147,7 @@ impl std::fmt::Debug for Error {
                 write!(
                     f,
                     "Unexpected token: expected {}, found {:?} at {:?}",
-                    self.refined.unwrap_or(self.expected),
+                    self.expected_type_name(),
                     OptionPP(&self.at),
                     OptionPP(
                         &self
@@ -172,7 +161,7 @@ impl std::fmt::Debug for Error {
                 write!(
                     f,
                     "Parser failed: expected {}, because {reason}, found {:?} at {:?}",
-                    self.refined.unwrap_or(self.expected),
+                    self.expected_type_name(),
                     OptionPP(&self.at),
                     OptionPP(
                         &self
@@ -186,7 +175,7 @@ impl std::fmt::Debug for Error {
                 write!(
                     f,
                     "Parser failed: expected {}, because {err}, found {:?} at {:?}",
-                    self.refined.unwrap_or(self.expected),
+                    self.expected_type_name(),
                     OptionPP(&self.at),
                     OptionPP(
                         &self
@@ -211,7 +200,7 @@ impl std::fmt::Display for Error {
                 write!(
                     f,
                     "Unexpected token: expected {}, found {:?} at {:?}",
-                    self.refined.unwrap_or(self.expected),
+                    self.expected_type_name(),
                     OptionPP(&self.at),
                     OptionPP(
                         &self
@@ -225,7 +214,7 @@ impl std::fmt::Display for Error {
                 write!(
                     f,
                     "Parser failed: expected {}, because {reason}, found {:?} at {:?}",
-                    self.refined.unwrap_or(self.expected),
+                    self.expected_type_name(),
                     OptionPP(&self.at),
                     OptionPP(
                         &self
@@ -239,7 +228,7 @@ impl std::fmt::Display for Error {
                 write!(
                     f,
                     "Parser failed: expected {}, because {err}, found {:?} at {:?}",
-                    self.refined.unwrap_or(self.expected),
+                    self.expected_type_name(),
                     OptionPP(&self.at),
                     OptionPP(
                         &self
@@ -249,6 +238,27 @@ impl std::fmt::Display for Error {
                     )
                 )
             }
+        }
+    }
+}
+
+/// Pretty printer for Options, either prints None or T without the enclosing Some.
+struct OptionPP<'a, T>(&'a Option<T>);
+
+impl<T: std::fmt::Debug> std::fmt::Debug for OptionPP<'_, T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self.0 {
+            Some(value) => write!(f, "{value:?}"),
+            None => write!(f, "None"),
+        }
+    }
+}
+
+impl<T: std::fmt::Display> std::fmt::Display for OptionPP<'_, T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self.0 {
+            Some(value) => write!(f, "{value}"),
+            None => write!(f, "None"),
         }
     }
 }
