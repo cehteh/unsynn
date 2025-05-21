@@ -3,12 +3,12 @@
 
 use unsynn::*;
 
-static CODE: &str = r#"
+static CODE: &str = r"
 first line
 // comment
     {fourth line}
 end
-"#;
+";
 
 unsynn! {
     struct SomeCode {

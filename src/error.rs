@@ -139,25 +139,30 @@ impl Error {
     }
 
     /// Returns the refined type name of the parser that failed.
+    #[must_use]
     pub fn expected_type_name(&self) -> &'static str {
         self.refined.unwrap_or(self.expected)
     }
 
     /// Returns the original/fundamental type name of the parser that failed.
-    pub fn expected_original_type_name(&self) -> &'static str {
+    #[must_use]
+    pub const fn expected_original_type_name(&self) -> &'static str {
         self.expected
     }
 
     /// Returns a `Option<TokenTree>` where the error happend.
+    #[must_use]
     pub fn failed_at(&self) -> Option<TokenTree> {
         self.at.clone()
     }
 
     /// Returns a iterator to the tokens after the error
+    #[must_use]
+    #[allow(clippy::missing_panics_doc)]
     pub fn tokens_after(&self) -> TokenIter {
         let mut tokens =
             TokenIter::new(self.after.clone().unwrap_or(TokenStream::new().into_iter()));
-        tokens.add(self.pos as isize + 1);
+        tokens.add((self.pos + 1).try_into().expect("to many tokens"));
         tokens
     }
 }
@@ -248,6 +253,7 @@ impl std::fmt::Display for Error {
 /// AST. Refining errors on composed types will lead to unexpected results.
 pub trait RefineErr {
     /// Refines a errors type name to the type name of `T`.
+    #[must_use]
     fn refine_err<T>(self) -> Self
     where
         Self: Sized;
