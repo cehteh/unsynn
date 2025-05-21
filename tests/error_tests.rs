@@ -80,6 +80,8 @@ fn test_error_upgrade() {
     let _ = err.upgrade(result1).expect_err("should be an error");
     assert_eq!(err.to_string(), err1_str);
 
+    let pos = err.pos();
+
     // Advance counter by consuming a token
     tokens.next();
 
@@ -90,6 +92,8 @@ fn test_error_upgrade() {
         .upgrade(result2.clone())
         .expect_err("should be an error");
     assert_eq!(err.to_string(), err2_str);
+
+    assert!(err.pos() > pos);
 
     // Earlier position error should not replace later error
     let _ = err

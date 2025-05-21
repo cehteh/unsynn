@@ -286,6 +286,18 @@ impl<T: std::fmt::Display> std::fmt::Display for OptionPP<'_, T> {
     }
 }
 
+#[test]
+fn test_optionpp() {
+    let none = format!("{}", OptionPP::<i32>(&None));
+    assert_eq!(none, "None");
+    let populated = format!("{}", OptionPP(&Some(42)));
+    assert_eq!(populated, "42");
+    let none = format!("{:?}", OptionPP::<i32>(&None));
+    assert_eq!(none, "None");
+    let populated = format!("{:?}", OptionPP(&Some(42)));
+    assert_eq!(populated, "42");
+}
+
 /// We track the position of the error by counting tokens. This trait is implemented for
 /// references to shadow counted `TokenIter`, and `usize`. The later allows to pass in a
 /// position directly or use `usize::MAX` in case no position data is available (which will

@@ -53,4 +53,6 @@ fn test_parse_fail_check_span() {
     );
     assert_eq!(err.failed_at().map(|t| t.span().start().line), Some(4));
     assert_eq!(err.failed_at().map(|t| t.span().start().column), Some(4));
+
+    assert_eq!(err.tokens_after().counter(), 4);
 }
