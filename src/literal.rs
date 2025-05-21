@@ -59,11 +59,12 @@ impl LiteralInteger {
 
 impl Parser for LiteralInteger {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        let at = tokens.clone().next();
         let literal = Literal::parser(tokens).refine_err::<Self>()?;
         let value = literal
             .to_string()
             .parse()
-            .map_err(|e| Error::dynamic::<Self>(tokens, e))?;
+            .map_err(|e| Error::dynamic::<Self>(at, tokens, e))?;
         Ok(Self { literal, value })
     }
 }
@@ -121,11 +122,12 @@ impl<const V: u128> ConstInteger<V> {
 
 impl<const V: u128> Parser for ConstInteger<V> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        let at = tokens.clone().next();
         Parse::parse_with(tokens, |this: LiteralInteger, e| {
             if this.value == V {
                 Ok(Self(this))
             } else {
-                Error::unexpected_token(e)
+                Error::unexpected_token(at, e)
             }
         })
         .refine_err::<Self>()
@@ -184,6 +186,7 @@ impl LiteralCharacter {
 
 impl Parser for LiteralCharacter {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        let at = tokens.clone().next();
         let literal = Literal::parser(tokens).refine_err::<Self>()?;
         let string = literal.to_string();
         let mut chars = string.chars();
@@ -192,7 +195,7 @@ impl Parser for LiteralCharacter {
         if let (Some('\''), Some(value)) = (chars.next(), chars.next()) {
             Ok(Self { literal, value })
         } else {
-            Error::unexpected_token(tokens)
+            Error::unexpected_token(at, tokens)
         }
     }
 }
@@ -250,11 +253,12 @@ impl<const V: char> ConstCharacter<V> {
 
 impl<const V: char> Parser for ConstCharacter<V> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        let at = tokens.clone().next();
         Parse::parse_with(tokens, |this: LiteralCharacter, e| {
             if this.value == V {
                 Ok(Self(this))
             } else {
-                Error::unexpected_token(e)
+                Error::unexpected_token(at, e)
             }
         })
         .refine_err::<Self>()
@@ -338,6 +342,7 @@ impl LiteralString {
 
 impl Parser for LiteralString {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        let at = tokens.clone().next();
         let literal = Literal::parser(tokens).refine_err::<Self>()?;
         let string = literal.to_string();
         // The lexer did its job here as well
@@ -347,7 +352,7 @@ impl Parser for LiteralString {
                 value: string,
             })
         } else {
-            Error::unexpected_token(tokens)
+            Error::unexpected_token(at, tokens)
         }
     }
 }

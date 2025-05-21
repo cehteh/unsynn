@@ -96,7 +96,7 @@ impl Parser for Group {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(TokenTree::Group(group)) => Ok(group),
-            _ => Error::unexpected_token(tokens),
+            at => Error::unexpected_token(at, tokens),
         }
     }
 }
@@ -112,7 +112,7 @@ impl Parser for Ident {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(TokenTree::Ident(ident)) => Ok(ident),
-            _ => Error::unexpected_token(tokens),
+            at => Error::unexpected_token(at, tokens),
         }
     }
 }
@@ -128,7 +128,7 @@ impl Parser for Punct {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(TokenTree::Punct(punct)) => Ok(punct),
-            _ => Error::unexpected_token(tokens),
+            at => Error::unexpected_token(at, tokens),
         }
     }
 }
@@ -144,7 +144,7 @@ impl Parser for Literal {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(TokenTree::Literal(literal)) => Ok(literal),
-            _ => Error::unexpected_token(tokens),
+            at => Error::unexpected_token(at, tokens),
         }
     }
 }
@@ -382,7 +382,7 @@ pub struct Invalid;
 
 impl Parser for Invalid {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        Error::unexpected_token(tokens)
+        Error::unexpected_token(None, tokens)
     }
 }
 
@@ -412,7 +412,7 @@ impl<T: Parse> Parser for Except<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let mut ptokens = tokens.clone();
         match T::parser(&mut ptokens) {
-            Ok(_) => Error::unexpected_token(tokens),
+            Ok(_) => Error::unexpected_token(tokens.clone().next(), tokens),
             Err(_) => Ok(Self(PhantomData)),
         }
     }
@@ -489,7 +489,7 @@ impl Parser for EndOfStream {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             None => Ok(Self),
-            _ => Error::unexpected_token(tokens),
+            at => Error::unexpected_token(at, tokens),
         }
     }
 }

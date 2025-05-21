@@ -1,4 +1,4 @@
-use crate::{TokenIter, TokenStream};
+use crate::{TokenIter, TokenStream, TokenTree};
 use std::sync::Arc;
 
 /// Result type for parsing.
@@ -32,8 +32,9 @@ pub struct Error {
     expected: &'static str,
     /// refines type name for complex parsers
     refined: Option<&'static str>,
+    at: Option<TokenTree>,
     /// Iterator starting at the error
-    at: Option<<TokenStream as IntoIterator>::IntoIter>,
+    after: Option<<TokenStream as IntoIterator>::IntoIter>,
     // ShadowCountedIter position where it happened
     // on disjunct parsers we use this to determine which error to keep
     pos: usize,
@@ -48,6 +49,7 @@ impl Error {
             expected: "<NoError>",
             refined: None,
             at: None,
+            after: None,
             pos: 0,
         }
     }
@@ -77,19 +79,21 @@ impl Error {
         self.pos
     }
 
-    /// Create a `Result<T>::Err(Error{ kind: ErrorKind::Unexpected })` error.
+    /// Create a `Result<T>::Err(Error{ kind: ErrorKind::UnexpectedToken })` error at a token iter position.
+    /// Takes the failed token (if available) and a reference to the `TokenIter` past the error.
     #[allow(clippy::missing_errors_doc)]
-    pub fn unexpected_token<T>(at: &TokenIter) -> Result<T> {
+    pub fn unexpected_token<T>(at: Option<TokenTree>, after: &TokenIter) -> Result<T> {
         Err(Error {
             kind: ErrorKind::UnexpectedToken,
             expected: std::any::type_name::<T>(),
             refined: None,
-            at: Some(at.clone().into_inner_iter()),
-            pos: at.token_count(),
+            at,
+            after: Some(after.clone().into_inner_iter()),
+            pos: after.token_count(),
         })
     }
 
-    /// Create a `Result<T>::Err(Error{ kind: ErrorKind::UnexpectedEnd })` error.
+    /// Create a `Result<T>::Err(Error{ kind: ErrorKind::UnexpectedToken })` error without a token iter.
     #[allow(clippy::missing_errors_doc)]
     pub fn unexpected_end<T>() -> Result<T> {
         Err(Error {
@@ -97,41 +101,64 @@ impl Error {
             expected: std::any::type_name::<T>(),
             refined: None,
             at: None,
+            after: None,
             pos: usize::MAX,
         })
     }
 
-    /// Create a `Result<T>::Err(Error{ kind: ErrorKind::Other })` error.
+    /// Create a `Result<T>::Err(Error{ kind: ErrorKind::Other })` error.  Takes the failed
+    /// token (if available), a reference to the `TokenIter` past the error and a `String`
+    /// describing the error.
     #[allow(clippy::missing_errors_doc)]
-    pub fn other<T>(at: &TokenIter, reason: String) -> Result<T> {
+    pub fn other<T>(at: Option<TokenTree>, after: &TokenIter, reason: String) -> Result<T> {
         Err(Error {
             kind: ErrorKind::Other { reason },
             expected: std::any::type_name::<T>(),
             refined: None,
-            at: Some(at.clone().into_inner_iter()),
-            pos: at.token_count(),
+            at,
+            after: Some(after.clone().into_inner_iter()),
+            pos: after.token_count(),
         })
     }
 
-    /// Create a `Error::Dynamic` error.
-    pub fn dynamic<T>(at: &TokenIter, err: impl std::error::Error + 'static) -> Self {
+    /// Create a `Error::Dynamic` error. Takes the failed token (if available), a reference to
+    /// the `TokenIter` past the error and a `impl Error` describing the error.
+    pub fn dynamic<T>(
+        at: Option<TokenTree>,
+        after: &TokenIter,
+        err: impl std::error::Error + 'static,
+    ) -> Self {
         Error {
             kind: ErrorKind::Dynamic(Arc::new(err)),
             expected: std::any::type_name::<T>(),
             refined: None,
-            at: Some(at.clone().into_inner_iter()),
-            pos: at.token_count(),
+            at,
+            after: Some(after.clone().into_inner_iter()),
+            pos: after.token_count(),
         }
     }
 
-    /// gives the refined type name of the parser that failed.
+    /// Returns the refined type name of the parser that failed.
     pub fn expected_type_name(&self) -> &'static str {
         self.refined.unwrap_or(self.expected)
     }
 
-    /// gives the original type name of the parser that failed.
+    /// Returns the original/fundamental type name of the parser that failed.
     pub fn expected_original_type_name(&self) -> &'static str {
         self.expected
+    }
+
+    /// Returns a `Option<TokenTree>` where the error happend.
+    pub fn failed_at(&self) -> Option<TokenTree> {
+        self.at.clone()
+    }
+
+    /// Returns a iterator to the tokens after the error
+    pub fn tokens_after(&self) -> TokenIter {
+        let mut tokens =
+            TokenIter::new(self.after.clone().unwrap_or(TokenStream::new().into_iter()));
+        tokens.add(self.pos as isize + 1);
+        tokens
     }
 }
 
@@ -149,12 +176,7 @@ impl std::fmt::Debug for Error {
                     "Unexpected token: expected {}, found {:?} at {:?}",
                     self.expected_type_name(),
                     OptionPP(&self.at),
-                    OptionPP(
-                        &self
-                            .at
-                            .clone()
-                            .map(|mut f| f.next().map(|s| s.span().start()))
-                    )
+                    OptionPP(&self.at.as_ref().map(|s| s.span().start()))
                 )
             }
             ErrorKind::Other { reason } => {
@@ -163,12 +185,7 @@ impl std::fmt::Debug for Error {
                     "Parser failed: expected {}, because {reason}, found {:?} at {:?}",
                     self.expected_type_name(),
                     OptionPP(&self.at),
-                    OptionPP(
-                        &self
-                            .at
-                            .clone()
-                            .map(|mut f| f.next().map(|s| s.span().start()))
-                    )
+                    OptionPP(&self.at.as_ref().map(|s| s.span().start()))
                 )
             }
             ErrorKind::Dynamic(err) => {
@@ -177,12 +194,7 @@ impl std::fmt::Debug for Error {
                     "Parser failed: expected {}, because {err}, found {:?} at {:?}",
                     self.expected_type_name(),
                     OptionPP(&self.at),
-                    OptionPP(
-                        &self
-                            .at
-                            .clone()
-                            .map(|mut f| f.next().map(|s| s.span().start()))
-                    )
+                    OptionPP(&self.at.as_ref().map(|s| s.span().start()))
                 )
             }
         }
@@ -202,12 +214,7 @@ impl std::fmt::Display for Error {
                     "Unexpected token: expected {}, found {:?} at {:?}",
                     self.expected_type_name(),
                     OptionPP(&self.at),
-                    OptionPP(
-                        &self
-                            .at
-                            .clone()
-                            .map(|mut f| f.next().map(|s| s.span().start()))
-                    )
+                    OptionPP(&self.at.as_ref().map(|s| s.span().start()))
                 )
             }
             ErrorKind::Other { reason } => {
@@ -216,12 +223,7 @@ impl std::fmt::Display for Error {
                     "Parser failed: expected {}, because {reason}, found {:?} at {:?}",
                     self.expected_type_name(),
                     OptionPP(&self.at),
-                    OptionPP(
-                        &self
-                            .at
-                            .clone()
-                            .map(|mut f| f.next().map(|s| s.span().start()))
-                    )
+                    OptionPP(&self.at.as_ref().map(|s| s.span().start()))
                 )
             }
             ErrorKind::Dynamic(err) => {
@@ -230,12 +232,7 @@ impl std::fmt::Display for Error {
                     "Parser failed: expected {}, because {err}, found {:?} at {:?}",
                     self.expected_type_name(),
                     OptionPP(&self.at),
-                    OptionPP(
-                        &self
-                            .at
-                            .clone()
-                            .map(|mut f| f.next().map(|s| s.span().start()))
-                    )
+                    OptionPP(&self.at.as_ref().map(|s| s.span().start()))
                 )
             }
         }

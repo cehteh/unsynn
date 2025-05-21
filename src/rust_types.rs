@@ -12,8 +12,9 @@ macro_rules! impl_unsigned_integer {
             #[doc = stringify!(Parse $ty may have a positive sign but no suffix)]
             impl Parser for $ty {
                 fn parser(tokens: &mut TokenIter) -> Result<Self> {
+                    let at = tokens.clone().next();
                     let lit = crate::Cons::<Option<crate::Plus>, LiteralInteger>::parser(tokens).refine_err::<Self>()?;
-                    <$ty>::try_from(lit.second.value()).map_err(|e| Error::dynamic::<Self>(tokens, e))
+                    <$ty>::try_from(lit.second.value()).map_err(|e| Error::dynamic::<Self>(at, tokens, e))
                 }
             }
 
@@ -37,9 +38,10 @@ macro_rules! impl_signed_integer {
             #[doc = stringify!(Parse $ty may have a positive or negative sign but no suffix)]
             impl Parser for $ty {
                 fn parser(tokens: &mut TokenIter) -> Result<Self> {
+                    let at = tokens.clone().next();
                     let lit = crate::Cons::<Option<crate::Either<crate::Plus, crate::Minus>>, LiteralInteger>::parser(tokens).refine_err::<Self>()?;
                     <$ty>::try_from(lit.second.value())
-                    .map_err(|e| Error::dynamic::<Self>(tokens, e))
+                    .map_err(|e| Error::dynamic::<Self>(at, tokens, e))
                     .and_then(|value| {
                         match lit.first {
                             Some(crate::Either::Second(_)) => Ok(-value),
@@ -83,13 +85,14 @@ impl ToTokens for char {
 /// Only `true` and `false` are valid boolean values.
 impl Parser for bool {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        let at = tokens.clone().next();
         Ident::parse_with(tokens, |ident, tokens| {
             if ident == "true" {
                 Ok(true)
             } else if ident == "false" {
                 Ok(false)
             } else {
-                Error::unexpected_token(tokens)
+                Error::unexpected_token(at, tokens)
             }
         })
         .refine_err::<Self>()
