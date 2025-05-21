@@ -21,7 +21,7 @@ fn test_error_set_pos() {
 }
 
 #[test]
-#[should_panic = "found TokenStream [] at None"]
+#[should_panic = "found None at None"]
 fn test_error_unexpected_end() {
     let mut token_iter = "".to_token_iter();
 
@@ -75,7 +75,7 @@ fn test_error_upgrade() {
     let mut tokens = "a b c".to_token_iter();
 
     // Create first error at initial position
-    let result1: Result<Punct> = Error::unexpected_token(&tokens);
+    let result1: Result<Punct> = Error::unexpected_token(None, &tokens);
     let err1_str = result1.as_ref().unwrap_err().to_string();
     let _ = err.upgrade(result1).expect_err("should be an error");
     assert_eq!(err.to_string(), err1_str);
@@ -84,7 +84,7 @@ fn test_error_upgrade() {
     tokens.next();
 
     // Second error at later position should replace first error
-    let result2: Result<Punct> = Error::unexpected_token(&tokens);
+    let result2: Result<Punct> = Error::unexpected_token(None, &tokens);
     let err2_str = result2.as_ref().unwrap_err().to_string();
     let _ = err
         .upgrade(result2.clone())
@@ -93,7 +93,7 @@ fn test_error_upgrade() {
 
     // Earlier position error should not replace later error
     let _ = err
-        .upgrade::<Punct>(Error::unexpected_token(&tokens))
+        .upgrade::<Punct>(Error::unexpected_token(None, &tokens))
         .expect_err("should be an error");
     assert_eq!(err.to_string(), err2_str);
 }

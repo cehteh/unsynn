@@ -13,7 +13,9 @@
 #[cfg(doc)]
 use crate::*;
 
-use crate::{Error, Literal, Parse, Parser, Result, ToTokens, TokenIter, TokenStream, TokenTree};
+use crate::{
+    Error, Literal, Parse, Parser, RefineErr, Result, ToTokens, TokenIter, TokenStream, TokenTree,
+};
 
 /// A simple unsigned 128 bit integer. This is the most simple form to parse integers. Note
 /// that only decimal integers without any other characters, signs or suffixes are supported,
@@ -57,11 +59,12 @@ impl LiteralInteger {
 
 impl Parser for LiteralInteger {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        let literal = Literal::parser(tokens)?;
+        let at = tokens.clone().next();
+        let literal = Literal::parser(tokens).refine_err::<Self>()?;
         let value = literal
             .to_string()
             .parse()
-            .map_err(|e| Error::dynamic(tokens, e))?;
+            .map_err(|e| Error::dynamic::<Self>(at, tokens, e))?;
         Ok(Self { literal, value })
     }
 }
@@ -119,13 +122,15 @@ impl<const V: u128> ConstInteger<V> {
 
 impl<const V: u128> Parser for ConstInteger<V> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        let at = tokens.clone().next();
         Parse::parse_with(tokens, |this: LiteralInteger, e| {
             if this.value == V {
                 Ok(Self(this))
             } else {
-                Error::unexpected_token(e)
+                Error::unexpected_token(at, e)
             }
         })
+        .refine_err::<Self>()
     }
 }
 
@@ -181,7 +186,8 @@ impl LiteralCharacter {
 
 impl Parser for LiteralCharacter {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        let literal = Literal::parser(tokens)?;
+        let at = tokens.clone().next();
+        let literal = Literal::parser(tokens).refine_err::<Self>()?;
         let string = literal.to_string();
         let mut chars = string.chars();
         // We only need to to check for first single quote, since the lexer already checked
@@ -189,7 +195,7 @@ impl Parser for LiteralCharacter {
         if let (Some('\''), Some(value)) = (chars.next(), chars.next()) {
             Ok(Self { literal, value })
         } else {
-            Error::unexpected_token(tokens)
+            Error::unexpected_token(at, tokens)
         }
     }
 }
@@ -247,13 +253,15 @@ impl<const V: char> ConstCharacter<V> {
 
 impl<const V: char> Parser for ConstCharacter<V> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        let at = tokens.clone().next();
         Parse::parse_with(tokens, |this: LiteralCharacter, e| {
             if this.value == V {
                 Ok(Self(this))
             } else {
-                Error::unexpected_token(e)
+                Error::unexpected_token(at, e)
             }
         })
+        .refine_err::<Self>()
     }
 }
 
@@ -334,7 +342,8 @@ impl LiteralString {
 
 impl Parser for LiteralString {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        let literal = Literal::parser(tokens)?;
+        let at = tokens.clone().next();
+        let literal = Literal::parser(tokens).refine_err::<Self>()?;
         let string = literal.to_string();
         // The lexer did its job here as well
         if &string[0..1] == "\"" {
@@ -343,7 +352,7 @@ impl Parser for LiteralString {
                 value: string,
             })
         } else {
-            Error::unexpected_token(tokens)
+            Error::unexpected_token(at, tokens)
         }
     }
 }

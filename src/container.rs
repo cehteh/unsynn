@@ -3,8 +3,8 @@
 //! for delimited and repeated values with numbered repeats.
 
 use crate::{
-    Colon, Comma, Delimited, Dot, Error, Nothing, Parse, Parser, PathSep, Result, Semicolon,
-    ToTokens, TokenIter, TokenStream,
+    Colon, Comma, Delimited, Dot, Error, Nothing, Parse, Parser, PathSep, RefineErr, Result,
+    Semicolon, ToTokens, TokenIter, TokenStream,
 };
 
 use std::{cell::RefCell, rc::Rc};
@@ -101,7 +101,9 @@ pub trait RangedRepeats: Sized {
 impl<T: Parse> RangedRepeats for Vec<T> {
     fn parse_repeats(tokens: &mut TokenIter, min: usize, max: usize) -> Result<Self> {
         let mut output = Vec::with_capacity(min);
+        let mut at = tokens.clone().next();
         for _ in 0..max {
+            at = tokens.clone().next();
             if let Ok(value) = T::parse(tokens) {
                 output.push(value);
             } else {
@@ -113,6 +115,7 @@ impl<T: Parse> RangedRepeats for Vec<T> {
             Ok(output)
         } else {
             Error::other(
+                at,
                 tokens,
                 format!("less than {} elements, got {}", min, output.len()),
             )
@@ -125,7 +128,7 @@ impl<T: Parse> RangedRepeats for Vec<T> {
 /// keep the enum lean. `Box` or `Rc` are required for parsing recursive grammars.
 impl<T: Parse> Parser for Box<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        Ok(Box::new(T::parser(tokens)?))
+        Ok(Box::new(T::parser(tokens).refine_err::<Self>()?))
     }
 }
 
@@ -139,7 +142,7 @@ impl<T: ToTokens> ToTokens for Box<T> {
 /// multiple entities it may be beneficial to use Rc. `Box` or `Rc` are required for parsing recursive grammars.
 impl<T: Parse> Parser for Rc<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        Ok(Rc::new(T::parser(tokens)?))
+        Ok(Rc::new(T::parser(tokens).refine_err::<Self>()?))
     }
 }
 
@@ -153,7 +156,7 @@ impl<T: ToTokens> ToTokens for Rc<T> {
 /// fly.
 impl<T: Parse> Parser for RefCell<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        Ok(RefCell::new(T::parser(tokens)?))
+        Ok(RefCell::new(T::parser(tokens).refine_err::<Self>()?))
     }
 }
 
@@ -212,12 +215,15 @@ impl<T: ToTokens, S: ToTokens> ToTokens for LazyVec<T, S> {
 impl<T: Parse, S: Parse> RangedRepeats for LazyVec<T, S> {
     fn parse_repeats(tokens: &mut TokenIter, min: usize, max: usize) -> Result<Self> {
         let mut vec = Vec::with_capacity(min);
+        let mut at = tokens.clone().next();
         for _ in 0..max {
+            at = tokens.clone().next();
             if let Ok(terminator) = S::parse(tokens) {
                 return if vec.len() >= min {
                     Ok(Self { vec, terminator })
                 } else {
                     Error::other(
+                        at,
                         tokens,
                         format!("less than {} elements, got {}", min, vec.len()),
                     )
@@ -225,7 +231,7 @@ impl<T: Parse, S: Parse> RangedRepeats for LazyVec<T, S> {
             }
             vec.push(T::parse(tokens)?);
         }
-        Error::other(tokens, format!("more than {max} elements"))
+        Error::other(at, tokens, format!("more than {max} elements"))
     }
 }
 
@@ -293,7 +299,9 @@ impl<T: ToTokens, D: ToTokens> ToTokens for DelimitedVec<T, D> {
 impl<T: Parse, D: Parse> RangedRepeats for DelimitedVec<T, D> {
     fn parse_repeats(tokens: &mut TokenIter, min: usize, max: usize) -> Result<Self> {
         let mut output = Vec::with_capacity(min);
+        let mut at = tokens.clone().next();
         for _ in 0..max {
+            at = tokens.clone().next();
             if let Ok(delimited) = Delimited::<T, D>::parse(tokens) {
                 let done = delimited.delimiter.is_none();
                 output.push(delimited);
@@ -309,6 +317,7 @@ impl<T: Parse, D: Parse> RangedRepeats for DelimitedVec<T, D> {
             Ok(Self(output))
         } else {
             Error::other(
+                at,
                 tokens,
                 format!("less than {} elements, got {}", min, output.len()),
             )
@@ -359,7 +368,9 @@ pub struct Repeats<const MIN: usize, const MAX: usize, T, D = Nothing>(pub Vec<D
 impl<const MIN: usize, const MAX: usize, T: Parse, D: Parse> Parser for Repeats<MIN, MAX, T, D> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let mut output = Vec::new();
+        let mut at = tokens.clone().next();
         while let Ok(delimited) = Delimited::<T, D>::parse(tokens) {
+            at = tokens.clone().next();
             let done = delimited.delimiter.is_none();
             output.push(delimited);
             #[allow(unused_comparisons)]
@@ -373,6 +384,7 @@ impl<const MIN: usize, const MAX: usize, T: Parse, D: Parse> Parser for Repeats<
             Ok(Self(output))
         } else {
             Error::other(
+                at,
                 tokens,
                 format!(
                     "less than MIN Repeats<MIN={MIN}, MAX={MAX}, {}, {}>, got {} repeats",

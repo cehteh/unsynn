@@ -1,8 +1,8 @@
 //! Parsers for rusts types.
 
 use crate::{
-    Error, Ident, LiteralCharacter, LiteralInteger, Parse, Parser, Result, Span, ToTokens,
-    TokenIter, TokenStream, TokenTree,
+    Error, Ident, LiteralCharacter, LiteralInteger, Parse, Parser, RefineErr, Result, Span,
+    ToTokens, TokenIter, TokenStream, TokenTree,
 };
 
 // Parser and ToTokens for unsigned integer types
@@ -12,8 +12,9 @@ macro_rules! impl_unsigned_integer {
             #[doc = stringify!(Parse $ty may have a positive sign but no suffix)]
             impl Parser for $ty {
                 fn parser(tokens: &mut TokenIter) -> Result<Self> {
-                    let lit = crate::Cons::<Option<crate::Plus>, LiteralInteger>::parser(tokens)?;
-                    <$ty>::try_from(lit.second.value()).map_err(|e| Error::dynamic(tokens, e))
+                    let at = tokens.clone().next();
+                    let lit = crate::Cons::<Option<crate::Plus>, LiteralInteger>::parser(tokens).refine_err::<Self>()?;
+                    <$ty>::try_from(lit.second.value()).map_err(|e| Error::dynamic::<Self>(at, tokens, e))
                 }
             }
 
@@ -37,9 +38,10 @@ macro_rules! impl_signed_integer {
             #[doc = stringify!(Parse $ty may have a positive or negative sign but no suffix)]
             impl Parser for $ty {
                 fn parser(tokens: &mut TokenIter) -> Result<Self> {
-                    let lit = crate::Cons::<Option<crate::Either<crate::Plus, crate::Minus>>, LiteralInteger>::parser(tokens)?;
+                    let at = tokens.clone().next();
+                    let lit = crate::Cons::<Option<crate::Either<crate::Plus, crate::Minus>>, LiteralInteger>::parser(tokens).refine_err::<Self>()?;
                     <$ty>::try_from(lit.second.value())
-                    .map_err(|e| Error::dynamic(tokens, e))
+                    .map_err(|e| Error::dynamic::<Self>(at, tokens, e))
                     .and_then(|value| {
                         match lit.first {
                             Some(crate::Either::Second(_)) => Ok(-value),
@@ -67,7 +69,7 @@ impl_signed_integer! {i8, i16, i32, i64, i128, isize}
 // Parser and ToTokens for char
 impl Parser for char {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        let lit = LiteralCharacter::parser(tokens)?;
+        let lit = LiteralCharacter::parser(tokens).refine_err::<Self>()?;
         Ok(lit.value())
     }
 }
@@ -83,15 +85,17 @@ impl ToTokens for char {
 /// Only `true` and `false` are valid boolean values.
 impl Parser for bool {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        let at = tokens.clone().next();
         Ident::parse_with(tokens, |ident, tokens| {
             if ident == "true" {
                 Ok(true)
             } else if ident == "false" {
                 Ok(false)
             } else {
-                Error::unexpected_token(tokens)
+                Error::unexpected_token(at, tokens)
             }
         })
+        .refine_err::<Self>()
     }
 }
 
@@ -108,7 +112,7 @@ impl ToTokens for bool {
 /// parser significantly.
 impl Parser for String {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        TokenTree::parse_with(tokens, |token, _| Ok(token.to_string()))
+        TokenTree::parse_with(tokens, |token, _| Ok(token.to_string())).refine_err::<Self>()
     }
 }
 

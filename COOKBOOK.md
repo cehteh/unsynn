@@ -250,8 +250,8 @@ that is called subsequently tries to `err.upgrade(Item::parser(..))` which handl
 error which made the most progress. Eventually a `Ok(...)` or the upgraded `Err(err)` is
 returned. For details look at the source of [`Either::parser`].
 
-Errors carry a iterator starting at the location where the error happened. This can be used
-for further inspection.
+Errors carry the failed token, the type name that was expected (possibly refined) and a
+iterator past the location where the error happened. This can be used for further inspection.
 
 Some parser types in unsynn are ZST's this means they don't carry the token they parsed and
 consequently the have no `Span` thus the location of an error will be unavailable for them.

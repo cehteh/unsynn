@@ -51,7 +51,7 @@ impl TryFrom<TokenStream> for NonEmptyTokenStream {
 
 impl Parser for NonEmptyTokenStream {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        tokens.parse::<Expect<TokenTree>>()?;
+        tokens.parse::<Expect<TokenTree>>().refine_err::<Self>()?;
         // A TokenStream will always match, so we can safely unwrap here.
         #[allow(clippy::unwrap_used)]
         Ok(Self(TokenStream::parser(tokens).unwrap()))
@@ -96,7 +96,7 @@ impl Parser for Group {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(TokenTree::Group(group)) => Ok(group),
-            _ => Error::unexpected_token(tokens),
+            at => Error::unexpected_token(at, tokens),
         }
     }
 }
@@ -112,7 +112,7 @@ impl Parser for Ident {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(TokenTree::Ident(ident)) => Ok(ident),
-            _ => Error::unexpected_token(tokens),
+            at => Error::unexpected_token(at, tokens),
         }
     }
 }
@@ -128,7 +128,7 @@ impl Parser for Punct {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(TokenTree::Punct(punct)) => Ok(punct),
-            _ => Error::unexpected_token(tokens),
+            at => Error::unexpected_token(at, tokens),
         }
     }
 }
@@ -144,7 +144,7 @@ impl Parser for Literal {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             Some(TokenTree::Literal(literal)) => Ok(literal),
-            _ => Error::unexpected_token(tokens),
+            at => Error::unexpected_token(at, tokens),
         }
     }
 }
@@ -178,7 +178,7 @@ pub struct Cached<T: Parse> {
 
 impl<T: Parse + ToTokens> Parser for Cached<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        let value = T::parser(tokens)?;
+        let value = T::parser(tokens).refine_err::<Self>()?;
         let string = value.tokens_to_string();
         Ok(Self { value, string })
     }
@@ -321,7 +321,7 @@ impl<T: Parse> TryFrom<String> for Cached<T> {
 
     fn try_from(value: String) -> Result<Self> {
         let mut token_iter = value.into_token_iter();
-        let t = T::parser(&mut token_iter)?;
+        let t = T::parser(&mut token_iter).refine_err::<Self>()?;
         Ok(Self {
             value: t,
             string: value,
@@ -384,7 +384,7 @@ pub struct Invalid;
 
 impl Parser for Invalid {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
-        Error::unexpected_token(tokens)
+        Error::unexpected_token(None, tokens)
     }
 }
 
@@ -414,7 +414,7 @@ impl<T: Parse> Parser for Except<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let mut ptokens = tokens.clone();
         match T::parser(&mut ptokens) {
-            Ok(_) => Error::unexpected_token(tokens),
+            Ok(_) => Error::unexpected_token(tokens.clone().next(), tokens),
             Err(_) => Ok(Self(PhantomData)),
         }
     }
@@ -491,7 +491,7 @@ impl Parser for EndOfStream {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         match tokens.next() {
             None => Ok(Self),
-            _ => Error::unexpected_token(tokens),
+            at => Error::unexpected_token(at, tokens),
         }
     }
 }

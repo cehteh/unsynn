@@ -1054,21 +1054,23 @@ macro_rules! keyword{
         impl $crate::Parser for $name {
             fn parser(tokens: &mut $crate::TokenIter) -> $crate::Result<Self> {
                 use $crate::Parse;
+                let at = tokens.clone().next();
                 $crate::CachedIdent::parse_with(tokens, |ident, tokens| {
                     if $($not)? Self::matches(ident.as_str()) {
                         Ok($name(ident))
                     } else {
                         $crate::Error::other::<$name>(
+                            at,
                             tokens,
                             format!(
                                 "keyword for {:?} expected, got {:?} at {:?}",
                                 stringify!($name),
                                 ident.as_str(),
                                 ident.span().start()
-                            )
+                            ),
                         )
                     }
-                })
+                }).refine_err::<Self>()
             }
         }
 

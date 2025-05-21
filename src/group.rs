@@ -33,7 +33,7 @@ macro_rules! make_group {
                         Some(TokenTree::Group(group)) if group.delimiter() == Delimiter::$delimiter => {
                             Ok(Self(group))
                         }
-                        _ => Error::unexpected_token(tokens),
+                        at => Error::unexpected_token(at, tokens),
                     }
                 }
             }
@@ -196,7 +196,7 @@ macro_rules! make_group_containing {
 
                             Ok(Self{content: content.first})
                         }
-                        _ => Error::unexpected_token(tokens),
+                        at => Error::unexpected_token(at, tokens),
                     }
                 }
             }
