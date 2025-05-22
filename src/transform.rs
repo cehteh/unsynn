@@ -314,3 +314,72 @@ impl<T: Default + ToTokens> Default for IntoIdent<T> {
         )
     }
 }
+
+/// Parses `T` and keeps it as opaque `TokenStream`. This is useful when one wants to parse a
+/// sequence of tokens and keep it as opaque unit or re-parse it later as something else.
+///
+///
+/// # Example
+///
+/// ```
+/// # use unsynn::*;
+/// let mut token_iter = "foo 123".to_token_iter();
+///
+/// let parsed = <IntoTokenStream<Cons<Ident, LiteralInteger>>>::parser(&mut token_iter).unwrap();
+/// assert_eq!(parsed.tokens_to_string(), "foo 123".tokens_to_string());
+/// ```
+pub struct IntoTokenStream<T>(pub TokenStream, PhantomData<T>);
+
+impl<T: ToTokens> IntoTokenStream<T> {
+    /// Creates a `IntoTokenStream` from an AST.
+    pub fn from(from: &T) -> Result<Self> {
+        Ok(Self(from.to_token_stream(), PhantomData))
+    }
+}
+
+impl<T> Deref for IntoTokenStream<T> {
+    type Target = TokenStream;
+
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<T: Parse + ToTokens> Parser for IntoTokenStream<T> {
+    fn parser(tokens: &mut TokenIter) -> Result<Self> {
+        let tokenstream = tokens
+            .parse::<T>()
+            .refine_err::<Self>()?
+            .into_token_stream();
+        Ok(Self(tokenstream, PhantomData))
+    }
+}
+
+impl<T: ToTokens> ToTokens for IntoTokenStream<T> {
+    #[inline]
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.0.to_tokens(tokens);
+    }
+}
+
+/// Creates a default constructed `IntoIdent<T>` from `T`
+impl<T: Default + ToTokens> Default for IntoTokenStream<T> {
+    fn default() -> Self {
+        Self(T::default().into_token_stream(), PhantomData)
+    }
+}
+
+/// Parses a `TokenStream` until, but excluding `T`.
+///
+///
+/// # Example
+///
+/// ```
+/// # use unsynn::*;
+/// let mut token_iter = "foo bar baz ;".to_token_iter();
+///
+/// let parsed = <TokenStreamUntil<Semicolon>>::parser(&mut token_iter).unwrap();
+/// assert_eq!(parsed.tokens_to_string(), "foo bar baz".tokens_to_string());
+/// ```
+pub type TokenStreamUntil<T> = IntoTokenStream<Vec<Cons<Except<T>, TokenTree>>>;
