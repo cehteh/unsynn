@@ -180,7 +180,7 @@ impl<A: ToTokens, B: ToTokens> ToTokens for Swap<A, B> {
 pub struct IntoLiteralString<T>(pub LiteralString, PhantomData<T>);
 
 impl<T: ToTokens> IntoLiteralString<T> {
-    /// Create a `IntoLiteralString` from an already existing AST.
+    /// Creates a `IntoLiteralString` from an AST.
     ///
     /// ```
     /// # use unsynn::*;
@@ -254,7 +254,7 @@ impl<T: Default + ToTokens> Default for IntoLiteralString<T> {
 pub struct IntoIdent<T>(pub CachedIdent, PhantomData<T>);
 
 impl<T: ToTokens> IntoIdent<T> {
-    /// Create a `IntoLiteralString` from an already existing AST.
+    /// Creates a `IntoLiteralString` from an AST.
     ///
     /// # Errors
     ///

@@ -243,7 +243,7 @@ returned. Progress is tracked with the `ShadowCountedIter`.  This is implemented
 created with the `unsynn!` macro as well for the `Either::parser()` method.  This covers all
 normal cases.
 
-When one needs to implement disunct parsers manually this has to be taken into account.
+When one needs to implement disjunct parsers manually this has to be taken into account.
 This is then done by creating an [`Error`] with [`ErrorKind::NoError`] by
 `let mut err = Error::no_error()` within the `Parser::parse` implementation. Then any parser
 that is called subsequently tries to `err.upgrade(Item::parser(..))` which handles storing the
