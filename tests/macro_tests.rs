@@ -20,6 +20,14 @@ unsynn! {
         pub content: BracketGroupContaining<C>,
     }
 
+    use std::fmt::Debug;
+    // only default and where clause
+    struct WithDefaultAndWhere<T = usize>
+    where
+        T: Debug + Send
+    {
+        t: T
+    }
 }
 
 // Bug in 0.0.17, parsing Enum::Two consumes the Plus token

@@ -23,7 +23,8 @@ use crate::*;
 /// * structs, enums, types and members can exported with the usual `pub` declarations.
 /// * struct, enum, and type definitions support generics. These generics can include simple
 ///   trait bounds and defaults. The traits for the bounds have to be in scope since for
-///   simplicity only single identifiers are allowed.
+///   simplicity only single identifiers are allowed. These simple trait bounds can be defined
+///   with where-clauses as well. Lifetimes and HRTB are not supported.
 ///
 /// Common for enum and struct variants is that entries are tried in order. Disjunctive for
 /// enums and conjunctive in structures. This makes the order important, e.g. for enums, in
@@ -32,6 +33,7 @@ use crate::*;
 /// Enum variants without any data will never be parsed and will not generate any tokens. For
 /// *parsing* a enum that is optional one can add a variant like `None(Nothing)` at the end
 /// (at the end is important, because Nothing always matches).
+///
 ///
 /// ## Example
 ///
@@ -200,6 +202,8 @@ macro_rules! unsynn{
     (
         $(#[$attribute:meta])* $pub:vis enum $name:ident
         $(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)? $(= $default:ty)?),*$(,)?>)?
+        $(where
+            $($where:ident: $wherebound:ident $(+ $wherebounds:ident)*),*$(,)?)?
         {
             $($variants:tt)*
         }
@@ -211,6 +215,8 @@ macro_rules! unsynn{
             @enum
             $(#[$attribute])* $pub enum $name
             $(<$($generic$(: $constraint $(+ $constraints)*)? $(= $default)?),*>)?
+            $(where
+                $($where: $wherebound $(+ $wherebounds)*),*)?
             {
                 $($variants)*
             }
@@ -218,6 +224,8 @@ macro_rules! unsynn{
         $crate::unsynn!{
             @impl$(<$($generic$(: $constraint $(+ $constraints)*)?),*>)?
             for $name
+            $(where
+                $($where: $wherebound $(+ $wherebounds)*),*)?
             {$({$(#[$tattr])* $trait $bracesemi})*}
         }
         // next item
@@ -226,6 +234,8 @@ macro_rules! unsynn{
     (
         $(#[$attribute:meta])* $pub:vis enum $name:ident
         $(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)? $(= $default:ty)?),*$(,)?>)?
+        $(where
+            $($where:ident: $wherebound:ident $(+ $wherebounds:ident)*),*$(,)?)?
         {
             $($variants:tt)*
         }
@@ -235,6 +245,8 @@ macro_rules! unsynn{
             @enum
             $(#[$attribute])* $pub enum $name
             $(<$($generic$(: $constraint $(+ $constraints)*)? $(= $default)?),*>)?
+            $(where
+                $($where: $wherebound $(+ $wherebounds)*),*)?
             {
                 $($variants)*
             }
@@ -246,6 +258,8 @@ macro_rules! unsynn{
         @enum
         $(#[$attribute:meta])* $pub:vis enum $name:ident
         $(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)? $(= $default:ty)?),*$(,)?>)?
+        $(where
+            $($where:ident: $wherebound:ident $(+ $wherebounds:ident)*),*$(,)?)?
         {
             $($variants:tt)*
         }
@@ -254,12 +268,16 @@ macro_rules! unsynn{
         #[derive(Debug)]
         $(#[$attribute])* $pub enum $name
         $(<$($generic$(: $constraint $(+ $constraints)*)? $(= $default)?),*>)?
+        $(where
+            $($where: $wherebound $(+ $wherebounds)*),*)?
         {
             $($variants)*
         }
 
         impl$(<$($generic: $crate::Parser $(+ $constraint $(+ $constraints)*)?),*>)? $crate::Parser
         for $name$(<$($generic),*>)?
+        $(where
+            $($where: $wherebound $(+ $wherebounds)*),*)?
         {
             fn parser(tokens: &mut TokenIter) -> $crate::Result<Self> {
                 let mut err = Error::no_error();
@@ -272,6 +290,8 @@ macro_rules! unsynn{
 
         impl$(<$($generic: $crate::ToTokens $(+ $constraint $(+ $constraints)*)?),*>)? $crate::ToTokens
         for $name$(< $($generic),* >)?
+        $(where
+            $($where: $wherebound $(+ $wherebounds)*),*)?
         {
             fn to_tokens(&self, tokens: &mut $crate::TokenStream) {
                 $crate::unsynn!{@enum_to_tokens(self, tokens) {$($variants)*}}
@@ -283,6 +303,8 @@ macro_rules! unsynn{
     (
         $(#[$attribute:meta])* $pub:vis struct $name:ident
         $(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)? $(= $default:ty)?),*$(,)?>)?
+        $(where
+            $($where:ident: $wherebound:ident $(+ $wherebounds:ident)*),*$(,)?)?
         {
             $($(#[$mattr:meta])* $mpub:vis $member:ident: $parser:ty),* $(,)?
         }
@@ -294,6 +316,8 @@ macro_rules! unsynn{
             @struct
             $(#[$attribute])* $pub struct $name
             $(<$($generic$(: $constraint $(+ $constraints)*)? $(= $default)?),*>)?
+            $(where
+                $($where: $wherebound $(+ $wherebounds)*),*)?
             {
                 $($(#[$mattr])* $mpub $member: $parser),*
             }
@@ -301,6 +325,8 @@ macro_rules! unsynn{
         $crate::unsynn!{
             @impl$(<$($generic$(: $constraint $(+ $constraints)*)?),*>)?
             for $name
+            $(where
+                $($where: $wherebound $(+ $wherebounds)*),*)?
             {$({$(#[$tattr])* $trait $bracesemi})*}
         }
         // next item
@@ -309,6 +335,8 @@ macro_rules! unsynn{
     (
         $(#[$attribute:meta])* $pub:vis struct $name:ident
         $(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)? $(= $default:ty)?),*$(,)?>)?
+        $(where
+            $($where:ident: $wherebound:ident $(+ $wherebounds:ident)*),*$(,)?)?
         {
             $($(#[$mattr:meta])* $mpub:vis $member:ident: $parser:ty),* $(,)?
         }
@@ -318,6 +346,8 @@ macro_rules! unsynn{
             @struct
             $(#[$attribute])* $pub struct $name
             $(<$($generic$(: $constraint $(+ $constraints)*)? $(= $default)?),*>)?
+            $(where
+                $($where: $wherebound $(+ $wherebounds)*),*)?
             {
                 $($(#[$mattr])* $mpub $member: $parser),*
             }
@@ -329,6 +359,8 @@ macro_rules! unsynn{
         @struct
         $(#[$attribute:meta])* $pub:vis struct $name:ident
         $(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)? $(= $default:ty)?),*$(,)?>)?
+        $(where
+            $($where:ident: $wherebound:ident $(+ $wherebounds:ident)*),*$(,)?)?
         {
             $($(#[$mattr:meta])* $mpub:vis $member:ident: $parser:ty),* $(,)?
         }
@@ -336,6 +368,8 @@ macro_rules! unsynn{
         #[derive(Debug)]
         $(#[$attribute])* $pub struct $name
         $(<$($generic$(: $constraint $(+ $constraints)*)? $(= $default)?),*>)?
+        $(where
+            $($where: $wherebound $(+ $wherebounds)*),*)?
         {
             $(
                 $(#[$mattr])* $mpub $member : $parser
@@ -344,6 +378,8 @@ macro_rules! unsynn{
 
         impl$(<$($generic: $crate::Parser $(+ $constraint $(+ $constraints)*)?),*>)? $crate::Parser
         for $name$(<$($generic),*>)?
+        $(where
+            $($where: $wherebound $(+ $wherebounds)*),*)?
         {
             fn parser(tokens: &mut TokenIter) -> $crate::Result<Self> {
                 Ok(Self{$($member: <$parser>::parser(tokens)?),*})
@@ -352,6 +388,8 @@ macro_rules! unsynn{
 
         impl$(<$($generic: $crate::ToTokens $(+ $constraint $(+ $constraints)*)?),*>)? $crate::ToTokens
         for $name$(<$($generic),*>)?
+        $(where
+            $($where: $wherebound $(+ $wherebounds)*),*)?
         {
             fn to_tokens(&self, tokens: &mut $crate::TokenStream) {
                 $(self.$member.to_tokens(tokens);)*
@@ -366,7 +404,9 @@ macro_rules! unsynn{
         $(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)? $(= $default:ty)?),*$(,)?>)?
         (
             $($(#[$mattr:meta])* $mpub:vis $parser:ty),* $(,)?
-        );
+        )
+        $(where
+            $($where:ident: $wherebound:ident $(+ $wherebounds:ident)*),*$(,)?)?;
         // PLANNED: impl$(<extragenerics: bounds>)* Trait$(<extra>)
         impl {$($(#[$tattr:meta])* $trait:ident $bracesemi:tt)*}
         $($cont:tt)*
@@ -377,11 +417,15 @@ macro_rules! unsynn{
             $(<$($generic$(: $constraint $(+ $constraints)*)? $(= $default)?),*>)?
             (
                 $($(#[$mattr])* $mpub $parser),*
-            );
+            )
+            $(where
+                $($where: $wherebound $(+ $wherebounds)*),*)?;
         }
         $crate::unsynn!{
             @impl$(<$($generic$(: $constraint $(+ $constraints)*)?),*>)?
             for $name
+            $(where
+                $($where: $wherebound $(+ $wherebounds)*),*)?
             {$({$(#[$tattr])* $trait $bracesemi})*}
         }
         $crate::unsynn!{$($cont)*}
@@ -392,7 +436,9 @@ macro_rules! unsynn{
         $(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)? $(= $default:ty)?),*$(,)?>)?
         (
             $($(#[$mattr:meta])* $mpub:vis $parser:ty),* $(,)?
-        );
+        )
+        $(where
+            $($where:ident: $wherebound:ident $(+ $wherebounds:ident)*),*$(,)?)?;
         $($cont:tt)*
     ) => {
         $crate::unsynn!{
@@ -401,7 +447,9 @@ macro_rules! unsynn{
             $(<$($generic$(: $constraint $(+ $constraints)*)? $(= $default)?),*>)?
             (
                 $($(#[$mattr])* $mpub $parser),*
-            );
+            )
+            $(where
+                $($where: $wherebound $(+ $wherebounds)*),*)?;
         }
         $crate::unsynn!{$($cont)*}
     };
@@ -411,15 +459,21 @@ macro_rules! unsynn{
         $(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)? $(= $default:ty)?),*$(,)?>)?
         (
             $($(#[$mattr:meta])* $mpub:vis $parser:ty),* $(,)?
-        );
+        )
+        $(where
+            $($where:ident: $wherebound:ident $(+ $wherebounds:ident)*),*$(,)?)?;
     ) => {
         #[derive(Debug)]
         $(#[$attribute])* $pub struct $name
         $(<$($generic$(: $constraint $(+ $constraints)*)? $(= $default)?),*>)?
-        ($($(#[$mattr])* $mpub $parser),*);
+        ($($(#[$mattr])* $mpub $parser),*)
+        $(where
+            $($where: $wherebound $(+ $wherebounds)*),*)?;
 
         impl$(<$($generic: $crate::Parser $(+ $constraint $(+ $constraints)*)?),*>)? $crate::Parser
         for $name$(<$($generic),*>)?
+        $(where
+            $($where: $wherebound $(+ $wherebounds)*),*)?
         {
             fn parser(tokens: &mut TokenIter) -> $crate::Result<Self> {
                 Ok(Self($(<$parser>::parser(tokens)?),*))
@@ -428,6 +482,8 @@ macro_rules! unsynn{
 
         impl$(<$($generic: $crate::ToTokens $(+ $constraint $(+ $constraints)*)?),*>)? $crate::ToTokens
         for $name$(<$($generic),*>)?
+        $(where
+            $($where: $wherebound $(+ $wherebounds)*),*)?
         {
             fn to_tokens(&self, tokens: &mut $crate::TokenStream) {
                 unsynn! {@tuple_for_each item in self : Self($($parser),*) {
@@ -683,11 +739,16 @@ macro_rules! unsynn{
     (
         @impl$(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)?),*>)?
         for $name:ident
+        $(where
+            $($where:ident: $wherebound:ident $(+ $wherebounds:ident)*),*$(,)?)?
         {{$(#[$tattr:meta])* $trait:ident ;} $($cont:tt)*}
     ) => {
         $(#[$tattr])*
         impl$(<$($generic$(: $constraint $(+ $constraints)*)?),*>)? $trait
-        for $name$(<$($generic),*>)? {}
+        for $name$(<$($generic),*>)?
+        $(where
+            $($where: $wherebound $(+ $wherebounds)*),*)?
+        {}
         $crate::unsynn!{
             @impl$(<$($generic$(: $constraint $(+ $constraints)*)?),*>)?
             for $name
@@ -697,11 +758,16 @@ macro_rules! unsynn{
     (
         @impl$(<$($generic:ident$(: $constraint:ident $(+ $constraints:ident)*)?),*>)?
         for $name:ident
+        $(where
+            $($where:ident: $wherebound:ident $(+ $wherebounds:ident)*),*$(,)?)?
         {{$(#[$tattr:meta])* $trait:ident {$($body:tt)*}} $($cont:tt)*}
     ) => {
         $(#[$tattr])*
         impl$(<$($generic$(: $constraint $(+ $constraints)*)?),*>)? $trait
-        for $name$(<$($generic),*>)? {$($body)*}
+        for $name$(<$($generic),*>)?
+        $(where
+            $($where: $wherebound $(+ $wherebounds)*),*)?
+        {$($body)*}
         $crate::unsynn!{
             @impl$(<$($generic$(: $constraint $(+ $constraints)*)?),*>)?
             for $name
