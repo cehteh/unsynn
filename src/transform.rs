@@ -117,6 +117,15 @@ impl<T> Deref for Insert<T> {
     }
 }
 
+#[mutants::skip]
+impl<T: std::fmt::Debug> std::fmt::Debug for Insert<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple(&format!("Insert<{}>", std::any::type_name::<T>()))
+            .field(&self.0)
+            .finish()
+    }
+}
+
 /// Tries to parse a `T` or inserts a `D` when that fails.
 ///
 /// # Example
@@ -141,6 +150,7 @@ pub type OrDefault<T, D> = Either<T, Insert<D>>;
 /// let parsed = <Swap<Ident, Ident>>::parser(&mut token_iter).unwrap();
 /// assert_eq!(parsed.tokens_to_string(), "bar foo".tokens_to_string());
 /// ```
+#[derive(Debug)]
 pub struct Swap<A, B>(pub B, pub A);
 
 impl<A: Parse, B: Parse> Parser for Swap<A, B> {
@@ -177,6 +187,7 @@ impl<A: ToTokens, B: ToTokens> ToTokens for Swap<A, B> {
 /// let default = <IntoLiteralString<Cons<Foo, ConstInteger<1234>>>>::default();
 /// assert_eq!(default.tokens_to_string(), r#" "foo 1234" "#.tokens_to_string());
 /// ```
+#[derive(Debug)]
 pub struct IntoLiteralString<T>(pub LiteralString, PhantomData<T>);
 
 impl<T: ToTokens> IntoLiteralString<T> {
@@ -251,6 +262,7 @@ impl<T: Default + ToTokens> Default for IntoLiteralString<T> {
 /// let default = <IntoIdent<Cons<Foo, ConstInteger<1234>>>>::default();
 /// assert_eq!(default.tokens_to_string(), "foo1234".tokens_to_string());
 /// ```
+#[derive(Debug)]
 pub struct IntoIdent<T>(pub CachedIdent, PhantomData<T>);
 
 impl<T: ToTokens> IntoIdent<T> {
@@ -328,6 +340,7 @@ impl<T: Default + ToTokens> Default for IntoIdent<T> {
 /// let parsed = <IntoTokenStream<Cons<Ident, LiteralInteger>>>::parser(&mut token_iter).unwrap();
 /// assert_eq!(parsed.tokens_to_string(), "foo 123".tokens_to_string());
 /// ```
+#[derive(Debug)]
 pub struct IntoTokenStream<T>(pub TokenStream, PhantomData<T>);
 
 impl<T: ToTokens> IntoTokenStream<T> {
