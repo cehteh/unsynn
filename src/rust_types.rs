@@ -136,3 +136,19 @@ impl ToTokens for &str {
         tokens.extend(ts);
     }
 }
+
+/// `PhantomData` behaves like `Nothing` it doesn't parse anything and doesnt emit tokens.
+impl<T> Parser for std::marker::PhantomData<T> {
+    #[inline]
+    #[mutants::skip]
+    fn parser(_tokens: &mut TokenIter) -> Result<Self> {
+        Ok(Self)
+    }
+}
+
+impl<T> ToTokens for std::marker::PhantomData<T> {
+    #[inline]
+    fn to_tokens(&self, _tokens: &mut TokenStream) {
+        /*NOP*/
+    }
+}
