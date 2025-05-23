@@ -383,16 +383,17 @@ impl<T: Default + ToTokens> Default for IntoTokenStream<T> {
     }
 }
 
-/// Parses a `TokenStream` until, but excluding `T`.
+/// Parses a `TokenStream` until, but excluding `T`. The presence of `T` is mandatory.
 ///
 ///
 /// # Example
 ///
 /// ```
 /// # use unsynn::*;
-/// let mut token_iter = "foo bar baz ;".to_token_iter();
+/// let mut token_iter = "foo bar ; baz".to_token_iter();
 ///
 /// let parsed = <TokenStreamUntil<Semicolon>>::parser(&mut token_iter).unwrap();
-/// assert_eq!(parsed.tokens_to_string(), "foo bar baz".tokens_to_string());
+/// assert_eq!(parsed.tokens_to_string(), "foo bar".tokens_to_string());
+/// # <TokenStreamUntil<Plus>>::parser(&mut token_iter).unwrap_err();
 /// ```
-pub type TokenStreamUntil<T> = IntoTokenStream<Vec<Cons<Except<T>, TokenTree>>>;
+pub type TokenStreamUntil<T> = IntoTokenStream<Cons<Vec<Cons<Except<T>, TokenTree>>, Expect<T>>>;
