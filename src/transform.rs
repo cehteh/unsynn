@@ -137,7 +137,7 @@ impl<T: std::fmt::Debug> std::fmt::Debug for Insert<T> {
 /// let parsed = <OrDefault<u32, Question>>::parser(&mut token_iter).unwrap();
 /// assert_eq!(parsed.tokens_to_string(), "?".tokens_to_string());
 /// ```
-pub type OrDefault<T, D> = Either<T, Insert<D>>;
+pub type OrDefault<T, D=T> = Either<T, Insert<D>>;
 
 /// Swaps the order of two entities.
 ///
