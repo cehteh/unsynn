@@ -1356,8 +1356,8 @@ macro_rules! quote_intern {
         $crate::quote_intern!{$tokenstream $($rest)*}
     };
     // any other hash followed by anything else is reserved
-    ($tokenstream:ident # $($rest:tt)*) => {
-        compile_error!("#... reserved for future")
+    ($tokenstream:ident # ($($reserved:tt)*) $($rest:tt)*) => {
+        compile_error!("#(...) reserved for future")
     };
     ($tokenstream:ident ( $($nested:tt)* ) $($rest:tt)*) => {
         $tokenstream.extend(
