@@ -266,7 +266,7 @@ impl<T: Default + ToTokens> Default for IntoLiteralString<T> {
 pub struct IntoIdent<T>(pub CachedIdent, PhantomData<T>);
 
 impl<T: ToTokens> IntoIdent<T> {
-    /// Creates a `IntoLiteralString` from an AST.
+    /// Creates a `IntoIdent` from an AST.
     ///
     /// # Errors
     ///
@@ -376,7 +376,7 @@ impl<T: ToTokens> ToTokens for IntoTokenStream<T> {
     }
 }
 
-/// Creates a default constructed `IntoIdent<T>` from `T`
+/// Creates a default constructed `IntoTokenStream<T>` from `T`
 impl<T: Default + ToTokens> Default for IntoTokenStream<T> {
     fn default() -> Self {
         Self(T::default().into_token_stream(), PhantomData)
