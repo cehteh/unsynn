@@ -171,7 +171,7 @@ impl ToTokens for Literal {
 /// assert!(cached_ident == "ident");
 /// ```
 #[derive(Clone)]
-pub struct Cached<T: Parse> {
+pub struct Cached<T> {
     value: T,
     string: String,
 }
