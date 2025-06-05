@@ -1320,3 +1320,81 @@ macro_rules! docgen {
         concat!("`", $op, "`")
     };
 }
+
+/// unsynn provides its own `quote!{}` macro that translates tokens into a `TokenStream` while
+/// interpolating variables prefixed with a hash. This is similar to what the quote macro from
+/// the quote crate does but not as powerful. This may be extended in the future.
+///
+///
+/// # Example
+///
+/// ```
+/// # use unsynn::*;
+/// let ast = <Cons<ConstInteger<1>, Plus, ConstInteger<2>>>::default();
+/// let quoted = quote! { let a = #ast;};
+/// assert_eq!(
+///     quoted.tokens_to_string(),
+///     "let a = 1+2;".tokens_to_string()
+/// );
+/// ```
+#[macro_export]
+macro_rules! quote {
+    ($($tokens:tt)*) => {
+        {
+            let mut tokenstream = $crate::TokenStream::new();
+            $crate::quote_intern!{tokenstream $($tokens)*};
+            tokenstream
+        }
+    };
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! quote_intern {
+    ($tokenstream:ident # $var:ident $($rest:tt)*) => {
+        $var.to_tokens(&mut $tokenstream);
+        $crate::quote_intern!{$tokenstream $($rest)*}
+    };
+    // any other hash followed by anything else is reserved
+    ($tokenstream:ident # $($rest:tt)*) => {
+        compile_error!("#... reserved for future")
+    };
+    ($tokenstream:ident ( $($nested:tt)* ) $($rest:tt)*) => {
+        $tokenstream.extend(
+            Some(
+                TokenTree::Group(
+                    $crate::Group::new($crate::Delimiter::Parenthesis, $crate::quote!{$($nested)*})
+                )
+            ).into_iter()
+        );
+        $crate::quote_intern!{$tokenstream $($rest)*}
+    };
+    ($tokenstream:ident { $($nested:tt)* } $($rest:tt)*) => {
+        $tokenstream.extend(
+            Some(
+                TokenTree::Group(
+                    $crate::Group::new($crate::Delimiter::Brace, $crate::quote!{$($nested)*})
+                )
+            ).into_iter()
+        );
+        $crate::quote_intern!{$tokenstream $($rest)*}
+    };
+    ($tokenstream:ident [ $($nested:tt)* ] $($rest:tt)*) => {
+        $tokenstream.extend(
+            Some(
+                TokenTree::Group(
+                    $crate::Group::new($crate::Delimiter::Bracket, $crate::quote!{$($nested)*})
+                )
+            ).into_iter()
+        );
+        $crate::quote_intern!{$tokenstream $($rest)*}
+    };
+
+    ($tokenstream:ident $token:tt $($rest:tt)*) => {
+        let t: TokenStream = std::str::FromStr::from_str(stringify!($token)).unwrap();
+        $tokenstream.extend(Some(t).into_iter());
+        $crate::quote_intern!{$tokenstream $($rest)*}
+    };
+
+    ($tokenstream:ident) => {};
+}

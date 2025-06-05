@@ -352,15 +352,7 @@ pub use transform::*;
 pub mod keyword_group;
 pub use keyword_group::*;
 
-// the helper for the quote macro
-pub mod quoteable;
-#[doc(inline)]
-pub use quoteable::*;
-
-// reexport the quote macro
-#[cfg(feature = "quote")]
-pub use quote::quote;
-
+/// `unsynn` reexports the entities from `proc_macro2` it implements `Parse` and `ToTokens` for.
 pub use proc_macro2::{
     Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree,
 };

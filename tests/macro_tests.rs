@@ -61,3 +61,31 @@ fn test_keyword_default() {
     keyword! {Def = "default"};
     Def::default();
 }
+
+#[test]
+fn test_quote_macro() {
+    let quoted = quote! {};
+    assert_eq!(quoted.tokens_to_string(), "");
+
+    let quoted = quote! {()};
+    assert_eq!(quoted.tokens_to_string(), "()".tokens_to_string());
+
+    let quoted = quote! { 1 };
+    assert_eq!(quoted.tokens_to_string(), "1".tokens_to_string());
+
+    let quoted = quote! { a += "2" };
+    assert_eq!(
+        quoted.tokens_to_string(),
+        r#" a += "2" "#.tokens_to_string()
+    );
+
+    let ast = "1+2"
+        .into_token_iter()
+        .parse::<Cons<LiteralInteger, Plus, LiteralInteger>>()
+        .unwrap();
+    let quoted = quote! { let a = (#ast);};
+    assert_eq!(
+        quoted.tokens_to_string(),
+        "let a = (1+2);".tokens_to_string()
+    );
+}
