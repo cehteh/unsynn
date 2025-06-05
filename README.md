@@ -137,3 +137,8 @@ let ast = "CALC 10+1-2*3+4/5*100 ;".to_token_iter()
 * `docgen`  
   The [`unsynn!{}`], [`keyword!{}`] and [`operator!{}`] macros will automatically generate
   some additional docs. This is **enabled by default**.
+
+* `quote`  
+  Adds support for the `quote!{}` macro to unsynn. Adds quote as extra dependency and
+  reexports the quote macro. Implements `quote::ToTokens` for `unsynn::Quoteable<T>`.
+  This is **disabled by default** since not everyone needs quoting.
