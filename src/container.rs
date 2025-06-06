@@ -334,6 +334,42 @@ impl<T, D> IntoIterator for DelimitedVec<T, D> {
     }
 }
 
+impl<T, D> std::ops::Deref for DelimitedVec<T, D> {
+    type Target = Vec<Delimited<T, D>>;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+/// Creates a `DelimitedVec` from a iterator over T and default constructed delimiters.
+///
+///
+/// # Example
+///
+/// ```
+/// # use unsynn::*;
+/// let mut token_iter = "a b c d".into_token_iter();
+/// let chars: Vec<Ident> = token_iter.parse().unwrap();
+/// let comma_delimited: CommaDelimitedVec<Ident> = chars.into_iter().collect();
+/// assert_eq!(comma_delimited.tokens_to_string(), "a, b, c, d".tokens_to_string());
+/// ```
+impl<T, D: Default> FromIterator<T> for DelimitedVec<T, D> {
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
+        let mut v: Vec<Delimited<T, D>> = Vec::new();
+        for value in iter {
+            if let Some(last) = v.last_mut() {
+                last.delimiter = Some(D::default())
+            }
+            v.push(Delimited {
+                value,
+                delimiter: None,
+            });
+        }
+
+        Self(v)
+    }
+}
+
 #[mutants::skip]
 impl<T: std::fmt::Debug, D: std::fmt::Debug> std::fmt::Debug for DelimitedVec<T, D> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
