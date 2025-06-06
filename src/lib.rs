@@ -1,10 +1,7 @@
 #![allow(rustdoc::bare_urls)]
 #![doc = include_str!("../README.md")]
 //!
-//! # Detailed Introduction / Cookbook
-//!
-//! For a more detailed introduction about how to use unsynn see the
-//! [Cookbook](Parse#cookbook) section in the `Parse` trait.
+#![doc = include_str!("../COOKBOOK.md")]
 //!
 //! # Roadmap
 //!
@@ -64,7 +61,6 @@ where
 /// becomes committed, otherwise it is rolled back.
 ///
 /// This trait cannot be implemented by user code.
-#[doc = include_str!("../COOKBOOK.md")]
 pub trait Parse
 where
     Self: Parser,

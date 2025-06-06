@@ -1,5 +1,8 @@
 # Cookbook
 
+While `unsynn` is pretty lean  most code should have documentation and examples. Still some things need an
+explanantion how to be efficiently used. Which will be explained here.
+
 
 ## Parsing
 
@@ -289,6 +292,15 @@ let expression = <Cons<ConstInteger<1>, Plus, ConstInteger<2>>>::default();
 // whitespace doesn't matter here
 assert_eq!(expression.tokens_to_string(), " 1 + 2 ".tokens_to_string());
 ```
+
+
+## Generating and Transforming Code
+
+After parsing one usually wants to emit modified or generated code. This is done with the
+`ToTokens` trait. For convenience we also provide a `quote!{}` macro which allows one to
+template code in place. Unlike its big cousin (the quote crate) ours is rather simple and has
+less features (no `#(...)` repeats, but we have `#{...}` blocks). Eventually this may be
+extended.
 
 
 ## Implementation/Performance Notes
