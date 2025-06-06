@@ -345,8 +345,8 @@ pub struct IntoTokenStream<T>(pub TokenStream, PhantomData<T>);
 
 impl<T: ToTokens> IntoTokenStream<T> {
     /// Creates a `IntoTokenStream` from an AST.
-    pub fn from(from: &T) -> Result<Self> {
-        Ok(Self(from.to_token_stream(), PhantomData))
+    pub fn from(from: &T) -> Self {
+        Self(from.to_token_stream(), PhantomData)
     }
 }
 
