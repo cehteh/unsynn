@@ -1323,7 +1323,8 @@ macro_rules! docgen {
 
 /// unsynn provides its own `quote!{}` macro that translates tokens into a `TokenStream` while
 /// interpolating variables prefixed with a hash. This is similar to what the quote macro from
-/// the quote crate does but not as powerful. This may be extended in the future.
+/// the quote crate does but not as powerful. There is no `#(...)` repetition (yet). But we
+/// provide `#{...}` blocks which must return something that implements `ToTokens`.
 ///
 ///
 /// # Example
@@ -1332,6 +1333,15 @@ macro_rules! docgen {
 /// # use unsynn::*;
 /// let ast = <Cons<ConstInteger<1>, Plus, ConstInteger<2>>>::default();
 /// let quoted = quote! { let a = #ast;};
+/// assert_eq!(
+///     quoted.tokens_to_string(),
+///     "let a = 1+2;".tokens_to_string()
+/// );
+///
+/// // or using #{...} blocks
+/// let quoted = quote! {
+///     let a = #{<Cons<ConstInteger<1>, Plus, ConstInteger<2>>>::default()};
+/// };
 /// assert_eq!(
 ///     quoted.tokens_to_string(),
 ///     "let a = 1+2;".tokens_to_string()
@@ -1351,12 +1361,16 @@ macro_rules! quote {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! quote_intern {
-    ($tokenstream:ident # $var:ident $($rest:tt)*) => {
+    ($tokenstream:ident #$var:ident $($rest:tt)*) => {
         $var.to_tokens(&mut $tokenstream);
         $crate::quote_intern!{$tokenstream $($rest)*}
     };
-    // any other hash followed by anything else is reserved
-    ($tokenstream:ident # ($($reserved:tt)*) $($rest:tt)*) => {
+    ($tokenstream:ident #{$($code:tt)*} $($rest:tt)*) => {
+        {$($code)*}.to_tokens(&mut $tokenstream);
+        $crate::quote_intern!{$tokenstream $($rest)*}
+    };
+    // hash followed by parenthesis is reserved
+    ($tokenstream:ident #($($reserved:tt)*) $($rest:tt)*) => {
         compile_error!("#(...) reserved for future")
     };
     ($tokenstream:ident ( $($nested:tt)* ) $($rest:tt)*) => {
