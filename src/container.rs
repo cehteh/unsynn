@@ -358,7 +358,7 @@ impl<T, D: Default> FromIterator<T> for DelimitedVec<T, D> {
         let mut v: Vec<Delimited<T, D>> = Vec::new();
         for value in iter {
             if let Some(last) = v.last_mut() {
-                last.delimiter = Some(D::default())
+                last.delimiter = Some(D::default());
             }
             v.push(Delimited {
                 value,
