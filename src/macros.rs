@@ -1323,8 +1323,11 @@ macro_rules! docgen {
 
 /// unsynn provides its own `quote!{}` macro that translates tokens into a `TokenStream` while
 /// interpolating variables prefixed with a hash. This is similar to what the quote macro from
-/// the quote crate does but not as powerful. There is no `#(...)` repetition (yet). But we
-/// provide `#{...}` blocks which must return something that implements `ToTokens`.
+/// the quote crate does but not as powerful. There is no `#(...)` repetition (yet).
+///
+/// Instead we provide `#{...}` blocks which must return a `IntoIterator` whose items
+/// implement `ToTokens`. When blocks returns a single value just wrap this in `Some()`
+/// because `Option` implements the necessary `IntoIterator`.
 ///
 ///
 /// # Example
@@ -1340,7 +1343,7 @@ macro_rules! docgen {
 ///
 /// // or using #{...} blocks
 /// let quoted = quote! {
-///     let a = #{<Cons<ConstInteger<1>, Plus, ConstInteger<2>>>::default()};
+///     let a = #{Some(<Cons<ConstInteger<1>, Plus, ConstInteger<2>>>::default())};
 /// };
 /// assert_eq!(
 ///     quoted.tokens_to_string(),
@@ -1366,7 +1369,7 @@ macro_rules! quote_intern {
         $crate::quote_intern!{$tokenstream $($rest)*}
     };
     ($tokenstream:ident #{$($code:tt)*} $($rest:tt)*) => {
-        {$($code)*}.to_tokens(&mut $tokenstream);
+        {$($code)*}.into_iter().for_each(|i| i.to_tokens(&mut $tokenstream));
         $crate::quote_intern!{$tokenstream $($rest)*}
     };
     // hash followed by parenthesis is reserved
