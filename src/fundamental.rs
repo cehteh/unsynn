@@ -379,6 +379,10 @@ impl ToTokens for Nothing {
 
 /// A unit that always fails to match. This is useful as default for generics.
 /// See how [`Either<A, B, C, D>`] uses this for unused alternatives.
+///
+/// # Panics
+///
+/// `Invalid` tokens can not be emitted and will panic when calling [`ToTokens::to_tokens()`].
 #[derive(Debug, Clone)]
 pub struct Invalid;
 
@@ -391,7 +395,7 @@ impl Parser for Invalid {
 impl ToTokens for Invalid {
     #[inline]
     fn to_tokens(&self, _tokens: &mut TokenStream) {
-        /*NOP*/
+        unimplemented!("`Invalid` can not be converted to tokens")
     }
 }
 

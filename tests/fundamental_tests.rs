@@ -58,6 +58,7 @@ fn test_nothing() {
 }
 
 #[test]
+#[should_panic = "`Invalid` can not be converted to tokens"]
 fn test_invalid() {
     let mut tokens = "test".to_token_iter();
     assert!(Invalid::parse(&mut tokens).is_err());
