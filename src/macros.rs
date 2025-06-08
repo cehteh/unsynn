@@ -1,4 +1,4 @@
-//! This module contains macros and helper functions to define and parse custom types.
+//! This module contains the big macros and helper functions to define and parse custom types.
 
 #[cfg(doc)]
 use crate::*;
@@ -1373,7 +1373,7 @@ macro_rules! quote_intern {
     ($tokenstream:ident ( $($nested:tt)* ) $($rest:tt)*) => {
         $tokenstream.extend(
             Some(
-                TokenTree::Group(
+                $crate::TokenTree::Group(
                     $crate::Group::new($crate::Delimiter::Parenthesis, $crate::quote!{$($nested)*})
                 )
             ).into_iter()
@@ -1383,7 +1383,7 @@ macro_rules! quote_intern {
     ($tokenstream:ident { $($nested:tt)* } $($rest:tt)*) => {
         $tokenstream.extend(
             Some(
-                TokenTree::Group(
+                $crate::TokenTree::Group(
                     $crate::Group::new($crate::Delimiter::Brace, $crate::quote!{$($nested)*})
                 )
             ).into_iter()
@@ -1393,7 +1393,7 @@ macro_rules! quote_intern {
     ($tokenstream:ident [ $($nested:tt)* ] $($rest:tt)*) => {
         $tokenstream.extend(
             Some(
-                TokenTree::Group(
+                $crate::TokenTree::Group(
                     $crate::Group::new($crate::Delimiter::Bracket, $crate::quote!{$($nested)*})
                 )
             ).into_iter()
@@ -1402,7 +1402,7 @@ macro_rules! quote_intern {
     };
 
     ($tokenstream:ident $token:tt $($rest:tt)*) => {
-        let t: TokenStream = std::str::FromStr::from_str(stringify!($token)).unwrap();
+        let t: $crate::TokenStream = std::str::FromStr::from_str(stringify!($token)).unwrap();
         $tokenstream.extend(Some(t).into_iter());
         $crate::quote_intern!{$tokenstream $($rest)*}
     };
