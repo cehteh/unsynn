@@ -8,7 +8,7 @@ fn test_cached() {
 
     // Test string representations
     assert_eq!(cached.as_str(), "test");
-    assert_eq!(cached.tokens_to_string(), "test");
+    assert_tokens_eq!(cached, "test");
 
     // Test modification
     cached.set(Ident::new("modified", Span::call_site()));
@@ -22,7 +22,7 @@ fn test_cached() {
 
     // Test conversion to TokenTree
     let tt: TokenTree = cached.into();
-    assert_eq!(tt.tokens_to_string(), "modified");
+    assert_tokens_eq!(tt, "modified");
 }
 
 #[test]
@@ -49,7 +49,7 @@ fn test_nothing() {
     let nothing = Nothing::parse(&mut tokens).unwrap();
 
     // Verify Nothing doesn't consume tokens
-    assert_eq!(tokens.next().unwrap().tokens_to_string(), "test");
+    assert_tokens_eq!(tokens.next().unwrap(), "test");
 
     // Test ToTokens
     let mut output = TokenStream::new();
@@ -80,7 +80,7 @@ fn test_except() {
     assert!(Except::<Ident>::parse(&mut tokens).is_err());
 
     // Verify tokens weren't consumed
-    assert_eq!(tokens.next().unwrap().tokens_to_string(), "test");
+    assert_tokens_eq!(tokens.next().unwrap(), "test");
 }
 
 #[test]
@@ -94,7 +94,7 @@ fn test_expect() {
     assert!(Expect::<Punct>::parse(&mut tokens).is_err());
 
     // Verify tokens weren't consumed
-    assert_eq!(tokens.next().unwrap().tokens_to_string(), "test");
+    assert_tokens_eq!(tokens.next().unwrap(), "test");
 }
 
 #[test]
@@ -134,7 +134,7 @@ fn test_hidden_state() {
     assert!(output.is_empty());
 
     // Verify tokens weren't consumed
-    assert_eq!(tokens.next().unwrap().tokens_to_string(), "test");
+    assert_tokens_eq!(tokens.next().unwrap(), "test");
 }
 
 #[test]
@@ -239,7 +239,7 @@ fn test_hidden_state_parser() {
     assert_eq!(state1.value, state2.value);
 
     // Original token should still be available (parser shouldn't consume it)
-    assert_eq!(tokens.next().unwrap().tokens_to_string(), "test");
+    assert_tokens_eq!(tokens.next().unwrap(), "test");
 }
 
 #[test]

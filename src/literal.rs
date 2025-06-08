@@ -101,7 +101,7 @@ fn test_literalinteger_into_tt() {
 /// let mut token_iter = "foo".to_token_iter();
 ///
 /// let parsed = <OrDefault<u32, ConstInteger<1234>>>::parser(&mut token_iter).unwrap();
-/// assert_eq!(parsed.tokens_to_string(), "1234".tokens_to_string());
+/// assert_tokens_eq!(parsed, "1234");
 /// ```
 #[derive(Debug, Clone)]
 pub struct ConstInteger<const V: u128>(LiteralInteger);
@@ -232,7 +232,7 @@ fn test_literalcharacter_into_tt() {
 /// let mut token_iter = "'f'".to_token_iter();
 ///
 /// let parsed = <OrDefault<u32, ConstCharacter<'f'>>>::parser(&mut token_iter).unwrap();
-/// assert_eq!(parsed.tokens_to_string(), "'f'".tokens_to_string());
+/// assert_tokens_eq!(parsed, "'f'");
 /// ```
 #[derive(Debug, Clone)]
 pub struct ConstCharacter<const V: char>(LiteralCharacter);

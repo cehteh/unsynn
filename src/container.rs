@@ -351,7 +351,7 @@ impl<T, D> std::ops::Deref for DelimitedVec<T, D> {
 /// let mut token_iter = "a b c d".into_token_iter();
 /// let chars: Vec<Ident> = token_iter.parse().unwrap();
 /// let comma_delimited: CommaDelimitedVec<Ident> = chars.into_iter().collect();
-/// assert_eq!(comma_delimited.tokens_to_string(), "a, b, c, d".tokens_to_string());
+/// assert_tokens_eq!(comma_delimited, "a, b, c, d");
 /// ```
 impl<T, D: Default> FromIterator<T> for DelimitedVec<T, D> {
     fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {

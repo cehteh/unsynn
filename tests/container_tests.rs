@@ -170,17 +170,17 @@ fn test_to_tokens() {
     // Test Box to_tokens
     let mut token_iter = "test".to_token_iter();
     let boxed = Box::<Ident>::parse(&mut token_iter).unwrap();
-    assert_eq!(boxed.tokens_to_string(), "test");
+    assert_tokens_eq!(boxed, "test");
 
     // Test Rc to_tokens
     let mut token_iter = "test".to_token_iter();
     let rc = std::rc::Rc::<Ident>::parse(&mut token_iter).unwrap();
-    assert_eq!(rc.tokens_to_string(), "test");
+    assert_tokens_eq!(rc, "test");
 
     // Test RefCell to_tokens
     let mut token_iter = "test".to_token_iter();
     let refcell = std::cell::RefCell::<Ident>::parse(&mut token_iter).unwrap();
-    assert_eq!(refcell.tokens_to_string(), "test");
+    assert_tokens_eq!(refcell, "test");
 }
 
 #[test]
@@ -194,8 +194,7 @@ fn test_repeats_to_tokens() {
     repeats.to_tokens(&mut tokens);
     assert_eq!(tokens.to_string(), "a b c");
 
-    // Also verify tokens_to_string() which uses to_tokens internally
-    assert_eq!(repeats.tokens_to_string(), "a b c");
+    assert_tokens_eq!(repeats, str "a b c");
 }
 
 #[test]
@@ -209,6 +208,5 @@ fn test_lazy_vec_to_tokens() {
     lazy_vec.to_tokens(&mut tokens);
     assert_eq!(tokens.to_string(), "a b c ;");
 
-    // Also verify tokens_to_string() which uses to_tokens internally
-    assert_eq!(lazy_vec.tokens_to_string(), "a b c ;");
+    assert_tokens_eq!(lazy_vec, str "a b c ;");
 }

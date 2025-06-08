@@ -8,7 +8,7 @@ fn test_onepunct() {
     let mut token_iter = "; nopunct".to_token_iter();
 
     let semi = Semicolon::parse(&mut token_iter).unwrap();
-    assert_eq!(semi.tokens_to_string(), ";");
+    assert_tokens_eq!(semi, str ";");
 }
 
 #[test]
@@ -16,7 +16,7 @@ fn test_twopunct() {
     let mut token_iter = "-> nopunct".to_token_iter();
 
     let arrow = RArrow::parse(&mut token_iter).unwrap();
-    assert_eq!(arrow.tokens_to_string(), "->");
+    assert_tokens_eq!(arrow, str "->");
 }
 
 #[test]
@@ -24,7 +24,7 @@ fn test_threepunct() {
     let mut token_iter = "... nopunct".to_token_iter();
 
     let ellipsis = Ellipsis::parse(&mut token_iter).unwrap();
-    assert_eq!(ellipsis.tokens_to_string(), "...");
+    assert_tokens_eq!(ellipsis, "...");
 }
 
 operator! {
@@ -36,19 +36,19 @@ fn test_fancy() {
     let mut token_iter = "<~~>".to_token_iter();
 
     let fancy = Fancy::parse(&mut token_iter).unwrap();
-    assert_eq!(fancy.tokens_to_string(), "<~~>");
+    assert_tokens_eq!(fancy, "<~~>");
 }
 
 #[test]
 fn test_joint_text() {
-    assert_eq!("<text>".tokens_to_string(), "< text >");
+    assert_tokens_eq!("<text>", str "< text >");
 }
 
 #[test]
 fn test_punct_any_tokens() {
     let mut tokens = TokenStream::new();
     PunctAny::<'+'>.to_tokens(&mut tokens);
-    assert_eq!(tokens.to_string(), "+");
+    assert_tokens_eq!(tokens, str "+");
 }
 
 #[test]
@@ -66,7 +66,7 @@ fn test_punct_joint_parser() {
 fn test_punct_joint_tokens() {
     let mut tokens = TokenStream::new();
     PunctJoint::<'+'>.to_tokens(&mut tokens);
-    assert_eq!(tokens.to_string(), "+");
+    assert_tokens_eq!(tokens, str "+");
 }
 
 #[test]
@@ -85,6 +85,7 @@ fn test_punct_alone_tokens() {
     let mut tokens = TokenStream::new();
     PunctAlone::<'+'>.to_tokens(&mut tokens);
     assert_eq!(tokens.to_string(), "+");
+    assert_tokens_eq!(tokens, str "+");
 }
 
 #[test]
@@ -92,22 +93,22 @@ fn test_operator_parser() {
     // Test single character
     let mut tokens = "+ ".to_token_iter();
     let op = Operator::<'+'>::parse(&mut tokens).unwrap();
-    assert_eq!(op.tokens_to_string(), "+");
+    assert_tokens_eq!(op, str "+");
 
     // Test two characters
     let mut tokens = "+= ".to_token_iter();
     let op = Operator::<'+', '='>::parse(&mut tokens).unwrap();
-    assert_eq!(op.tokens_to_string(), "+=");
+    assert_tokens_eq!(op, str "+=");
 
     // Test three characters
     let mut tokens = "... ".to_token_iter();
     let op = Operator::<'.', '.', '.'>::parse(&mut tokens).unwrap();
-    assert_eq!(op.tokens_to_string(), "...");
+    assert_tokens_eq!(op, str "...");
 
     // Test four characters
-    let mut tokens = "<=>= ".to_token_iter();
-    let op = Operator::<'<', '=', '>', '='>::parse(&mut tokens).unwrap();
-    assert_eq!(op.tokens_to_string(), "<=>=");
+    let mut tokens = "<==> ".to_token_iter();
+    let op = Operator::<'<', '=', '=', '>'>::parse(&mut tokens).unwrap();
+    assert_tokens_eq!(op, str "<==>");
 }
 
 #[test]
@@ -122,6 +123,7 @@ fn test_operator_tokens() {
     let mut tokens = TokenStream::new();
     op.to_tokens(&mut tokens);
     assert_eq!(tokens.to_string(), "...");
+    assert_tokens_eq!(tokens, str "...");
 }
 
 #[test]
@@ -132,7 +134,7 @@ fn test_operator_custom() {
 
     let mut tokens = "<?> ".to_token_iter();
     let op = CustomOp::parse(&mut tokens).unwrap();
-    assert_eq!(op.tokens_to_string(), "<?>");
+    assert_tokens_eq!(op, str "<?>");
 }
 
 #[test]
@@ -140,15 +142,15 @@ fn test_predefined_operators() {
     // Test some of the predefined operators
     let mut tokens = "+= ".to_token_iter();
     let op = PlusEq::parse(&mut tokens).unwrap();
-    assert_eq!(op.tokens_to_string(), "+=");
+    assert_tokens_eq!(op, str "+=");
 
     let mut tokens = "-> ".to_token_iter();
     let op = RArrow::parse(&mut tokens).unwrap();
-    assert_eq!(op.tokens_to_string(), "->");
+    assert_tokens_eq!(op, str "->");
 
     let mut tokens = "... ".to_token_iter();
     let op = Ellipsis::parse(&mut tokens).unwrap();
-    assert_eq!(op.tokens_to_string(), "...");
+    assert_tokens_eq!(op, str "...");
 }
 
 #[test]

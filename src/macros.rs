@@ -99,16 +99,16 @@ use crate::*;
 ///
 /// // Use the defined types
 /// let MyEnum::Ident(myenum_ident) = MyEnum::parse(&mut token_iter).unwrap() else { panic!()};
-/// # assert_eq!(myenum_ident.tokens_to_string(), "ident");
+/// # assert_tokens_eq!(myenum_ident, "ident");
 /// let MyEnum::Braced(myenum_braced) = MyEnum::parse(&mut token_iter).unwrap() else { panic!()};
-/// # assert_eq!(myenum_braced.tokens_to_string(), "{within brace}".tokens_to_string());
+/// # assert_tokens_eq!(myenum_braced, "{within brace}");
 /// let MyEnum::Text(myenum_text) = MyEnum::parse(&mut token_iter).unwrap() else { panic!()};
-/// # assert_eq!(myenum_text.tokens_to_string(), "\"literal string\"");
+/// # assert_tokens_eq!(myenum_text, "\"literal string\"");
 /// let MyEnum::Number(myenum_number) = MyEnum::parse(&mut token_iter).unwrap() else { panic!()};
-/// # assert_eq!(myenum_number.tokens_to_string(), "1234");
+/// # assert_tokens_eq!(myenum_number, "1234");
 /// // the () will not be consumed by the MyEnum but match None(Nothing)
 /// let myenum_nothing = MyEnum::parse(&mut token_iter).unwrap();
-/// # assert_eq!(myenum_nothing.tokens_to_string(), "");
+/// # assert_tokens_eq!(myenum_nothing, "");
 /// // consume the ()
 /// <ParenthesisGroup>::parse(&mut token_iter).unwrap();
 ///
@@ -1231,13 +1231,13 @@ macro_rules! keyword{
 ///
 /// let mut tokens = "<~~~~> ~~><~~".to_token_iter();
 /// let wl = WLArrow::parse(&mut tokens).unwrap();
-/// assert_eq!(wl.tokens_to_string(), "<~~");
+/// assert_tokens_eq!(wl, str "<~~");
 /// let wr = WRArrow::parse(&mut tokens).unwrap();
-/// assert_eq!(wr.tokens_to_string(), "~~>");
+/// assert_tokens_eq!(wr, str "~~>");
 /// # let wr = WRArrow::parse(&mut tokens).unwrap();
-/// # assert_eq!(wr.tokens_to_string(), "~~>");
+/// # assert_tokens_eq!(wr, "~~>");
 /// # let wl = WLArrow::parse(&mut tokens).unwrap();
-/// # assert_eq!(wl.tokens_to_string(), "<~~");
+/// # assert_tokens_eq!(wl, "<~~");
 /// ```
 #[macro_export]
 macro_rules! operator{
@@ -1322,7 +1322,7 @@ macro_rules! docgen {
 }
 
 /// unsynn provides its own `quote!{}` macro that translates tokens into a `TokenStream` while
-/// interpolating variables prefixed with a hash. This is similar to what the quote macro from
+/// interpolating variables prefixed with a `Pound` sign (#). This is similar to what the quote macro from
 /// the quote crate does but not as powerful. There is no `#(...)` repetition (yet).
 ///
 /// Instead we provide `#{...}` blocks which must return a `IntoIterator` whose items
@@ -1336,19 +1336,13 @@ macro_rules! docgen {
 /// # use unsynn::*;
 /// let ast = <Cons<ConstInteger<1>, Plus, ConstInteger<2>>>::default();
 /// let quoted = quote! { let a = #ast;};
-/// assert_eq!(
-///     quoted.tokens_to_string(),
-///     "let a = 1+2;".tokens_to_string()
-/// );
+/// assert_tokens_eq!(quoted, "let a = 1+2;");
 ///
 /// // or using #{...} blocks
 /// let quoted = quote! {
 ///     let a = #{Some(<Cons<ConstInteger<1>, Plus, ConstInteger<2>>>::default())};
 /// };
-/// assert_eq!(
-///     quoted.tokens_to_string(),
-///     "let a = 1+2;".tokens_to_string()
-/// );
+/// assert_tokens_eq!(quoted, "let a = 1+2;");
 /// ```
 #[macro_export]
 macro_rules! quote {

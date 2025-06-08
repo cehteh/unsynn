@@ -93,7 +93,7 @@ impl<T: std::fmt::Debug> std::fmt::Debug for Skip<T> {
 /// let mut token_iter = "foo bar".to_token_iter();
 ///
 /// let parsed = <Cons<Ident, Insert<Plus>, Ident>>::parser(&mut token_iter).unwrap();
-/// assert_eq!(parsed.tokens_to_string(), "foo + bar".tokens_to_string());
+/// assert_tokens_eq!(parsed, "foo + bar");
 /// ```
 pub struct Insert<T>(pub T);
 
@@ -135,7 +135,7 @@ impl<T: std::fmt::Debug> std::fmt::Debug for Insert<T> {
 /// let mut token_iter = "foo".to_token_iter();
 ///
 /// let parsed = <OrDefault<u32, Question>>::parser(&mut token_iter).unwrap();
-/// assert_eq!(parsed.tokens_to_string(), "?".tokens_to_string());
+/// assert_tokens_eq!(parsed, "?");
 /// ```
 pub type OrDefault<T, D = T> = Either<T, Insert<D>>;
 
@@ -148,7 +148,7 @@ pub type OrDefault<T, D = T> = Either<T, Insert<D>>;
 /// let mut token_iter = "foo bar".to_token_iter();
 ///
 /// let parsed = <Swap<Ident, Ident>>::parser(&mut token_iter).unwrap();
-/// assert_eq!(parsed.tokens_to_string(), "bar foo".tokens_to_string());
+/// assert_tokens_eq!(parsed, "bar foo");
 /// ```
 #[derive(Debug)]
 pub struct Swap<A, B>(pub B, pub A);
@@ -181,11 +181,11 @@ impl<A: ToTokens, B: ToTokens> ToTokens for Swap<A, B> {
 /// let mut token_iter = "foo 123".to_token_iter();
 ///
 /// let parsed = <IntoLiteralString<Cons<Ident, LiteralInteger>>>::parser(&mut token_iter).unwrap();
-/// assert_eq!(parsed.tokens_to_string(), r#" "foo 123" "#.tokens_to_string());
+/// assert_tokens_eq!(parsed, r#" "foo 123" "#);
 ///
 /// keyword!{Foo = "foo"}
 /// let default = <IntoLiteralString<Cons<Foo, ConstInteger<1234>>>>::default();
-/// assert_eq!(default.tokens_to_string(), r#" "foo 1234" "#.tokens_to_string());
+/// assert_tokens_eq!(default, r#" "foo 1234" "#);
 /// ```
 #[derive(Debug)]
 pub struct IntoLiteralString<T>(pub LiteralString, PhantomData<T>);
@@ -256,11 +256,11 @@ impl<T: Default + ToTokens> Default for IntoLiteralString<T> {
 /// let mut token_iter = "foo 123".to_token_iter();
 ///
 /// let parsed = <IntoIdent<Cons<Ident, LiteralInteger>>>::parser(&mut token_iter).unwrap();
-/// assert_eq!(parsed.tokens_to_string(), "foo123".tokens_to_string());
+/// assert_tokens_eq!(parsed, "foo123");
 ///
 /// keyword!{Foo = "foo"}
 /// let default = <IntoIdent<Cons<Foo, ConstInteger<1234>>>>::default();
-/// assert_eq!(default.tokens_to_string(), "foo1234".tokens_to_string());
+/// assert_tokens_eq!(default, "foo1234");
 /// ```
 #[derive(Debug)]
 pub struct IntoIdent<T>(pub CachedIdent, PhantomData<T>);
@@ -338,7 +338,7 @@ impl<T: Default + ToTokens> Default for IntoIdent<T> {
 /// let mut token_iter = "foo 123".to_token_iter();
 ///
 /// let parsed = <IntoTokenStream<Cons<Ident, LiteralInteger>>>::parser(&mut token_iter).unwrap();
-/// assert_eq!(parsed.tokens_to_string(), "foo 123".tokens_to_string());
+/// assert_tokens_eq!(parsed, "foo 123");
 /// ```
 #[derive(Debug)]
 pub struct IntoTokenStream<T>(pub TokenStream, PhantomData<T>);
@@ -393,7 +393,7 @@ impl<T: Default + ToTokens> Default for IntoTokenStream<T> {
 /// let mut token_iter = "foo bar ; baz".to_token_iter();
 ///
 /// let parsed = <TokenStreamUntil<Semicolon>>::parser(&mut token_iter).unwrap();
-/// assert_eq!(parsed.tokens_to_string(), "foo bar".tokens_to_string());
+/// assert_tokens_eq!(parsed, "foo bar");
 /// # <TokenStreamUntil<Plus>>::parser(&mut token_iter).unwrap_err();
 /// ```
 pub type TokenStreamUntil<T> = IntoTokenStream<Cons<Vec<Cons<Except<T>, TokenTree>>, Expect<T>>>;

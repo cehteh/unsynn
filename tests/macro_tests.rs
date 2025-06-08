@@ -37,11 +37,11 @@ fn test_parse_enum_consume_bug() {
 
     let parsed = i.parse::<Enum>().unwrap();
     assert!(matches!(parsed, Enum::One(..)));
-    assert_eq!(parsed.tokens_to_string(), "+ .".tokens_to_string());
+    assert_tokens_eq!(parsed, "+ .");
 
     let parsed = i.parse::<Enum>().unwrap();
     assert!(matches!(parsed, Enum::OneS { .. }));
-    assert_eq!(parsed.tokens_to_string(), "- .".tokens_to_string());
+    assert_tokens_eq!(parsed, "- .");
 }
 
 #[test]
@@ -50,10 +50,10 @@ fn test_generics() {
 
     let parsed = i.parse::<Enum>().unwrap();
     assert!(matches!(parsed, Enum::PunctBreak(..)));
-    assert_eq!(parsed.tokens_to_string(), "*".tokens_to_string());
+    assert_tokens_eq!(parsed, "*");
 
     let parsed = i.parse::<Dollar>().unwrap();
-    assert_eq!(parsed.tokens_to_string(), "$".tokens_to_string());
+    assert_tokens_eq!(parsed, "$");
 }
 
 #[test]
@@ -65,27 +65,21 @@ fn test_keyword_default() {
 #[test]
 fn test_quote_macro() {
     let quoted = quote! {};
-    assert_eq!(quoted.tokens_to_string(), "");
+    assert_tokens_eq!(quoted, "");
 
     let quoted = quote! {()};
-    assert_eq!(quoted.tokens_to_string(), "()".tokens_to_string());
+    assert_tokens_eq!(quoted, "()");
 
     let quoted = quote! { 1 };
-    assert_eq!(quoted.tokens_to_string(), "1".tokens_to_string());
+    assert_tokens_eq!(quoted, "1");
 
     let quoted = quote! { a += "2" };
-    assert_eq!(
-        quoted.tokens_to_string(),
-        r#" a += "2" "#.tokens_to_string()
-    );
+    assert_tokens_eq!(quoted, r#" a += "2" "#);
 
     let ast = "1+2"
         .into_token_iter()
         .parse::<Cons<LiteralInteger, Plus, LiteralInteger>>()
         .unwrap();
     let quoted = quote! { let a = (#ast);};
-    assert_eq!(
-        quoted.tokens_to_string(),
-        "let a = (1+2);".tokens_to_string()
-    );
+    assert_tokens_eq!(quoted, "let a = (1+2);");
 }

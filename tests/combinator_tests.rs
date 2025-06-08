@@ -6,7 +6,7 @@ use unsynn::*;
 fn test_cons() {
     let mut token_iter = ": nopunct".to_token_iter();
     let cons = Cons::<Punct, Ident>::parse(&mut token_iter).unwrap();
-    assert_eq!(cons.tokens_to_string(), ": nopunct".tokens_to_string());
+    assert_tokens_eq!(cons, ": nopunct");
 }
 
 #[test]
@@ -14,10 +14,7 @@ fn test_4cons() {
     let mut token_iter = ": nopunct 'c' 123".to_token_iter();
     let cons =
         Cons::<Punct, Ident, LiteralCharacter, LiteralInteger>::parse(&mut token_iter).unwrap();
-    assert_eq!(
-        cons.tokens_to_string(),
-        ": nopunct 'c' 123".tokens_to_string()
-    );
+    assert_tokens_eq!(cons, ": nopunct 'c' 123");
 }
 
 #[test]

@@ -259,7 +259,7 @@ impl<A, B, C: 'static, D: 'static> Either<A, B, C, D> {
     /// # use unsynn::*;
     /// let either = Either::<LiteralInteger, Ident>::First(LiteralInteger::new(42));
     /// let tt: TokenTree = either.into2();
-    /// assert_eq!(tt.tokens_to_string(), "42");
+    /// assert_tokens_eq!(tt, "42");
     /// ```
     pub fn into2<T>(self) -> T
     where

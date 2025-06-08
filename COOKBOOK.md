@@ -281,16 +281,14 @@ discussion.
 
 When writing tests one often has to compare a parsed entity against some expected source code.
 The `ToTokens::tokens_to_string()` method provides a reliable way to get a canonical (not
-pretty printed) string representation. This should be prefered in test because it does not
-rely on exact whitespace placement. When you use this, remember to apply this on both sides of
-a test:
+pretty printed) string representation. This is used by the [`assert_tokens_eq!()`] macro:
 
 ```
 # use unsynn::*;
 // default construct some AST
 let expression = <Cons<ConstInteger<1>, Plus, ConstInteger<2>>>::default();
-// whitespace doesn't matter here
-assert_eq!(expression.tokens_to_string(), " 1 + 2 ".tokens_to_string());
+// whitespace doesn't matter here, comments are stripped
+assert_tokens_eq!(expression, " 1  +  2 // comments are stripped");
 ```
 
 

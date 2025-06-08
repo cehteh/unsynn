@@ -103,7 +103,7 @@ impl<C> GroupContaining<C> {
     ///     Delimiter::Parenthesis,
     ///     Literal::i32_unsuffixed(123),
     /// );
-    /// # assert_eq!(group.tokens_to_string(), "(123)");
+    /// # assert_tokens_eq!(group, "(123)");
     /// ```
     pub const fn new(delimiter: Delimiter, content: C) -> Self {
         Self { delimiter, content }

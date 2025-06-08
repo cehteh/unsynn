@@ -356,3 +356,23 @@ pub use proc_macro2::{
 mod private {
     pub trait Sealed {}
 }
+
+/// Helper macro that asserts that two entities implementing `ToTokens` result in the same
+/// `TokenStream`. Used in tests to ensure that the output of parsing is as expected.  This
+/// macro allows two forms:
+///
+///  * The first form takes two expressions, both expressions are converted into canonical
+///    strings with `.tokens_to_string()` to be compared.
+///  * The second form takes a string literal prefixed with `str` as second parameter. This
+///    string literal is then taken literally for the comparison.
+///
+/// The later form is used for testing `Joint` punctuation and whitespace placement.
+#[macro_export]
+macro_rules! assert_tokens_eq {
+    ($a:expr, $b:expr$(, $($arg:tt)*)?) => {
+        assert_eq!($a.tokens_to_string(), $b.tokens_to_string() $(, $($arg)*)?);
+    };
+    ($a:expr, str $b:literal$(, $($arg:tt)*)?) => {
+        assert_eq!($a.tokens_to_string(), $b $(, $($arg)*)?);
+    };
+}

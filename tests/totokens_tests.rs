@@ -17,7 +17,7 @@ fn test_tt_selfconvert() {
     let token_iter = token_iter.to_token_iter();
     let token_iter = token_iter.to_token_iter();
     // ...
-    assert_eq!(token_iter.tokens_to_string(), "ident foo (bar baz)");
+    assert_tokens_eq!(token_iter, str "ident foo (bar baz)");
 }
 
 #[test]

@@ -108,9 +108,9 @@ impl<const C1: char, const C2: char, const C3: char, const C4: char> std::fmt::D
 /// only the named operators.
 ///
 /// ```rust
-/// # use unsynn::ToTokens;
+/// # use unsynn::*;
 /// use unsynn::operator::names::*;
-/// assert_eq!(Plus::new().tokens_to_string(), "+");
+/// assert_tokens_eq!(Plus::new(), "+");
 /// ```
 pub mod names {
     use crate::{operator, PunctJoint};

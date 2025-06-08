@@ -37,10 +37,7 @@ unsynn!{
 // iter.parse() is from the IParse trait
 let ast: IdentThenParenthesisedNumbers = token_iter.parse().unwrap();
 
-assert_eq!(
-    ast.tokens_to_string(),
-    "foo(1,2,3)".tokens_to_string()
-)
+assert_tokens_eq!(ast, "foo(1,2,3)");
 ```
 
 ## Using Composition
@@ -58,10 +55,7 @@ let ast =
     Cons::<Ident, ParenthesisGroupContaining::<CommaDelimitedVec<u32>>>
         ::parse(&mut token_iter).unwrap();
 
-assert_eq!(
-    ast.tokens_to_string(),
-    "foo ( 1, 2, 3 )".tokens_to_string()
-)
+assert_tokens_eq!(ast, "foo ( 1, 2, 3 )");
 ```
 
 ## Custom Operators and Keywords

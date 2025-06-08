@@ -60,7 +60,7 @@ fn test_string_as_str() {
     let string = LiteralString::parse(&mut token_iter).unwrap();
     assert_eq!(string.value(), "\"this is a string literal\"");
     assert_eq!(string.as_str(), "this is a string literal");
-    assert_eq!(string.tokens_to_string(), "\"this is a string literal\"");
+    assert_tokens_eq!(string, "\"this is a string literal\"");
 }
 
 #[test]
@@ -69,7 +69,7 @@ fn test_string_from_str() {
     assert_eq!(string.value(), "\"this is a string literal\"");
     assert_eq!(string.as_str(), "this is a string literal");
     // bug in v0.1.0
-    assert_eq!(string.tokens_to_string(), "\"this is a string literal\"");
+    assert_tokens_eq!(string, "\"this is a string literal\"");
 }
 
 #[test]
