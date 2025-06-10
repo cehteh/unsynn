@@ -236,7 +236,7 @@ impl<T: Parse> Cached<T> {
     /// assert!(cached_ident == "ident");
     /// ```
     pub fn from_string(s: String) -> Result<Self> {
-        let value = s.into_token_iter().parse()?;
+        let value = s.to_token_iter().parse()?;
         Ok(Self { value, string: s })
     }
 
@@ -320,7 +320,7 @@ impl<T: Parse> TryFrom<String> for Cached<T> {
     type Error = Error;
 
     fn try_from(value: String) -> Result<Self> {
-        let mut token_iter = value.into_token_iter();
+        let mut token_iter = value.to_token_iter();
         let t = T::parser(&mut token_iter).refine_err::<Self>()?;
         Ok(Self {
             value: t,
