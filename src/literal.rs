@@ -302,11 +302,12 @@ impl LiteralString {
         Self { literal, value }
     }
 
-    /// Create a new `LiteralString` from a `&str` slice. Adds double quotes around the
-    /// supplied string.
+    /// Create a new `LiteralString` from any `AsRef<str>` slice. Adds double quotes around
+    /// the supplied string.
     #[must_use]
     #[allow(clippy::should_implement_trait)]
-    pub fn from_str(string: &str) -> Self {
+    pub fn from_str(string: impl AsRef<str>) -> Self {
+        let string = string.as_ref();
         let value = format!(r#""{string}""#);
         let literal = Literal::string(string);
         Self { literal, value }
