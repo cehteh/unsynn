@@ -25,6 +25,14 @@ macro_rules! impl_unsigned_integer {
                     LiteralInteger::new(*self as u128).to_tokens(tokens);
                 }
             }
+
+            #[doc = stringify!(Emit a literal $ty without sign and suffix)]
+            impl ToTokens for &$ty {
+                fn to_tokens(&self, tokens: &mut TokenStream) {
+                    #[allow(clippy::cast_lossless)]
+                    LiteralInteger::new(**self as u128).to_tokens(tokens);
+                }
+            }
         )*
     };
 }
@@ -55,6 +63,16 @@ macro_rules! impl_signed_integer {
             impl ToTokens for $ty {
                 fn to_tokens(&self, tokens: &mut TokenStream) {
                     if *self < 0 {
+                        crate::Minus::new().to_tokens(tokens);
+                    }
+                    LiteralInteger::new(self.abs().try_into().unwrap()).to_tokens(tokens);
+                }
+            }
+
+            #[doc = stringify!(Emit a literal $ty with negative sign and without suffix)]
+            impl ToTokens for &$ty {
+                fn to_tokens(&self, tokens: &mut TokenStream) {
+                    if **self < 0 {
                         crate::Minus::new().to_tokens(tokens);
                     }
                     LiteralInteger::new(self.abs().try_into().unwrap()).to_tokens(tokens);
@@ -134,6 +152,20 @@ impl ToTokens for &str {
         use std::str::FromStr;
         let ts = TokenStream::from_str(self).expect("Failed to tokenize input string.");
         tokens.extend(ts);
+    }
+}
+
+impl ToTokens for str {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        use std::str::FromStr;
+        let ts = TokenStream::from_str(self).expect("Failed to tokenize input string.");
+        tokens.extend(ts);
+    }
+}
+
+impl ToTokens for &String {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        self.as_str().to_tokens(tokens);
     }
 }
 
