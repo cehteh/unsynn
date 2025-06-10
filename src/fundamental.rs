@@ -344,16 +344,34 @@ fn test_cached_into_tt() {
     let _: TokenTree = ident.into();
 }
 
+macro_rules! gen_cached_types {
+    ($($cached:ident = $basic:ident);* $(;)?) => {
+        $(
+        #[doc = concat!("[`", stringify!($basic), "`] with cached string representation.")]
+        pub type $cached = Cached<$basic>;
+
+        #[doc = concat!("Convert `", stringify!($cached), " into a `", stringify!($basic), "`.")]
+        impl From<$cached> for $basic {
+            fn from(cached: $cached) -> Self {
+                cached.value
+            }
+        }
+        )*
+    }
+}
+
+gen_cached_types! {
+    CachedGroup = Group;
+    CachedIdent = Ident;
+    CachedPunct = Punct;
+    CachedLiteral = Literal;
+    CachedLiteralString = LiteralString;
+    CachedLiteralInteger = LiteralInteger;
+}
+
+// cant use the macro, TokenTree conversion is generic over T defined above
 /// [`TokenTree`] (any token) with cached string representation.
 pub type CachedTokenTree = Cached<TokenTree>;
-/// [`Group`] with cached string representation.
-pub type CachedGroup = Cached<Group>;
-/// [`Ident`] with cached string representation.
-pub type CachedIdent = Cached<Ident>;
-/// [`Punct`] with cached string representation.
-pub type CachedPunct = Cached<Punct>;
-/// [`Literal`] with cached string representation.
-pub type CachedLiteral = Cached<Literal>;
 
 /// A unit that always matches without consuming any tokens.  This is required when one wants
 /// to parse a [`Repeats`] without a delimiter.  Note that using [`Nothing`] as primary entity
