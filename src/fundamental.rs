@@ -373,6 +373,92 @@ gen_cached_types! {
 /// [`TokenTree`] (any token) with cached string representation.
 pub type CachedTokenTree = Cached<TokenTree>;
 
+/// Generates a `Ident` from a format specification.
+///
+/// # Panics
+///
+/// Panics when the formatted string is not a valid identifier.
+///
+/// # Example
+///
+/// ```
+/// use unsynn::*;
+/// let ident = format_ident!("my_{}", "identifier");
+/// assert_tokens_eq!(ident, "my_identifier");
+/// ```
+#[macro_export]
+macro_rules! format_ident {
+    ($($args:tt)*) => {
+        <$crate::Ident as $crate::Parse>::parse(&mut format!($($args)*).into_token_iter()).expect("Not a valid identifier")
+    };
+}
+
+/// Generates a `CachedIdent` from a format specification.
+///
+/// # Panics
+///
+/// Panics when the formatted string is not a valid identifier.
+///
+/// # Example
+///
+/// ```
+/// use unsynn::*;
+/// let cached_ident = format_cached_ident!("my_{}", "identifier");
+/// assert_tokens_eq!(cached_ident, "my_identifier");
+/// ```
+#[macro_export]
+macro_rules! format_cached_ident {
+    ($($args:tt)*) => {
+        $crate::CachedIdent::from_string(format!($($args)*)).expect("Not a valid identifier")
+    };
+}
+
+/// Generates a `LiteralString` from a format specification. Quote characters around the
+/// string are automatically added.
+///
+/// # Panics
+///
+/// Panics when the formatted string is not a valid literal string.
+///
+/// # Example
+///
+/// ```
+/// use unsynn::*;
+/// let literal_string = format_literal_string!("my_{}", "literal_string");
+/// assert_tokens_eq!(literal_string, r#" "my_literal_string" "#);
+/// ```
+#[macro_export]
+macro_rules! format_literal_string {
+    ($fmt:literal $(, $($args:tt)*)?) => {
+        <$crate::LiteralString as $crate::Parse>::parse(&mut format!(concat!("\"",$fmt,"\"") $(, $($args)*)?)
+            .into_token_iter())
+        .expect("Not a valid string literal")
+    };
+}
+
+/// Generates a `Literal` from a format specification. Unlike [`format_literal_string!`], this does not
+/// add quotes and can be used to create any kind of literal, such as integers or floats.
+///
+/// # Panics
+///
+/// Panics when the formatted string is not a valid literal.
+///
+/// # Example
+///
+/// ```
+/// use unsynn::*;
+/// let literal = format_literal!("123{}", ".456");
+/// assert_tokens_eq!(literal, str "123.456");
+/// ```
+#[macro_export]
+macro_rules! format_literal{
+    ($($args:tt)*) => {
+        <$crate::Literal as $crate::Parse>::parse(&mut format!($($args)*)
+            .into_token_iter())
+        .expect("Not a valid literal")
+    };
+}
+
 /// A unit that always matches without consuming any tokens.  This is required when one wants
 /// to parse a [`Repeats`] without a delimiter.  Note that using [`Nothing`] as primary entity
 /// in a [`Vec`], [`LazyVec`], [`DelimitedVec`] or [`Repeats`] will result in an infinite
