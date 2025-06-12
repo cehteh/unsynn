@@ -142,8 +142,8 @@ impl Parser for String {
 /// # use unsynn::*;
 /// let mut tokens = "foo -> {1,2,3}".to_token_stream();
 ///
-/// assert_eq!(
-///     tokens.to_string(),
+/// assert_tokens_eq!(
+///     tokens,
 ///     "foo -> { 1 , 2 , 3 }"
 /// );
 /// ```
