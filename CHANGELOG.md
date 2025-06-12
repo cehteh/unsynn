@@ -35,7 +35,7 @@ All notable changes to unsynn will be documented in this file.
 
 - Default for keywords that are constructed from a single token [[commit](https://git.pipapo.org/cehteh/unsynn/commit/d84948918794003c24f4cc1fe83bdb750016c977)]
 
-- IntoLiteralString from(&amp;T) and as_str() -&gt; &amp;'str methods [[commit](https://git.pipapo.org/cehteh/unsynn/commit/fd7749be2122b6f48e636b1792dbf17b0e73e2a5)]
+- IntoLiteralString from(&amp;T) and as_str() -&gt; &amp;&apos;str methods [[commit](https://git.pipapo.org/cehteh/unsynn/commit/fd7749be2122b6f48e636b1792dbf17b0e73e2a5)]
 
 - Cached&lt;T&gt;::from_string(s: String) [[commit](https://git.pipapo.org/cehteh/unsynn/commit/fb98d4c03b7b3d39ee6c36c06c8265f7575af629)]
 

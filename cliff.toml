@@ -22,7 +22,7 @@ body = """
     {% for commit in commits | unique(attribute="message") %}
         - {% if commit.scope %}*({{ commit.scope }})* {% endif %}\
             {% if commit.breaking %}[**breaking**] {% endif %}\
-            {{ commit.message | upper_first | replace(from="&", to="&amp;")  | replace(from="<", to="&lt;") | replace(from=">", to="&gt;") }} \
+            {{ commit.message | upper_first | escape_xml }} \
             [[commit](<REPO>/commit/{{ commit.id }})]
     {% endfor %}
 {% endfor %}\n
