@@ -84,7 +84,7 @@ All notable changes to this project will be documented in this file.
 - More ToTokens for rust_types (references etc) [[commit](https://git.pipapo.org/cehteh/unsynn/commit/4c64dbcec1a9805a49d7635b74123ed0dd225c29)]
 
 
-### 🐛 Bug Fixes
+### 🪳 Bug Fixes
 
 - Can only reserve #() in quote [[commit](https://git.pipapo.org/cehteh/unsynn/commit/9e036c3f01e730c92e684a49451ed1f6248ba139)]
 
@@ -123,7 +123,7 @@ All notable changes to this project will be documented in this file.
 
 ## [0.1.1] - 2025-05-10
 
-### 🐛 Bug Fixes
+### 🪳 Bug Fixes
 
 - LiteralString::from_str() and PartialEq [[commit](https://git.pipapo.org/cehteh/unsynn/commit/f7684ff47db20b7ae14859b16da2315e7f29377b)]
 
@@ -135,7 +135,7 @@ All notable changes to this project will be documented in this file.
 - Docgen feature (WIP) [[commit](https://git.pipapo.org/cehteh/unsynn/commit/db6addb02d4f4adaae4efabeba365b44bc077ace)]
 
 
-### 🐛 Bug Fixes
+### 🪳 Bug Fixes
 
 - Missing $crate:: in macros [[commit](https://git.pipapo.org/cehteh/unsynn/commit/0237fb184c88df1c79b6abfae5fc978bd15bac73)]
 
@@ -235,7 +235,7 @@ All notable changes to this project will be documented in this file.
 - Error::set_pos [[commit](https://git.pipapo.org/cehteh/unsynn/commit/134ce657a701ef985ef72a234080b4cafb59ed58)]
 
 
-### 🐛 Bug Fixes
+### 🪳 Bug Fixes
 
 - Bump shadow_counted version with bugfix [[commit](https://git.pipapo.org/cehteh/unsynn/commit/15dba8b4f76b35caa49b4c7c485bed808e45fc26)]
 
@@ -249,7 +249,7 @@ All notable changes to this project will be documented in this file.
 - More blacket impls for ToTokens, Cookbook [[commit](https://git.pipapo.org/cehteh/unsynn/commit/1e5bca6e79497a5e7e1d16af749fc5e2169520fb)]
 
 
-### 🐛 Bug Fixes
+### 🪳 Bug Fixes
 
 - Some Cached conversion must not have the ToTokens bound [[commit](https://git.pipapo.org/cehteh/unsynn/commit/2da5e1812db3d7094fc02b1a508bb5f8b34360ae)]
 
@@ -286,7 +286,7 @@ All notable changes to this project will be documented in this file.
 
 ## [0.0.18] - 2024-09-20
 
-### 🐛 Bug Fixes
+### 🪳 Bug Fixes
 
 - Parsing enum variants in unsynn! must be transactional [[commit](https://git.pipapo.org/cehteh/unsynn/commit/558cb9476e01e8b533d57542a4a4f4780a415e92)]
 
@@ -331,7 +331,7 @@ All notable changes to this project will be documented in this file.
 - Error::unexpected_token_or_end() [[commit](https://git.pipapo.org/cehteh/unsynn/commit/261ca343b3b4878f7a370a381d971a6a7713a2ed)]
 
 
-### 🐛 Bug Fixes
+### 🪳 Bug Fixes
 
 - Deny(clippy::unsafe_used), fix unsafe occurences [[commit](https://git.pipapo.org/cehteh/unsynn/commit/cc608179872280d7a6145d7d18d2251c632b1fbf)]
 
@@ -376,7 +376,7 @@ All notable changes to this project will be documented in this file.
 - ToTokens:: to_token_iter() and tokens_to_string() [[commit](https://git.pipapo.org/cehteh/unsynn/commit/66728cccd73d2be581ab04f2848e19a903534ae4)]
 
 
-### 🐛 Bug Fixes
+### 🪳 Bug Fixes
 
 - Clippy lint [[commit](https://git.pipapo.org/cehteh/unsynn/commit/ec97fe65f1354ab2781d6b91b42421d4c4491b85)]
 
@@ -390,7 +390,7 @@ All notable changes to this project will be documented in this file.
 
 ## [0.0.12] - 2024-09-09
 
-### 🐛 Bug Fixes
+### 🪳 Bug Fixes
 
 - Missed ToTokens constraits in group [[commit](https://git.pipapo.org/cehteh/unsynn/commit/e5bd5db7623db9837c82e4c6409e9abb5a4e658c)]
 
@@ -415,7 +415,7 @@ All notable changes to this project will be documented in this file.
 - Impl From<Cons<A,B>> for (A, B) [[commit](https://git.pipapo.org/cehteh/unsynn/commit/dc1d4158107b8730ade8628a1d99ca92a3328915)]
 
 
-### 🐛 Bug Fixes
+### 🪳 Bug Fixes
 
 - Keyword! macro, add attributes fix some missing $crate:: [[commit](https://git.pipapo.org/cehteh/unsynn/commit/ed2fe2acfe62cea0393d34b76e3580e12d11a051)]
 
@@ -476,7 +476,7 @@ All notable changes to this project will be documented in this file.
 
 ## [0.0.3] - 2024-06-07
 
-### 🐛 Bug Fixes
+### 🪳 Bug Fixes
 
 - Export `HiddenState`, add more docs [[commit](https://git.pipapo.org/cehteh/unsynn/commit/863d42734780a63803c18d1477e300062826ab63)]
 
@@ -485,7 +485,7 @@ All notable changes to this project will be documented in this file.
 
 ## [0.0.2] - 2024-05-30
 
-### 🐛 Bug Fixes
+### 🪳 Bug Fixes
 
 - GroupContaining should parse exhaustive [[commit](https://git.pipapo.org/cehteh/unsynn/commit/5d4e75da2606963365b7020bda4ce4b540bb27d4)]
 

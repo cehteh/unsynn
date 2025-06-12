@@ -73,7 +73,7 @@ protect_breaking_commits = false
 commit_parsers = [
     { message = "^NEW:", group = "<!-- 000 -->✨ New Features" },
     { message = "^ADD:", group = "<!-- 010 -->✨ Extended Features" },
-    { message = "^FIX:", group = "<!-- 020 -->🐛 Bug Fixes" },
+    { message = "^FIX:", group = "<!-- 020 -->🪳 Bug Fixes" },
     { message = "^CHANGE:", group = "<!-- 030 -->🔥 Breaking Changes" },
     { message = "^BREAK:", group = "<!-- 030 -->🔥 Breaking Changes" },
     { message = "^DEPRECATE", group = "<!-- 040 -->🗑️ Deprecated Features" },
