@@ -15,8 +15,9 @@
 // is...
 #![allow(clippy::result_large_err)]
 
-#[allow(non_snake_case)]
 pub mod CHANGELOG {
+    #![allow(non_snake_case)]
+    #![allow(clippy::doc_markdown)]
     #![doc = include_str!("../CHANGELOG.md")]
 }
 
