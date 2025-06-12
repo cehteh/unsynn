@@ -264,6 +264,28 @@ impl<T: std::fmt::Debug, S: std::fmt::Debug> std::fmt::Debug for LazyVec<T, S> {
 #[derive(Clone)]
 pub struct DelimitedVec<T, D>(pub Vec<Delimited<T, D>>);
 
+impl<T, D> DelimitedVec<T, D> {
+    /// Creates a new empty `DelimitedVec`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use unsynn::*;
+    /// let empty: DelimitedVec<Ident, Comma> = DelimitedVec::new();
+    /// assert_tokens_eq!(empty, "");
+    /// ```
+    #[must_use]
+    pub const fn new() -> Self {
+        Self(Vec::new())
+    }
+}
+
+impl<T, D> Default for DelimitedVec<T, D> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<T: Parse, D: Parse> Parser for DelimitedVec<T, D> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let mut output = Vec::new();
