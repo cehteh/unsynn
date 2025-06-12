@@ -11,7 +11,7 @@ keywords = ["parser", "macros", "proc_macro"]
 categories = ["development-tools::procedural-macro-helpers", "parser-implementations"]
 readme = "README.md"
 rust-version = "1.80.1"
-include = ["src/**/*", "LICENSE-*", "README.md", "ROADMAP.md", "COOKBOOK.md"]
+include = ["src/**/*", "LICENSE-*", "README.md", "ROADMAP.md", "COOKBOOK.md", "CHANGELOG.md"]
 
 [dependencies]
 mutants = "0.0.3"

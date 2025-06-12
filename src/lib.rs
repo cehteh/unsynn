@@ -6,12 +6,19 @@
 //! # Roadmap
 //!
 #![doc = include_str!("../ROADMAP.md")]
+//!
+//! For a history how unsynn evolved, check the [CHANGELOG].
 // PLANNED: currently the Error type is a tad big. This could be either resolved by
 // refactoring the Error type (only keep refine typename, remove 'at' and have the iter start
 // at the error not after) or just Box<Error>. A conclusive optimization for this is postponed
 // until we have benchmarks to decide whats the best approach. It may as well just stay as
 // is...
 #![allow(clippy::result_large_err)]
+
+#[allow(non_snake_case)]
+pub mod CHANGELOG {
+    #![doc = include_str!("../CHANGELOG.md")]
+}
 
 use shadow_counted::ShadowCountedIter;
 
