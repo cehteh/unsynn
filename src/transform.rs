@@ -204,7 +204,7 @@ impl<T: ToTokens> IntoLiteralString<T> {
     /// ```
     pub fn from(from: &T) -> Self {
         Self(
-            LiteralString::from_str(&from.tokens_to_string()),
+            LiteralString::from_str(from.tokens_to_string()),
             PhantomData,
         )
     }
@@ -220,7 +220,7 @@ impl<T: ToTokens> IntoLiteralString<T> {
 impl<T: Parse + ToTokens> Parser for IntoLiteralString<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         Ok(Self(
-            LiteralString::from_str(&tokens.parse::<T>()?.tokens_to_string()),
+            LiteralString::from_str(tokens.parse::<T>()?.tokens_to_string()),
             PhantomData,
         ))
     }
@@ -236,7 +236,7 @@ impl<T> ToTokens for IntoLiteralString<T> {
 impl<T: Default + ToTokens> Default for IntoLiteralString<T> {
     fn default() -> Self {
         Self(
-            LiteralString::from_str(&T::default().tokens_to_string()),
+            LiteralString::from_str(T::default().tokens_to_string()),
             PhantomData,
         )
     }
