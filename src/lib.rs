@@ -210,6 +210,33 @@ impl ToTokens for TokenIter<'_> {
     }
 }
 
+/// `ToTokens` for arrays and slices
+///
+/// # Example
+///
+/// ```rust
+/// use unsynn::*;
+/// let arr: [Ident; 3] = [
+///     Ident::new("a", Span::call_site()),
+///     Ident::new("b", Span::call_site()),
+///     Ident::new("c", Span::call_site())
+/// ];
+/// let mut tokens = TokenStream::new();
+/// arr.to_tokens(&mut tokens);
+/// assert_eq!(tokens.to_string(), "a b c");
+/// # let vec = vec![Ident::new("a", Span::call_site()), Ident::new("b", Span::call_site()), Ident::new("c", Span::call_site())];
+/// # let mut tokens = TokenStream::new();
+/// # vec[1..3].to_tokens(&mut tokens);
+/// # assert_eq!(tokens.to_string(), "b c");
+/// ```
+impl<T: ToTokens> ToTokens for [T] {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        for element in self {
+            element.to_tokens(tokens);
+        }
+    }
+}
+
 /// implement `Display` using `ToTokens::tokens_to_string()` for all types that implement `ToTokens`
 impl std::fmt::Display for dyn ToTokens {
     #[mutants::skip]
