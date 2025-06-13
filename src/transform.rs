@@ -315,6 +315,13 @@ impl<T> IntoIdent<T> {
     }
 }
 
+/// Converts `IntoIdent<T>` into `Ident` by consuming the `IntoIdent<T>`.
+impl<T> From<IntoIdent<T>> for Ident {
+    fn from(this: IntoIdent<T>) -> Self {
+        this.0.into_inner()
+    }
+}
+
 impl<T: Parse + ToTokens> Parser for IntoIdent<T> {
     fn parser(tokens: &mut TokenIter) -> Result<Self> {
         let mut string = tokens.parse::<T>().refine_err::<Self>()?.tokens_to_string();
