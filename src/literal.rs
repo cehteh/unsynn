@@ -113,10 +113,10 @@ impl<const V: u128> ConstInteger<V> {
         self.0.value
     }
 
-    /// Deconstructs `self` and gets the `Literal`
+    /// Deconstructs `self` and gets the `LiteralInteger`
     #[must_use]
-    pub fn into_inner(self) -> Literal {
-        self.0.literal
+    pub fn into_inner(self) -> LiteralInteger {
+        self.0
     }
 }
 
@@ -246,8 +246,8 @@ impl<const V: char> ConstCharacter<V> {
 
     /// Deconstructs `self` and gets the `Literal`
     #[must_use]
-    pub fn into_inner(self) -> Literal {
-        self.0.literal
+    pub fn into_inner(self) -> LiteralCharacter {
+        self.0
     }
 }
 
