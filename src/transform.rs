@@ -98,6 +98,7 @@ impl<T: std::fmt::Debug> std::fmt::Debug for Skip<T> {
 pub struct Insert<T>(pub T);
 
 impl<T: Default> Parser for Insert<T> {
+    #[inline]
     fn parser(_tokens: &mut TokenIter) -> Result<Self> {
         Ok(Self(T::default()))
     }

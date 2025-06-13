@@ -22,6 +22,7 @@ macro_rules! make_group {
             pub struct $name(pub Group);
 
             impl From<$name> for Group {
+                #[inline]
                 fn from(group: $name) -> Self {
                     group.0
                 }

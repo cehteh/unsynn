@@ -310,7 +310,7 @@ impl<T: Parse + std::fmt::Debug> std::fmt::Debug for Cached<T> {
 }
 
 /// Convert a `Cached<T: Into<TokenTree>>` object into a `TokenTree`.
-impl<T: Parse + Into<TokenTree>> From<Cached<T>> for TokenTree {
+impl<T: Into<TokenTree>> From<Cached<T>> for TokenTree {
     fn from(cached: Cached<T>) -> Self {
         cached.value.into()
     }
