@@ -189,7 +189,7 @@ impl<A: ToTokens, B: ToTokens> ToTokens for Swap<A, B> {
 /// assert_tokens_eq!(default, r#" "foo 1234" "#);
 /// ```
 #[derive(Debug)]
-pub struct IntoLiteralString<T>(pub LiteralString, PhantomData<T>);
+pub struct IntoLiteralString<T>(LiteralString, PhantomData<T>);
 
 impl<T: ToTokens> IntoLiteralString<T> {
     /// Creates a `IntoLiteralString` from an AST.
@@ -209,12 +209,21 @@ impl<T: ToTokens> IntoLiteralString<T> {
             PhantomData,
         )
     }
+}
 
+impl<T> IntoLiteralString<T> {
     /// Returns the underlying `&str`without its surrounding quotes.
     #[inline]
     #[must_use]
     pub fn as_str(&self) -> &str {
         self.0.as_str()
+    }
+
+    /// Destructures `IntoLiteralString<T>` to get the inner `LiteralString`.
+    #[inline]
+    #[must_use]
+    pub fn into_inner(self) -> LiteralString {
+        self.0
     }
 }
 
@@ -264,7 +273,7 @@ impl<T: Default + ToTokens> Default for IntoLiteralString<T> {
 /// assert_tokens_eq!(default, "foo1234");
 /// ```
 #[derive(Debug)]
-pub struct IntoIdent<T>(pub CachedIdent, PhantomData<T>);
+pub struct IntoIdent<T>(CachedIdent, PhantomData<T>);
 
 impl<T: ToTokens> IntoIdent<T> {
     /// Creates a `IntoIdent` from an AST.
@@ -288,12 +297,21 @@ impl<T: ToTokens> IntoIdent<T> {
         string.retain(|c| c.is_alphanumeric() || c == '_');
         Ok(Self(CachedIdent::from_string(string)?, PhantomData))
     }
+}
 
+impl<T> IntoIdent<T> {
     /// Returns the underlying `&str`without its surrounding quotes.
     #[inline]
     #[must_use]
     pub fn as_str(&self) -> &str {
         self.0.as_str()
+    }
+
+    /// Destructures `IntoIdent<T>` to get the inner `CachedIdent`.
+    #[inline]
+    #[must_use]
+    pub fn into_inner(self) -> CachedIdent {
+        self.0
     }
 }
 
@@ -340,14 +358,24 @@ impl<T: Default + ToTokens> Default for IntoIdent<T> {
 ///
 /// let parsed = <IntoTokenStream<Cons<Ident, LiteralInteger>>>::parser(&mut token_iter).unwrap();
 /// assert_tokens_eq!(parsed, "foo 123");
+/// # assert_tokens_eq!(parsed.into_inner(), "foo 123")
 /// ```
 #[derive(Debug)]
-pub struct IntoTokenStream<T>(pub TokenStream, PhantomData<T>);
+pub struct IntoTokenStream<T>(TokenStream, PhantomData<T>);
 
 impl<T: ToTokens> IntoTokenStream<T> {
     /// Creates a `IntoTokenStream` from an AST.
     pub fn from(from: &T) -> Self {
         Self(from.to_token_stream(), PhantomData)
+    }
+}
+
+impl<T> IntoTokenStream<T> {
+    /// Destructures `IntoTokenStream<T>` to get the inner `TokenStream`.
+    #[inline]
+    #[must_use]
+    pub fn into_inner(self) -> TokenStream {
+        self.0
     }
 }
 
