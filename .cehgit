@@ -6,7 +6,7 @@ set -ue
 
 # PLANNED: --private use and install in .git/cehgit.d/
 # PLANNED: 00_ for setting up test directories, where to do the cleanup?
-# PLANNED: pre-push hook 
+# PLANNED: pre-push hook
 # PLANNED: refactor all variables, prefix with CEHGIT_, CEHGIT_ or CEHGIT_{ACTION}_
 # TODO: naming conventions
 # PLANNED: do we want cleanup on trap EXIT? or better manual cleanup?
@@ -24,78 +24,78 @@ function cehgit
             shift
             show_help
             ;;
-        init)
+        init) #O [-f|--force|--update] - initialize or update the local '.cehgit'
             # PLANNED: --all (bells&whistles)
             shift
             cehgit_init "$@"
             ;;
-        update)
+        update) #O - update the local '.cehgit', and all installed actions.
             shift
             cehgit_init --update
             cehgit_install_action --update
             cehgit_install_command --update
             cehgit_install_modules
             ;;
-        install-action)
+        install-action) #O [-f|--force] [--all|actionglob..] - install actions that are shipped with cehgit
             shift
             cehgit_install_action "$@"
             cehgit_install_modules
             ;;
-        update-actions)
+        update-actions) #O - update all actions
             shift
             cehgit_install_action --update
             cehgit_install_modules
             ;;
-        list-actions)
+        list-actions) #O - list actions that are installed in the current repository
             shift
             cehgit_list_actions
             ;;
-        available-actions)
+        available-actions) #O - list actions that are shipped with cehgit
             shift
             cehgit_available_actions
             ;;
-        list-modules)
+        list-modules) #O - list modules that are installed in the current repository
             shift
             cehgit_list_modules
             ;;
-        available-modules)
+        available-modules) #O - list modules that are shipped with cehgit
             shift
             cehgit_available_modules
             ;;
-        list-commands)
+        list-commands) #O - list commands that are installed in the current repository
             shift
             cehgit_list_commands
             ;;
-        available-commands)
+        available-commands) #O - list commands that are shipped with cehgit
             shift
             cehgit_available_commands
             ;;
-        install-command)
+        install-command) #O [-f|--force] [--all|commandglob..] - install commands that are shipped with cehgit
             shift
             cehgit_install_command "$@"
             cehgit_install_modules
             ;;
-        install-hook)
+        install-hook) #O [-f|--force] [--all|hooks..] - install a githook to use cehgit
             shift
             cehgit_install_hook "$@"
             ;;
-        remove-hook)
+        remove-hook) #O [hooks..] - delete cehgit controlled githooks
             shift
             cehgit_remove_hook "$@"
             ;;
-        list-hooks)
+        list-hooks) #O - list all githooks that point to cehgit
             shift
             cehgit_list_hooks
             ;;
-        log)
+        log) #O - show the log of the last test run
             shift
             cehgit_log
             ;;
-        clean)
+        clean) #O - remove all test directories
             shift
             cehgit_clean
             ;;
-        run)
+        run) #O run '$RUN_HOOK' [pre-commit] with BACKGROUNDING=false and VERBOSITY_LEVEL+1
             # shellcheck disable=SC2034
             declare -gr CEHGIT_HOOK="$RUN_HOOK"
             BACKGROUNDING="false"
@@ -134,7 +134,7 @@ function cehgit_loadconfig
 
     # defaults overwritten from config files
     declare -gx KEEP_TESTS=5                             #G How many tests are kept must be bigger than 2
-    declare -gx NICE_LEVEL=1                             #G nice level 'run_test' uses
+    declare -gx NICE_LEVEL=1                             #G The nice level 'run_test' uses
     declare -gx TIMEOUT_SECS=10                          #G Timeout for test actions
     declare -gx MEMORY_KB=16777216                       #G Memory limit for test actions
     declare -gx TEST_PREFIX=".test-"                     #G Prefix for test directories, extended by a timestamp and hookname
@@ -143,6 +143,7 @@ function cehgit_loadconfig
     declare -gx BACKGROUNDING="true"                     #G Enable the background jobs machinery, when not set to 'true' background jobs will be done in foreground
     declare -gx RUN_HOOK="pre-commit"                    #G Which 'hook' should 'cehgit run' emulate
     declare -gx CEHGIT_HOOKS=(pre-commit pre-merge-commit prepare-commit-msg commit-msg) #G List of hooks to be installed by 'cehgit install-hook --all'
+    declare -gax DISABLED_ACTIONS=()                     #G List of action globs that are disabled, these will not be run
 
     # load config files
     # shellcheck disable=SC2088 # load_existing expands tilde
@@ -369,6 +370,7 @@ function cehgit_install_hook
 
 function cehgit_remove_hook
 {
+    # PLANNED: --all
     for hook in "$@"; do
         if [[ $(readlink ".git/hooks/$hook") = ../../.cehgit ]]; then
             rm ".git/hooks/$hook"
@@ -454,6 +456,14 @@ function cehgit_runner
         [[ -f "$ACTION" ]] || continue
         ACTION="${ACTION##*/}"
 
+        for glob in "${DISABLED_ACTIONS[@]}"; do
+            # shellcheck disable=SC2053
+            if [[ "$ACTION" == *$glob* ]]; then
+                info "$ACTION is disabled"
+                continue 2
+            fi
+        done
+
         # TODO: can we memo actions instead caching? memo needs persistence then
         # shellcheck disable=SC2155
         local state="$(state_cached)"
@@ -538,6 +548,7 @@ function state_init #api {statefile} - initializes a state log
     declare -gx STATE_FILE="$1"
     declare -gx STATE_SEQ
     STATE_SEQ=$(awk '{max = ($1 > max) ? $1 : max} END {print max + 1}' "$STATE_FILE" 2>/dev/null || echo 0)
+    touch "$STATE_FILE"
     trace "STATE_FILE = $STATE_FILE, STATE_SEQ = $STATE_SEQ"
 }
 
@@ -717,7 +728,7 @@ function run_test #afunc [-n|--nice LEVEL] [-m|--memory KB] [-t|--timeout SECS] 
 # background scheduling with do hand over hand locking from foreground to background
 # lock. Thus this transition is atomic.
 
-function background_schedule #afunc schedules the current action to run in the background when not already scheduled
+function background_schedule #afunc - schedules the current action to run in the background when not already scheduled
 {
     if [[ "$BACKGROUNDING" != "true" ]] || [[ -n "${CEHGIT_BACKGROUND:-}" ]]; then
         # called from background job, execute it
@@ -733,7 +744,7 @@ function background_schedule #afunc schedules the current action to run in the b
     fi
 }
 
-function background_wait #afunc waits for the background actions to finish and merges the log
+function background_wait #afunc - waits for the background actions to finish and merges the log
 {
     if [[ "$BACKGROUNDING" != "true" ]]; then
         trace "backgrounding disabled"
@@ -763,7 +774,7 @@ function background_wait #afunc waits for the background actions to finish and m
     fi
 }
 
-function background_result #afunc returns 0 on ok and 1 on fail of a background action
+function background_result #afunc - returns 0 on ok and 1 on fail of a background action
 {
     local state
     state="$(state_cached)"
@@ -802,57 +813,10 @@ ABOUT
 
 USAGE
 
+$(sed 's/^ *\([^)]\+\)) #O\(.*\) - \(.*\)/  cehgit \1\2\n         \3\n/p;d' < "$0")
+
   cehgit [-h|--help|help]
          show this help
-
-  cehgit init [-f|--force|--update]
-         initialize or update the local '.cehgit'
-
-  cehgit install-action [-f|--force] [--all|actionglob..]
-         install actions that are shipped with cehgit
-
-  cehgit update-actions
-         update all actions
-
-  cehgit update
-         update the local '.cehgit', and all installed actions.
-
-  cehgit available-actions
-         list actions that are shipped with cehgit
-
-  cehgit list-actions
-         list actions that are active in the current repository
-
-  cehgit available-modules
-         list actions that are shipped with cehgit
-
-  cehgit list-modules
-         list modules that are installed in the current repository
-
-  cehgit available-commands
-         list commands that are shipped with cehgit
-
-  cehgit list-commands
-         list commands that are installed in the current repository
-
-  cehgit install-hook [-f|--force] [--all|hooks..]
-         install a githook to use cehgit
-
-  cehgit remove-hook [--all|hooks..]
-         delete cehgit controlled githooks
-
-  cehgit list-hooks
-         list all githooks that point to cehgit
-
-  cehgit clean
-         remove all test directories
-
-  cehgit log
-         show the log of the last test run
-
-  ./.cehgit run
-         manual run, behaves as from a 'RUN_HOOK' [pre-commit] hook with
-         BACKGROUNDING=false and VERBOSITY_LEVEL+1
 
   ./.cehgit [..]
          same as 'cehgit' above but calling the repo local version
@@ -956,7 +920,7 @@ CONFIGURATION
 
   Following Variables can be configured [=default]:
 
-$(sed 's/ *declare -gx \([^ ]*\)=\([^ ]*\) *#G *\(.*\)/  \1 [\2]\n    \3 \n/p;d' < "$0")
+$(sed 's/ *declare -[^ ]\+ \([^ ]*\)=\([^ ]*\) *#G *\(.*\)/  \1 [\2]\n    \3\n/p;d' < "$0")
 
 
 EXTEND CEHGIT WITH SUBCOMMANDS
@@ -994,24 +958,32 @@ WRITING ACTIONS
 
   - 10 configuration and prepopulation
     When some adjustments are to be done to make the test dir compileable this is the place.
+
   - 20 validate test dir, toolchain versions
     Check for presence and validty of files in the test dir.
     Check for toolchains/tools, required versions
+
   - 30 linters/formatting check
     Testing begins here with resonable cheap checks, running linters and similar things.
+
   - 40 building
     This is where compilation happens, we are building the project, tests here. But do
     not run them yet.
+
   - 50 normal testing
     Runs the standard testsuite. The shipped actions will background these tests.
+
   - 60 extensive testing/mutants/fuzzing
     When there are any expensive tests like running mutant checks, fuzzing, benchmarks this
     is done here. The shipped actions will background these tests.
+
   - 70 doc
     Generate documentation, possibly test it.
+
   - 80 staging work, release chores, changelogs
     When some automatic workflow should be implemented like promoting/merging branches,
     generating changelogs etc, this is done here.
+
   - 90 packaging/deploy/postprocessing
     Final step for automatic workflows which may build packages and deploy it.
     Also if any final processing/cleanup has to be done.
@@ -1050,7 +1022,7 @@ AVAILABLE ACTIONS
   Some actions is shipped with cehgit. More will be added in future. These
   implement and eventually evolve into an automated workflow.
 
-$($0 available-actions | awk '{print "  " $0}')
+$($0 available-actions | awk '/.+/{print "  " $0} /^$/{print}')
 
 BUILTIN ACTION FUNCTIONS
 
@@ -1061,14 +1033,14 @@ BUILTIN ACTION FUNCTIONS
   cehgit would exit. Ususally this is done by something like 'some_action_function || return
   0'.  Using a 'if' or other operators is possible as well.
 
-$(sed 's/^\(function \([^ ]*\) *\)\?#afunc \(\([^-]*\) *-\)\? *\(.*\)/  \2 \4\n     \5\n/p;d' < "$0")
+$(sed 's/^function \(.*\) #afunc\(.*\) - \(.*\)/  \1\2\n      \3\n/p;d' < "$0")
 
 
 API FUNCTIONS
 
   We define a few functions for diagnostics, locking, caching and to record states:
 
-$(sed 's/^function \([^ ]*\) *#api \([^-]*\) *- *\(.*\)/  \1 \2\n     \3\n/p;d' < "$0")
+$(sed 's/^function \(.*\) #api\(.*\) - \(.*\)/  \1\2\n      \3\n/p;d' < "$0")
 
   For further documentation look into the source.
 
@@ -1091,8 +1063,14 @@ INITIAL INSTALLATION
   To make 1. work it is best to clone cehgit locally and symlink the checked out files
   to your '.local/' tree. This allows easy upgrades via git:
 
-    # clone the repository and change into it
-    git clone https://git.pipapo.org/cehgit
+
+    # cehgit is distributed on radicle p2p forge when you have a radicle client
+    # installed you can clone it with the radicle client:
+    rad clone rad:z3H96oNDcR4kBoREvBJHKr7Z9w7B7
+
+    # alternatively you can git-clone it from a seed server:
+    git clone https://seed.pipapo.org/z3H96oNDcR4kBoREvBJHKr7Z9w7B7.git cehgit
+
     cd cehgit
 
     # symlink the script itself
